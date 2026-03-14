@@ -1,0 +1,17 @@
+.env
+cache/
+data/
+*.exe
+__pycache__/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.gemini/
+.agents/
+.agent/
+_agents/
+_agent/
+appData/
+tmp/
+brain/
+*.log
