@@ -66,6 +66,7 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
     .stApp,.main,[data-testid="stAppViewContainer"]{background:transparent!important;color:white;font-family:'Inter',sans-serif!important;}
     h1,h2,h3,.glow-title,.score-big,.level-text{font-family:'Orbitron',sans-serif!important;letter-spacing:1px;}
+    .block-container {padding-top: 0rem!important; padding-bottom: 0rem!important; padding-left: 5rem!important; padding-right: 5rem!important;}
     .metric-card{background:rgba(10,5,25,0.45);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:25px;text-align:center;transition:0.4s;}
     .metric-card:hover{transform:translateY(-10px);border-color:#00dc82;box-shadow:0 10px 30px rgba(0,220,130,0.2);}
     .score-big{font-size:72px;font-weight:900;background:linear-gradient(90deg,#00d4ff,#00dc82);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
@@ -75,7 +76,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Header ──
-st.markdown("<div style='text-align:center;padding:50px 0;'><h1 style='font-size:56px;margin:0;text-shadow:0 0 30px rgba(0,220,130,0.5);'>Aurora Kashmir</h1><p style='color:#a0aec0;font-size:22px;letter-spacing:2px;'>COSMIC WEATHER & AURORA FORECAST</p></div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align:center;padding:15px 0;'><h1 style='font-size:56px;margin:0;text-shadow:0 0 30px rgba(0,220,130,0.5);'>Aurora Kashmir</h1><p style='color:#a0aec0;font-size:22px;letter-spacing:2px;'>COSMIC WEATHER & AURORA FORECAST</p></div>", unsafe_allow_html=True)
 
 # ── Data Fetch ──
 with st.spinner("Synchronizing with Galactic Data Centers..."):
