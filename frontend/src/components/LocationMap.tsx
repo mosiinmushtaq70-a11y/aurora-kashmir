@@ -1,6 +1,7 @@
 'use client';
 
-import { APIProvider, Map } from '@vis.gl/react-google-maps';
+import Map from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, Zap } from 'lucide-react';
 
@@ -12,8 +13,7 @@ interface LocationMapProps {
 }
 
 export default function LocationMap({ isVisible, targetLocation, auroraScore, onClose }: LocationMapProps) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID || 'DEMO_MAP_ID'; // Demo ID or actual config
+  const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY || '';
 
   return (
     <AnimatePresence>
@@ -34,28 +34,29 @@ export default function LocationMap({ isVisible, targetLocation, auroraScore, on
           </button>
 
           {/* Map Container */}
-          <div className="w-full h-full relative rounded-2xl overflow-hidden border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-            {apiKey ? (
-              <APIProvider apiKey={apiKey}>
-                <Map
-                  defaultCenter={targetLocation}
-                  defaultZoom={14}
-                  defaultHeading={0}
-                  defaultTilt={65}
-                  mapId={mapId}
-                  disableDefaultUI={true}
-                  gestureHandling="greedy"
-                >
-                  {/* Future: Custom WebGL Overlays for aurora probability mapping */}
-                </Map>
-              </APIProvider>
+          <div className="w-full h-full relative rounded-2xl overflow-hidden border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-space-black">
+            {mapTilerKey ? (
+              <Map
+                initialViewState={{
+                  longitude: targetLocation.lng,
+                  latitude: targetLocation.lat,
+                  zoom: 14,
+                  pitch: 65,
+                  bearing: 0
+                }}
+                mapStyle={`https://api.maptiler.com/maps/dataviz-dark/style.json?key=${mapTilerKey}`}
+                terrain={{ source: 'maptiler-terrain', exaggeration: 1.5 }}
+                maxPitch={85}
+              >
+                {/* Future: Custom WebGL Overlays for aurora probability mapping */}
+              </Map>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-space-black flex-col gap-4 border border-red-500/20">
                 <Zap className="text-red-500 animate-pulse" size={48} />
                 <p className="text-red-400 font-mono text-sm tracking-widest text-center max-w-md">
-                  GOOGLE MAPS API KEY REQUIRED<br/>
+                  MAPTILER API KEY REQUIRED<br/>
                   <span className="text-white/50 text-xs normal-case mt-2 block">
-                    Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env file to enable the 3D map transition.
+                    Please add NEXT_PUBLIC_MAPTILER_KEY to your .env file to enable the 3D map transition.
                   </span>
                 </p>
               </div>
