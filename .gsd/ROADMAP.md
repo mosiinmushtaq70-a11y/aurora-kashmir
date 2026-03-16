@@ -29,10 +29,14 @@ updated: 2026-03-16T15:30:00Z
 
 ---
 
-### Phase 2: High-Fidelity UI Polish
-**Status:** ⬜ Not Started
-**Objective:** Enhance visual aesthetics with custom transitions, improved chart styling, and responsive design.
-**Depends on:** Phase 1
+### Phase 2: Immersive UI & Location Intelligence
+**Status:** 🔄 In Progress
+**Objective:** Implement a dynamic, collapsible UI and integrate MapLibre GL JS 3D for hyper-local aurora visibility analysis.
+
+**Plans:**
+- [ ] Plan 2.1: Collapsible Sidebar & Layout Polish (wave 1)
+- [ ] Plan 2.2: MapLibre GL JS 3D Integration & Zoom-to-Map (wave 2)
+- [ ] Plan 2.3: Local Visibility Heatmaps & Air Markers (wave 3)
 
 ---
 
@@ -48,5 +52,5 @@ updated: 2026-03-16T15:30:00Z
 | Phase | Status | Plans | Complete |
 |-------|--------|-------|----------|
 | 1 | ✅ | 2/2 | 2026-03-16 |
-| 2 | ⬜ | 0/0 | — |
+| 2 | 🔄 | 0/3 | — |
 | 3 | ⬜ | 0/0 | — |
