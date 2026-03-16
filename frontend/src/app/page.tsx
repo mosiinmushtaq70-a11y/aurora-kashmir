@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import AuroraGlobe from '@/components/AuroraGlobe';
 import Aurora from '@/components/Aurora';
 import LightPillar from '@/components/LightPillar';
+import LocationMap from '@/components/LocationMap';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 interface ForecastData {
@@ -25,6 +26,7 @@ export default function Home() {
   const [kp, setKp] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     // Fetch global forecast data
@@ -127,7 +129,7 @@ export default function Home() {
           <hr className="border-t border-white/10" />
 
           {/* Globe Component */}
-          <AuroraGlobe kp={kp} />
+          <AuroraGlobe kp={kp} onZoomComplete={() => setShowMap(true)} />
 
           <hr className="border-t border-white/10" />
 
@@ -218,6 +220,16 @@ export default function Home() {
 
         </div>
       ) : null}
+
+      {/* Google Maps 3D Overlay */}
+      {data && (
+        <LocationMap
+          isVisible={showMap}
+          targetLocation={{ lat: 34.0837, lng: 74.7973 }} // Kashmir target
+          auroraScore={Math.round(data.aurora_score)}
+          onClose={() => setShowMap(false)}
+        />
+      )}
       
         {/* Footer */}
         <div className="text-center text-slate-600 p-12 text-xs">
