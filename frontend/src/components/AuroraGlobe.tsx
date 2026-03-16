@@ -30,11 +30,13 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
     ctrl.autoRotateSpeed = 2.0;
 
     // Earth
+    const textureLoader = new THREE.TextureLoader();
     const earth = new THREE.Mesh(
       new THREE.SphereGeometry(5, 64, 64),
       new THREE.MeshPhongMaterial({
-        map: new THREE.TextureLoader().load('https://unpkg.com/three-globe/example/img/earth-night.jpg'),
-        bumpMap: new THREE.TextureLoader().load('https://unpkg.com/three-globe/example/img/earth-topology.png'),
+        color: 0xffffff,
+        map: textureLoader.load('/earth.jpg'),
+        bumpMap: textureLoader.load('/earth-bump.jpg'),
         bumpScale: 0.05
       })
     );
@@ -57,7 +59,7 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
     const auroraOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.12, 64, 64), aurMat);
     scene.add(auroraOverlay);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
     const sun = new THREE.DirectionalLight(0xffffff, 1);
     sun.position.set(5, 5, 5);
     scene.add(sun);
