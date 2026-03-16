@@ -15,6 +15,14 @@ interface LocationMapProps {
 export default function LocationMap({ isVisible, targetLocation, auroraScore, onClose }: LocationMapProps) {
   const mapTilerKey = (process.env.NEXT_PUBLIC_MAPTILER_KEY || '').replace(/"/g, '');
 
+  const buffer = 1.5;
+  const maxBounds: [number, number, number, number] | undefined = targetLocation ? [
+    targetLocation.lng - buffer, // minLng
+    targetLocation.lat - buffer, // minLat
+    targetLocation.lng + buffer, // maxLng
+    targetLocation.lat + buffer  // maxLat
+  ] : undefined;
+
   return (
     <AnimatePresence>
       {isVisible && targetLocation && (
@@ -47,6 +55,8 @@ export default function LocationMap({ isVisible, targetLocation, auroraScore, on
                 mapStyle={`https://api.maptiler.com/maps/dataviz-dark/style.json?key=${mapTilerKey}`}
                 terrain={{ source: 'maptiler-terrain', exaggeration: 1.5 }}
                 maxPitch={85}
+                maxBounds={maxBounds}
+                minZoom={8}
               >
                 {/* Future: Custom WebGL Overlays for aurora probability mapping */}
               </Map>
