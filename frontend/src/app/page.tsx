@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import AuroraGlobe from '@/components/AuroraGlobe';
 import Aurora from '@/components/Aurora';
+import LightPillar from '@/components/LightPillar';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 interface ForecastData {
@@ -54,16 +55,22 @@ export default function Home() {
 
   return (
     <div className="w-full h-full text-slate-200 relative">
-      {/* Fixed WebGL Aurora background */}
+      {/* Fixed WebGL LightPillar background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <Aurora
-          colorStops={['#7cff67', '#dfa89a', '#4e28e6']}
-          blend={0.46}
-          amplitude={1.0}
-          speed={1.2}
+        <LightPillar
+          topColor="#2db936"
+          bottomColor="#4b13e7"
+          intensity={1.3}
+          rotationSpeed={0.4}
+          glowAmount={0.002}
+          pillarWidth={3}
+          pillarHeight={0.4}
+          noiseIntensity={0}
+          pillarRotation={25}
+          interactive={false}
+          mixBlendMode="screen"
+          quality="high"
         />
-        {/* Subtle dark overlay so content stays readable */}
-        <div className="absolute inset-0 bg-space-black/60" />
       </div>
 
       {/* All page content sits above the background */}
