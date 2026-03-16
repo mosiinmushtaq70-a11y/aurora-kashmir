@@ -13,7 +13,7 @@ interface LocationMapProps {
 }
 
 export default function LocationMap({ isVisible, targetLocation, auroraScore, onClose }: LocationMapProps) {
-  const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY || '';
+  const mapTilerKey = (process.env.NEXT_PUBLIC_MAPTILER_KEY || '').replace(/"/g, '');
 
   return (
     <AnimatePresence>
