@@ -4,3 +4,10 @@ plotly
 requests
 python-dotenv
 Pillow
+xgboost
+scikit-learn
+joblib
+imbalanced-learn
+fastapi
+uvicorn[standard]
+pydantic

@@ -29,18 +29,15 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
     ctrl.autoRotate = true;
     ctrl.autoRotateSpeed = 2.0;
 
-    // Earth
+    // Earth — load texture via Promise; add mesh to scene only after texture is decoded
     const textureLoader = new THREE.TextureLoader();
-    const earth = new THREE.Mesh(
-      new THREE.SphereGeometry(5, 64, 64),
-      new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        map: textureLoader.load('/earth.jpg'),
-        bumpMap: textureLoader.load('/earth-bump.jpg'),
-        bumpScale: 0.05
-      })
-    );
-    scene.add(earth);
+    let earth: THREE.Mesh | null = null;
+    textureLoader.loadAsync('/earth.jpg').then((texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const mat = new THREE.MeshBasicMaterial({ map: texture });
+      earth = new THREE.Mesh(new THREE.SphereGeometry(5, 64, 64), mat);
+      scene.add(earth);
+    });
 
     // Aurora
     const kpFraction = Math.min(kp / 9.0, 1.0);

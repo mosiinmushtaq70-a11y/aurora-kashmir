@@ -31,12 +31,13 @@ updated: 2026-03-16T15:30:00Z
 
 ### Phase 2: Immersive UI & Location Intelligence
 **Status:** 🔄 In Progress
-**Objective:** Implement a dynamic, collapsible UI and integrate MapLibre GL JS 3D for hyper-local aurora visibility analysis.
+**Objective:** Implement a dynamic, immersive UI and integrate MapLibre GL JS 3D for hyper-local aurora visibility analysis.
 
 **Plans:**
-- [ ] Plan 2.1: Collapsible Sidebar & Layout Polish (wave 1)
-- [ ] Plan 2.2: MapLibre GL JS 3D Integration & Zoom-to-Map (wave 2)
-- [ ] Plan 2.3: Local Visibility Heatmaps & Air Markers (wave 3)
+- [x] Plan 2.1: Navigation Cleanup & Polish (wave 1)
+- [x] Plan 2.2: Global Click Spark Animation (wave 2)
+- [/] Plan 2.3: MapLibre GL JS 3D Integration & Zoom-to-Map (wave 3)
+- [ ] Plan 2.4: Local Visibility Heatmaps & Air Markers (wave 4)
 
 ---
 
@@ -52,5 +53,5 @@ updated: 2026-03-16T15:30:00Z
 | Phase | Status | Plans | Complete |
 |-------|--------|-------|----------|
 | 1 | ✅ | 2/2 | 2026-03-16 |
-| 2 | 🔄 | 0/3 | — |
-| 3 | ⬜ | 0/0 | — |
+| 2 | 🔄 | 2/4 | — |
+| 3 | ⬜ | 0/1 | — |

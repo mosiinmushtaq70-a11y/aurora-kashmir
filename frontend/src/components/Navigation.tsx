@@ -2,15 +2,12 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, MapPin, History, Activity, Settings, Menu, X, Zap } from 'lucide-react';
+import { Globe, Settings, Menu, X, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: Globe },
-  { name: 'Target Location', path: '/location', icon: MapPin },
-  { name: 'Historical Data', path: '/history', icon: History },
-  { name: 'Live Telemetry', path: '/telemetry', icon: Activity },
 ];
 
 export function Navigation() {
