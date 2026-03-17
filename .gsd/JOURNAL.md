@@ -1,22 +1,22 @@
-## Session: 2026-03-17 16:19
+## Session: 2026-03-17 22:00
 
 ### Objective
-Finalize Phase 2 (Immersive UI & Location Intelligence) with cinematic transitions, reliable mapping, and optimized AI inference.
+Execute the "Night Shift" autonomous UI micro-sprints (Phase 3) and clean up technical debt.
 
 ### Accomplished
-- [x] Implemented ref-based `flyTo` animation (4s swoop from global to local).
-- [x] Switched to keyless CARTO Dark-Matter tiles to fix 403 Forbidden errors.
-- [x] Parallelized NOAA telemetry fetching in the backend (Asyncio/Gather).
-- [x] Fixed "Key Mismatch" in forecast description (message vs description).
-- [x] Identified and planned High-Latitude Scoring Sensitivity calibration.
+- [x] **Micro-Sprint A**: `isProMode` state + toggle UI + Framer Motion slide animation.
+- [x] **Micro-Sprint B**: Environmental data grid update (Bortle Scale) + Save Alert icon.
+- [x] **Micro-Sprint C**: Map Layer Floating Action Buttons (FABs).
+- [x] **Micro-Sprint D**: Minimalist Timeline Scrubber (removed background box).
+- [x] **Technical Debt**: Fixed 13 ESLint issues (parsing errors, types, unused imports).
 
 ### Verification
-- [x] Browser verification confirmed smooth animation and zero tile errors.
-- [x] Backend API verified with live Alaska/Tromso telemetry headers.
-- [/] AI Scoring needs further calibration for high-latitude stations.
+- [x] `npm run lint` now passes with 0 errors.
+- [x] Backend verified with Tromsø/Kashmir scoring logic.
+- [x] UI stability confirmed with dev servers running.
 
 ### Paused Because
-User requested `/pause` to preserve state for the next session.
+User requested `/pause` to synchronize state and switch contexts.
 
 ### Handoff Notes
-The UI is gorgeous and highly responsive thanks to the async backend. The main focus for the next session is `predictor.py` logic: we need to ensure Fairbanks get a non-zero score when Kp is 1-2, as the current model is slightly too conservative.
+Phase 3 is "Production Ready". The code is much cleaner after the linting sprint. The progressive disclosure strategy (hiding telemetry until Pro Mode is on) significantly improves the map visualization. Ready to move into Phase 4 (Persistence/Backend Scaling).

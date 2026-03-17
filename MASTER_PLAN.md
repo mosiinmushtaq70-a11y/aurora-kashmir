@@ -40,16 +40,20 @@ Establish a global Zustand store (`useAppStore` in `frontend/src/store/useAppSto
 - **Phase 2.5: Localized Data Presentation**
   - Dynamically swap data panels/sidebars to display localized XGBoost predictions corresponding to the active `targetLocation`.
 
-### Phase 3: Environmental Context & Scrubber (⬜ Pending)
-- **Phase 3.1: Meteorological Integration**
-  - Integrate OpenWeatherMap API to fetch nighttime `cloud_cover` percentages.
-  - Incorporate cloud cover data into the visibility scoring pipeline.
-- **Phase 3.2: Map Layer Enrichments**
-  - Add a Light Pollution raster tile layer to the MapLibre instance to visualize ideal viewing spots visually.
-- **Phase 3.3: Timeline Scrubber Development**
-  - Build a Timeline Scrubber UI component (Now to +72 Hours).
-  - Connect the scrubber to the `timeScrubber` Zustand state.
-  - Fetch and display new FastAPI predictions conditionally based on the selected timeframe.
+### Phase 3: UI Overhaul & Progressive Disclosure (✅ Complete)
+- [x] **Micro-Sprint A: The "Pro Mode" Toggle & Telemetry State**
+  - Add `isProMode` to Zustand store.
+  - Sleek toggle switch in AI Aurora Score box.
+  - Slide "Live Telemetry" via Framer Motion.
+- [x] **Micro-Sprint B: Compact Environmental Data**
+  - Mock Light Pollution (Bortle Scale) data.
+  - Add Bortle level next to Temperature/Precipitation.
+  - Add "Bell" Save Alert icon to Target Lock header.
+- [x] **Micro-Sprint C: Floating Map Layer Controls**
+  - Add 2/3 tiny, semi-transparent FABs in bottom right corner.
+- [x] **Micro-Sprint D: UI Polish & Cleanup**
+  - Minimalist timeline scrubber without heavy background box.
+  - Hide "Maximal Visibility" box when in localized view.
 
 ### Phase 4: Auth, Database, & Alert Cron Jobs (⬜ Pending)
 - **Phase 4.1: Authentication Setup**

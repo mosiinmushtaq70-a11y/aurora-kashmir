@@ -158,9 +158,7 @@ export default function Aurora(props: AuroraProps) {
     window.addEventListener('resize', resize);
 
     const geometry = new Triangle(gl);
-    // @ts-ignore: Remove unused uv attribute to silence warnings
     if (geometry.attributes && geometry.attributes.uv) {
-      // @ts-ignore
       delete geometry.attributes.uv;
     }
 

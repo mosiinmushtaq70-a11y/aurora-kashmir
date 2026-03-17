@@ -36,7 +36,7 @@ export default function TimelineScrubber() {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 50, opacity: 0 }}
       transition={{ delay: 0.6, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute bottom-12 md:bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] sm:w-[500px] md:w-[600px] glass-panel bg-black/80 backdrop-blur-2xl border border-white/20 rounded-3xl p-4 md:p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)]"
+      className="absolute bottom-12 md:bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] sm:w-[500px] md:w-[600px] p-2"
     >
       <div className="flex justify-between items-center mb-4 md:mb-6">
         <div className="flex items-center gap-2 text-aurora-green">

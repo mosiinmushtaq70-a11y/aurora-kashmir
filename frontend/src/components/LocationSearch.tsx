@@ -62,7 +62,7 @@ export default function LocationSearch() {
 
     // Calculate dynamic zoom based on bounding box
     // bbox format is [minLat, maxLat, minLon, maxLon]
-    const bbox = (suggestion as any).boundingbox;
+    const bbox = (suggestion as Suggestion & { boundingbox?: string[] }).boundingbox;
     let zoom = 12; // default
     
     if (bbox) {

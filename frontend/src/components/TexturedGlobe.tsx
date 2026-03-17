@@ -1,10 +1,9 @@
 'use client';
 
-import { Suspense, useRef, useState, useCallback } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Suspense, useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { useTexture, Stars } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion } from 'framer-motion';
 
 
 // ─── Inner scene component (rendered inside the Canvas context) ──────────────

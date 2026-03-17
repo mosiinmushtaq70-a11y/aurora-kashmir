@@ -22,11 +22,15 @@ interface AppState {
   // Derived Loading State
   isTransitioning: boolean;
 
+  // UI State
+  isProMode: boolean;
+
   // Actions
   zoomToLocation: (location: TargetLocation) => void;
   returnToGlobal: () => void;
   setTimeScrubber: (hours: number) => void;
   setTransitioning: (val: boolean) => void;
+  setProMode: (val: boolean) => void;
 }
 
 // ─── Zustand Store ───────────────────────────────────────────────────────────
@@ -37,6 +41,7 @@ export const useAppStore = create<AppState>((set) => ({
   targetLocation: null,
   timeScrubber: 0,
   isTransitioning: false,
+  isProMode: false,
 
   // Transition to LOCAL mode for a given location
   zoomToLocation: (location: TargetLocation) => {
@@ -66,4 +71,5 @@ export const useAppStore = create<AppState>((set) => ({
   // Update the time scrubber (0 = now, 72 = 72hrs ahead)
   setTimeScrubber: (hours: number) => set({ timeScrubber: hours }),
   setTransitioning: (val: boolean) => set({ isTransitioning: val }),
+  setProMode: (val: boolean) => set({ isProMode: val }),
 }));
