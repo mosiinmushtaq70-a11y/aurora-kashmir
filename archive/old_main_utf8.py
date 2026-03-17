@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import os
 import streamlit.components.v1 as components
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -15,15 +15,15 @@ from space_weather import get_solar_wind, get_kp_index, get_solar_flares, get_so
 from predictor import calculate_aurora_probability
 import data_manager
 
-# ── Auto refresh every 10 minutes ──
+# ΓöÇΓöÇ Auto refresh every 10 minutes ΓöÇΓöÇ
 st.session_state.setdefault('last_refresh', time.time())
 if time.time() - st.session_state.last_refresh > 600:
     st.session_state.last_refresh = time.time()
     st.rerun()
 
-st.set_page_config(page_title="Aurora Kashmir", page_icon="🌌", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Aurora Kashmir", page_icon="≡ƒîî", layout="wide", initial_sidebar_state="collapsed")
 
-# ── Inject WebGL Background ──
+# ΓöÇΓöÇ Inject WebGL Background ΓöÇΓöÇ
 components.html("""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -60,7 +60,7 @@ components.html("""
 </script>
 """, height=0)
 
-# ── CSS ──
+# ΓöÇΓöÇ CSS ΓöÇΓöÇ
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
@@ -75,10 +75,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Header ──
+# ΓöÇΓöÇ Header ΓöÇΓöÇ
 st.markdown("<div style='text-align:center;padding:15px 0;'><h1 style='font-size:56px;margin:0;text-shadow:0 0 30px rgba(0,220,130,0.5);'>Aurora Kashmir</h1><p style='color:#a0aec0;font-size:22px;letter-spacing:2px;'>COSMIC WEATHER & AURORA FORECAST</p></div>", unsafe_allow_html=True)
 
-# ── Data Fetch ──
+# ΓöÇΓöÇ Data Fetch ΓöÇΓöÇ
 with st.spinner("Synchronizing with Galactic Data Centers..."):
     n_sw=get_solar_wind(); n_kp=get_kp_index(); n_flares=get_solar_flares(); sw_h=get_solar_wind_history()
     if n_sw is not None: st.session_state['sw']=n_sw; data_manager.save_to_cache('solar_wind',n_sw)
@@ -93,14 +93,14 @@ sw_df=st.session_state['sw']; kp_df=st.session_state['kp']; flares_df=st.session
 bz,bt,kp=float(lat['bz_gsm']),float(lat['bt']),float(kp_df.iloc[-1]['kp'])
 res=calculate_aurora_probability(kp=kp,bz=bz,bt=bt)
 
-# ── Score Cards ──
+# ΓöÇΓöÇ Score Cards ΓöÇΓöÇ
 st.markdown("---")
 c1,c2,c3=st.columns(3)
 with c1: st.markdown(f"<div class='metric-card'>Aurora Score<div class='score-big'>{res['score']}</div>out of 100</div>",unsafe_allow_html=True)
 with c2: st.markdown(f"<div class='metric-card'>Visibility Level<div class='level-text' style='color:#00dc82'>{res['level']}</div>{res['description']}</div>",unsafe_allow_html=True)
 with c3: st.markdown(f"<div class='metric-card'>Active Flares (7d)<div class='score-big' style='font-size:60px'>{len(flares_df)}</div>active events</div>",unsafe_allow_html=True)
 
-# ── Globe ──
+# ΓöÇΓöÇ Globe ΓöÇΓöÇ
 st.markdown("<div style='margin-top:30px'></div>",unsafe_allow_html=True)
 
 kp_val = kp  # Pass live kp to JS
@@ -117,7 +117,7 @@ kS = json.dumps([
     {'n':'Nubra Valley','d':'Ladakh','lat':34.68,'lon':77.56}
 ])
 gS = json.dumps([
-    {'n':'Tromsø','lat':69.65,'lon':18.96},{'n':'Reykjavík','lat':64.13,'lon':-21.82},
+    {'n':'Troms├╕','lat':69.65,'lon':18.96},{'n':'Reykjav├¡k','lat':64.13,'lon':-21.82},
     {'n':'Fairbanks','lat':64.84,'lon':-147.72},{'n':'Yellowknife','lat':62.45,'lon':-114.37},
     {'n':'Murmansk','lat':68.96,'lon':33.08},{'n':'Abisko','lat':68.35,'lon':18.82},
     {'n':'Rovaniemi','lat':66.50,'lon':25.73},{'n':'Whitehorse','lat':60.72,'lon':-135.05},
@@ -158,7 +158,7 @@ components.html(f"""
     </div>
   </div>
   <script>
-    // ─── Scene Setup ───────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Scene Setup ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const canvas = document.getElementById('c');
     const svg = document.getElementById('svg-overlay');
     const W = () => canvas.clientWidth, H = () => 500;
@@ -168,7 +168,7 @@ components.html(f"""
     const renderer = new THREE.WebGLRenderer({{canvas, antialias:true, alpha:true}});
     renderer.setSize(W(), H()); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 
-    // ─── Controls ──────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Controls ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // We manually drive camera position so we do NOT use OrbitControls for zooming
     // Instead we use a custom spherical angle approach so we keep full control
     const ctrl = new THREE.OrbitControls(camera, renderer.domElement);
@@ -182,7 +182,7 @@ components.html(f"""
     let currentMode = 'global';
     let transitioning = false;
 
-    // ─── Earth ─────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Earth ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const earth = new THREE.Mesh(
       new THREE.SphereGeometry(5,64,64),
       new THREE.MeshPhongMaterial({{
@@ -193,7 +193,7 @@ components.html(f"""
     );
     scene.add(earth);
 
-    // ─── Aurora Oval ───────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Aurora Oval ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const kpFraction = Math.min({kp_val}/9.0, 1.0);
     const aurMat = new THREE.ShaderMaterial({{
       uniforms: {{ uI: {{value: kpFraction}} }},
@@ -210,11 +210,11 @@ components.html(f"""
     const auroraOverlay = new THREE.Mesh(new THREE.SphereGeometry(5.12,64,64), aurMat);
     scene.add(auroraOverlay);
 
-    // ─── Lighting ──────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Lighting ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     scene.add(new THREE.AmbientLight(0xffffff, 0.5));
     const sun = new THREE.DirectionalLight(0xffffff, 1); sun.position.set(5,5,5); scene.add(sun);
 
-    // ─── Helpers ───────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     function latLonTo3D(lat, lon, r) {{
       const phi = (90-lat)*Math.PI/180, theta = (lon+180)*Math.PI/180;
       return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(theta));
@@ -228,7 +228,7 @@ components.html(f"""
     const KASHMIR_CAM = latLonTo3D(34, 75, 7.0);  // Distance 7, facing Kashmir
     const GLOBAL_CAM  = new THREE.Vector3(10, 5, 15);  // Home orbit
 
-    // ─── Dots & Labels ─────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Dots & Labels ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const dotGroup = new THREE.Group(); scene.add(dotGroup);
     let labelData = [];   // {{ pos3d, label, p2d }}
 
@@ -250,7 +250,7 @@ components.html(f"""
       dotGroup.clear(); labelData = []; clearSVG();
       k.forEach(h => {{
         const v = latLonTo3D(h.lat, h.lon, 5.05);
-        // Dot — visible, clear green sphere
+        // Dot ΓÇö visible, clear green sphere
         const m = new THREE.Mesh(new THREE.SphereGeometry(0.025,10,10), new THREE.MeshBasicMaterial({{color:0x00ff88}}));
         m.position.copy(v); dotGroup.add(m);
         // Label entry
@@ -260,7 +260,7 @@ components.html(f"""
       ctrl.autoRotate = false;
     }}
 
-    // ─── SVG Diagram Labels ────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ SVG Diagram Labels ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const SVG_NS = 'http://www.w3.org/2000/svg';
     function clearSVG() {{ while(svg.firstChild) svg.removeChild(svg.firstChild); }}
 
@@ -271,7 +271,7 @@ components.html(f"""
         const p = project(ld.pos3d);
         if (p.z >= 1) return; // Behind camera, skip
 
-        // Direction from screen center → point (radial outward)
+        // Direction from screen center ΓåÆ point (radial outward)
         const dx = p.x - cx, dy = p.y - cy;
         const len = Math.sqrt(dx*dx+dy*dy) || 1;
         const nx = dx/len, ny = dy/len;     // unit outward normal
@@ -317,7 +317,7 @@ components.html(f"""
       }});
     }}
 
-    // ─── Mode State Machine ─────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Mode State Machine ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // FIX: Disable OrbitControls during GSAP so it can't overwrite camera.position,
     // then re-enable and sync with ctrl.update() once tween completes.
     window.setMode = function(mode) {{
@@ -361,7 +361,7 @@ components.html(f"""
       }}
     }};
 
-    // ─── Camera & Render Loop ───────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Camera & Render Loop ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     camera.position.set(10, 5, 15);
     camera.lookAt(0,0,0);
     ctrl.update();
@@ -380,7 +380,7 @@ components.html(f"""
       renderer.render(scene, camera);
     }}
 
-    // ─── Init ──────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇ Init ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     renderGlobal();
     animate();
 
@@ -395,15 +395,15 @@ components.html(f"""
 </html>
 """, height=530)
 
-# ── Live Status ──
+# ΓöÇΓöÇ Live Status ΓöÇΓöÇ
 st.markdown("---")
-st.markdown("### 📡 Live Space Weather Status")
+st.markdown("### ≡ƒôí Live Space Weather Status")
 m1,m2,m3=st.columns(3)
-with m1: st.metric("Kp Index",f"{kp}",delta="Target: ≥5"); st.caption("Storm Strength (0-9). High values required for Kashmir.")
+with m1: st.metric("Kp Index",f"{kp}",delta="Target: ΓëÑ5"); st.caption("Storm Strength (0-9). High values required for Kashmir.")
 with m2: st.metric("Bz Component (GSM)",f"{bz} nT",delta="Target: Negative"); st.caption("Shield Status. Negative opens Earth's magnetic shield.")
 with m3: st.metric("Bt Total Field",f"{bt} nT",delta="Higher = Stronger"); st.caption("Energy Potential of the solar wind flow.")
 
-# ── Neon History Graphs ──
+# ΓöÇΓöÇ Neon History Graphs ΓöÇΓöÇ
 st.markdown("---")
 st.markdown("### Cosmic History (Neon Pulse Rendering)")
 t_r=st.select_slider("Select Temporal View:",options=["6 hours","12 hours","1 day","3 days","7 days"],value="1 day")
@@ -433,17 +433,17 @@ neon_chart(kp_df, 'kp', '#00dc82', 'Kp Index', 5, "Kp 5: G1 Storm (Target)")
 
 if sw_h is not None:
     st.markdown("<div style='margin-top:60px'></div>", unsafe_allow_html=True)
-    st.markdown("#### II. Interplanetary Magnetic Field — Bz Shield Component")
+    st.markdown("#### II. Interplanetary Magnetic Field ΓÇö Bz Shield Component")
     neon_chart(sw_h, 'bz_gsm', '#00d4ff', 'Bz Component (nT)', 0, "Bz 0: Neutral Shield")
     
     st.markdown("<div style='margin-top:60px'></div>", unsafe_allow_html=True)
-    st.markdown("#### III. Total Magnetic Field Strength — Bt Energy Potential")
+    st.markdown("#### III. Total Magnetic Field Strength ΓÇö Bt Energy Potential")
     neon_chart(sw_h, 'bt', '#ff8c00', 'Bt Total Field (nT)', 10, "Bt 10: High Potential")
 
-# ── Solar Flares ──
+# ΓöÇΓöÇ Solar Flares ΓöÇΓöÇ
 if not flares_df.empty:
     st.markdown("---")
-    st.markdown("### ☀️ Recent Solar Flare Events")
+    st.markdown("### ΓÿÇ∩╕Å Recent Solar Flare Events")
     f_cols=st.columns(min(4,len(flares_df)))
     for i,(_, flare) in enumerate(flares_df.head(4).iterrows()):
         with f_cols[i%4]:
@@ -453,14 +453,14 @@ if not flares_df.empty:
                 <p style='font-size:12px;margin:0;'>{flare['sourceLocation']}</p>
             </div>""",unsafe_allow_html=True)
 
-# ── Viewing Tips ──
+# ΓöÇΓöÇ Viewing Tips ΓöÇΓöÇ
 st.markdown("---")
-st.markdown("### 🌠 Viewing Strategy")
+st.markdown("### ≡ƒîá Viewing Strategy")
 for tip in res['tips']: st.markdown(f"<div class='tip-box'>{tip}</div>",unsafe_allow_html=True)
 
-# ── Gallery ──
+# ΓöÇΓöÇ Gallery ΓöÇΓöÇ
 st.markdown("---")
-st.markdown("### 📸 Aurora Gallery")
+st.markdown("### ≡ƒô╕ Aurora Gallery")
 i_d=os.path.join(os.path.dirname(os.path.dirname(__file__)),'images')
 if os.path.exists(i_d):
     fs=glob.glob(os.path.join(i_d,"*.[jJ][pP][gG]"))[:8]
@@ -469,4 +469,4 @@ if os.path.exists(i_d):
         for i,f in enumerate(fs):
             with gcols[i%4]: st.image(f,use_container_width=True)
 
-st.markdown("<div style='text-align:center;color:#4a5568;padding:50px;font-size:12px;'>Built with ❤️ for Kashmir — 2026</div>",unsafe_allow_html=True)
+st.markdown("<div style='text-align:center;color:#4a5568;padding:50px;font-size:12px;'>Built with Γ¥ñ∩╕Å for Kashmir ΓÇö 2026</div>",unsafe_allow_html=True)
