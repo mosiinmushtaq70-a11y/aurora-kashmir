@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import Map, { MapRef, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Target, Zap, Eye, Wind, CloudOff, Cloud } from 'lucide-react';
+import { ArrowLeft, Target, Zap, Eye, Wind, CloudOff, Cloud, Bell, Layers, Settings2 } from 'lucide-react';
 import { useAppStore, TargetLocation } from '@/store/useAppStore';
 import TimelineScrubber from './TimelineScrubber';
 
@@ -81,22 +81,7 @@ function LocalInsightsSidebar({ forecast }: { forecast: LocalForecastData | null
         </div>
       </div>
 
-      {/* ─── Maximal Visibility Locations ─── */}
-      <div className="glass-panel rounded-2xl p-4 border border-aurora-green/20 bg-black/40 backdrop-blur-xl">
-        <p className="text-aurora-green text-[10px] font-mono tracking-[0.2em] uppercase mb-3 flex items-center gap-2">
-          <Target size={12} /> Maximal Visibility
-        </p>
-        <div className="space-y-2">
-          {topLocations.map((loc, i) => (
-            <div key={i} className="flex justify-between items-center text-xs">
-              <span className="text-slate-300 font-medium">{loc.name}</span>
-              <span className="bg-aurora-green/10 text-aurora-green px-2 py-0.5 rounded-full font-bold text-[10px]">
-                {loc.score}%
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ─── Maximal Visibility Locations Hidden in Local View ─── */}
 
         <div className="mt-4 pt-4 border-t border-white/5">
           <p className="text-[10px] text-slate-500 italic leading-relaxed">
@@ -127,6 +112,7 @@ interface LocalForecastData {
 
 
 function LocalDataSidebar({ location, forecast }: { location: TargetLocation; forecast: LocalForecastData | null }) {
+  const { isProMode, setProMode } = useAppStore();
   const levelColors: Record<string, string> = {
     EXTREME: 'text-red-400',
     HIGH: 'text-orange-400',
@@ -144,15 +130,20 @@ function LocalDataSidebar({ location, forecast }: { location: TargetLocation; fo
       className="absolute top-24 right-0 w-72 z-30 pointer-events-auto flex flex-col gap-3 pr-4"
     >
       {/* Location Header */}
-      <div className="glass-panel rounded-2xl p-4 border border-aurora-green/20 bg-black/70 backdrop-blur-xl">
-        <div className="flex items-center gap-2 mb-1">
-          <Target size={14} className="text-aurora-green" />
-          <span className="text-aurora-green font-mono text-xs tracking-widest uppercase">Target Lock</span>
+      <div className="glass-panel rounded-2xl p-4 border border-aurora-green/20 bg-black/70 backdrop-blur-xl flex justify-between items-start">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Target size={14} className="text-aurora-green" />
+            <span className="text-aurora-green font-mono text-xs tracking-widest uppercase">Target Lock</span>
+          </div>
+          <p className="text-white font-bold text-lg leading-tight">{location.name}</p>
+          <p className="text-slate-400 font-mono text-xs mt-1">
+            {location.lat.toFixed(4)}°, {location.lng.toFixed(4)}°
+          </p>
         </div>
-        <p className="text-white font-bold text-lg leading-tight">{location.name}</p>
-        <p className="text-slate-400 font-mono text-xs mt-1">
-          {location.lat.toFixed(4)}°, {location.lng.toFixed(4)}°
-        </p>
+        <button className="text-slate-500 hover:text-aurora-green transition-colors p-1" title="Save Alert">
+          <Bell size={16} />
+        </button>
       </div>
 
       {/* Aurora Score */}
@@ -176,14 +167,18 @@ function LocalDataSidebar({ location, forecast }: { location: TargetLocation; fo
             </div>
 
             {/* Weather Grid */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <div className="bg-white/5 rounded-xl p-2 flex flex-col items-center">
-                <span className="text-[9px] uppercase tracking-tighter text-slate-500 font-mono mb-1">Temperature</span>
-                <span className="text-white font-bold text-sm tracking-tight">{forecast.temperature.toFixed(1)}°C</span>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="bg-white/5 rounded-xl p-2 flex flex-col items-center text-center">
+                <span className="text-[9px] uppercase tracking-tighter text-slate-500 font-mono mb-1">Temp</span>
+                <span className="text-white font-bold text-xs tracking-tight">{forecast.temperature.toFixed(1)}°C</span>
               </div>
-              <div className="bg-white/5 rounded-xl p-2 flex flex-col items-center">
-                <span className="text-[9px] uppercase tracking-tighter text-slate-500 font-mono mb-1">Precipitation</span>
-                <span className="text-white font-bold text-sm tracking-tight">{forecast.precipitation.toFixed(1)}mm</span>
+              <div className="bg-white/5 rounded-xl p-2 flex flex-col items-center text-center">
+                <span className="text-[9px] uppercase tracking-tighter text-slate-500 font-mono mb-1">Precip</span>
+                <span className="text-white font-bold text-xs tracking-tight">{forecast.precipitation.toFixed(1)}mm</span>
+              </div>
+              <div className="bg-white/5 rounded-xl p-2 flex flex-col items-center text-center">
+                <span className="text-[9px] uppercase tracking-tighter text-slate-500 font-mono mb-1">Light Poll.</span>
+                <span className="text-white font-bold text-xs tracking-tight">Bortle 4</span>
               </div>
             </div>
             {/* Score bar */}
@@ -200,11 +195,37 @@ function LocalDataSidebar({ location, forecast }: { location: TargetLocation; fo
               {forecast.level}
             </p>
             <p className="text-slate-400 text-xs mt-1 leading-relaxed">{forecast.message}</p>
+            
+            {/* Pro Mode Toggle */}
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-mono uppercase tracking-widest flex items-center gap-1.5">
+                <Settings2 size={12} /> Pro Telemetry
+              </span>
+              <button 
+                onClick={() => setProMode(!isProMode)}
+                className={`w-8 h-4 rounded-full transition-colors relative ${isProMode ? 'bg-aurora-green' : 'bg-white/20'}`}
+              >
+                <motion.div 
+                  className="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
+                  animate={{ x: isProMode ? 16 : 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              </button>
+            </div>
           </div>
 
           {/* Live Telemetry */}
-          <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/60 backdrop-blur-xl">
-            <p className="text-slate-400 text-xs mb-3 tracking-widest font-mono uppercase">Live Telemetry</p>
+          <AnimatePresence>
+            {isProMode && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0, scale: 0.95 }}
+                animate={{ height: 'auto', opacity: 1, scale: 1 }}
+                exit={{ height: 0, opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="overflow-hidden"
+              >
+                <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/60 backdrop-blur-xl mt-1">
+                  <p className="text-slate-400 text-xs mb-3 tracking-widest font-mono uppercase">Live Telemetry</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { label: 'Bz', value: `${forecast.telemetry.bz_nt.toFixed(1)} nT`, icon: <Wind size={10} /> },
@@ -217,8 +238,11 @@ function LocalDataSidebar({ location, forecast }: { location: TargetLocation; fo
                   <p className="text-white font-bold text-sm font-mono">{value}</p>
                 </div>
               ))}
-            </div>
-          </div>
+                </div>
+              </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       ) : (
         <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/60 backdrop-blur-xl">
@@ -364,6 +388,21 @@ export default function LocationMap() {
               {/* ─── Cinematic Edge Vignette ─── */}
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_120px_rgba(3,11,26,0.9)]" />
             </div>
+
+            {/* ─── Floating Action Buttons (Bottom Right) ─── */}
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              className="absolute bottom-12 right-6 z-40 flex flex-col gap-3 pointer-events-auto"
+            >
+              <button className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all flex items-center justify-center shadow-lg" title="Toggle Cloud Layer">
+                <Cloud size={16} />
+              </button>
+              <button className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all flex items-center justify-center shadow-lg" title="Toggle Light Pollution Layer">
+                <Layers size={16} />
+              </button>
+            </motion.div>
 
             {/* ─── Timeline Scrubber ─── */}
             <TimelineScrubber />

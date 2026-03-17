@@ -10,9 +10,10 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
   const [mode, setMode] = useState<'global' | 'kashmir'>('global');
 
   useEffect(() => {
-    if (!mountRef.current) return;
-    const w = mountRef.current.clientWidth;
-    const h = mountRef.current.clientHeight;
+    const currentMount = mountRef.current;
+    if (!currentMount) return;
+    const w = currentMount.clientWidth;
+    const h = currentMount.clientHeight;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
@@ -20,7 +21,7 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
     
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    mountRef.current.appendChild(renderer.domElement);
+    currentMount.appendChild(renderer.domElement);
 
     const ctrl = new OrbitControls(camera, renderer.domElement);
     ctrl.enableDamping = true;
@@ -121,9 +122,9 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
     animate();
 
     const handleResize = () => {
-      if (!mountRef.current) return;
-      const nw = mountRef.current.clientWidth;
-      const nh = mountRef.current.clientHeight;
+      if (!currentMount) return;
+      const nw = currentMount.clientWidth;
+      const nh = currentMount.clientHeight;
       renderer.setSize(nw, nh);
       camera.aspect = nw / nh;
       camera.updateProjectionMatrix();
@@ -131,7 +132,7 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
     window.addEventListener('resize', handleResize);
 
     // Provide imperative ref for mode switching
-    (mountRef.current as any).switchMode = (newMode: 'global' | 'kashmir') => {
+    (currentMount as HTMLDivElement & { switchMode: (m: 'global' | 'kashmir') => void }).switchMode = (newMode: 'global' | 'kashmir') => {
       if (newMode === 'global') {
         ctrl.enabled = false;
         renderGlobal();
@@ -161,10 +162,11 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
-      if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (currentMount && currentMount.contains(renderer.domElement)) {
+        currentMount.removeChild(renderer.domElement);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kp]);
 
   return (
@@ -172,14 +174,14 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4 z-10">
         <button 
-          onClick={() => { setMode('global'); (mountRef.current as any)?.switchMode('global'); }}
-          className={`px-6 py-2 rounded-full text-sm font-semibold tracking-wider transition-all duration-300 ${mode === 'global' ? 'bg-[#00dc82] text-black' : 'bg-black/60 text-[#00dc82] border-2 border-[#00dc82] hover:bg-[#00dc82]/20'}`}
+          onClick={() => { setMode('global'); (mountRef.current as HTMLDivElement & { switchMode: (m: string) => void })?.switchMode('global'); }}
+          className={`px-6 py-2 rounded-full text-sm font-semibold tracking-wider transition-all duration-300 ${mode === 'global' ? 'bg-aurora-green text-black' : 'bg-black/60 text-aurora-green border-2 border-aurora-green hover:bg-aurora-green/20'}`}
         >
           GLOBAL VIEW
         </button>
         <button 
-          onClick={() => { setMode('kashmir'); (mountRef.current as any)?.switchMode('kashmir'); }}
-          className={`px-6 py-2 rounded-full text-sm font-semibold tracking-wider transition-all duration-300 ${mode === 'kashmir' ? 'bg-[#00dc82] text-black' : 'bg-black/60 text-[#00dc82] border-2 border-[#00dc82] hover:bg-[#00dc82]/20'}`}
+          onClick={() => { setMode('kashmir'); (mountRef.current as HTMLDivElement & { switchMode: (m: string) => void })?.switchMode('kashmir'); }}
+          className={`px-6 py-2 rounded-full text-sm font-semibold tracking-wider transition-all duration-300 ${mode === 'kashmir' ? 'bg-aurora-green text-black' : 'bg-black/60 text-aurora-green border-2 border-aurora-green hover:bg-aurora-green/20'}`}
         >
           KASHMIR FOCUS
         </button>
