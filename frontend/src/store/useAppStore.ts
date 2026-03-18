@@ -11,6 +11,13 @@ export interface TargetLocation {
   zoom?: number;
 }
 
+export interface User {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
 // ─── Store Interface ─────────────────────────────────────────────────────────
 
 interface AppState {
@@ -25,12 +32,16 @@ interface AppState {
   // UI State
   isProMode: boolean;
 
+  // Auth State
+  user: User | null;
+
   // Actions
   zoomToLocation: (location: TargetLocation) => void;
   returnToGlobal: () => void;
   setTimeScrubber: (hours: number) => void;
   setTransitioning: (val: boolean) => void;
   setProMode: (val: boolean) => void;
+  setUser: (user: User | null) => void;
 }
 
 // ─── Zustand Store ───────────────────────────────────────────────────────────
@@ -42,6 +53,7 @@ export const useAppStore = create<AppState>((set) => ({
   timeScrubber: 0,
   isTransitioning: false,
   isProMode: false,
+  user: null,
 
   // Transition to LOCAL mode for a given location
   zoomToLocation: (location: TargetLocation) => {
@@ -72,4 +84,5 @@ export const useAppStore = create<AppState>((set) => ({
   setTimeScrubber: (hours: number) => set({ timeScrubber: hours }),
   setTransitioning: (val: boolean) => set({ isTransitioning: val }),
   setProMode: (val: boolean) => set({ isProMode: val }),
+  setUser: (user: User | null) => set({ user }),
 }));
