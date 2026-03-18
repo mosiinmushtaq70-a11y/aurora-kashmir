@@ -1,10 +1,37 @@
 'use client';
 
-import { Suspense, useRef } from 'react';
+import { Suspense, useRef, Component, ReactNode, ErrorInfo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useTexture, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
+
+// ─── Error Boundary ────────────────────────────────────────────────────────────
+
+class CanvasErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("WebGL Context/Canvas Error:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 text-red-400 font-mono text-xs border border-red-500/20 rounded-2xl p-4 text-center">
+          <span className="text-2xl mb-2">⚠️</span>
+          <span>WebGL Rendering Failed</span>
+          <span className="text-slate-500 text-[10px] mt-1">Check GPU memory or context loss.</span>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─── Inner scene component (rendered inside the Canvas context) ──────────────
 
@@ -21,7 +48,7 @@ function EarthMesh({ kp }: { kp: number }) {
   // Hardware-accelerated rotation via requestAnimationFrame — no setInterval, no CSS
   useFrame((_state, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.20;
+      meshRef.current.rotation.y += delta * 0.06; // 70% of previous 0.20 speed
     }
   });
 
@@ -91,14 +118,14 @@ interface TexturedGlobeProps {
 
 // ─── Interaction Scene: Handles the actual rotation logic inside the Canvas ──
 
-function GlobeScene({ 
-  rotationY, 
-  velocity, 
-  isDragging, 
-  kp 
-}: { 
-  rotationY: React.MutableRefObject<number>, 
-  velocity: React.MutableRefObject<number>, 
+function GlobeScene({
+  rotationY,
+  velocity,
+  isDragging,
+  kp
+}: {
+  rotationY: React.MutableRefObject<number>,
+  velocity: React.MutableRefObject<number>,
   isDragging: React.MutableRefObject<boolean>,
   kp: number
 }) {
@@ -113,7 +140,7 @@ function GlobeScene({
       // Exponential decay for friction (adjusted for ~60fps)
       // eslint-disable-next-line react-hooks/immutability
       velocity.current *= Math.pow(0.92, delta * 60);
-      
+
       // Stop completely if velocity is negligible
       if (Math.abs(velocity.current) < 0.0001) velocity.current = 0;
     }
@@ -151,7 +178,7 @@ export default function TexturedGlobe({ kp = 0 }: TexturedGlobeProps) {
   const onPointerDown = (e: React.PointerEvent) => {
     isDragging.current = true;
     lastX.current = e.clientX;
-    velocity.current = 0; 
+    velocity.current = 0;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
@@ -160,7 +187,7 @@ export default function TexturedGlobe({ kp = 0 }: TexturedGlobeProps) {
     const deltaX = e.clientX - lastX.current;
     const move = deltaX * 0.005 * 0.5;
     rotationY.current += move;
-    velocity.current = move; 
+    velocity.current = move;
     lastX.current = e.clientX;
   };
 
@@ -170,32 +197,34 @@ export default function TexturedGlobe({ kp = 0 }: TexturedGlobeProps) {
   };
 
   return (
-    <div 
+    <div
       className="relative w-full h-full overflow-hidden outline-none touch-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      <Canvas
-        camera={{ position: [0, 0, 2.8], fov: 45 }}
-        gl={{ antialias: true, alpha: true }}
-        dpr={[1, 2]}
-        style={{ background: 'transparent' }}
-      >
-        {/* Fixed cinematic light: Angled more from the right for requested shadow inversion */}
-        <directionalLight 
-          position={[20, 8, 5]} 
-          intensity={12.0} 
-          shadow-mapSize={[1024, 1024]}
-        />
+      <CanvasErrorBoundary>
+        <Canvas
+          camera={{ position: [0, 0, 2.8], fov: 45 }}
+          gl={{ antialias: true, alpha: true }}
+          dpr={[1, 2]}
+          style={{ background: 'transparent' }}
+        >
+          {/* Fixed cinematic light: Angled more from the right for requested shadow inversion */}
+          <directionalLight
+            position={[20, 8, 5]}
+            intensity={12.0}
+            shadow-mapSize={[1024, 1024]}
+          />
 
-        <GlobeScene 
-          rotationY={rotationY} 
-          velocity={velocity} 
-          isDragging={isDragging} 
-          kp={kp} 
-        />
-      </Canvas>
+          <GlobeScene
+            rotationY={rotationY}
+            velocity={velocity}
+            isDragging={isDragging}
+            kp={kp}
+          />
+        </Canvas>
+      </CanvasErrorBoundary>
 
       {/* HUD buttons removed for global focus */}
 

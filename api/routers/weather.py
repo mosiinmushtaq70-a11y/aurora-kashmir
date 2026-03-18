@@ -27,6 +27,7 @@ class ForecastResponse(BaseModel):
     cloud_cover: float = 0.0
     temperature: float = 0.0
     precipitation: float = 0.0
+    last_updated: str = ""
 
 def fetch_weather_data(lat: float, lon: float, hour_offset: int = 0) -> dict:
     """Fetch cloud cover, temperature, and precipitation from Open-Meteo."""
@@ -60,6 +61,8 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
     try:
         weather_task = asyncio.to_thread(fetch_weather_data, lat, lon, hour_offset)
         
+        last_updated_time = ""
+        
         if hour_offset == 0:
             # Real-time Telemetry
             mag_task = asyncio.to_thread(space_weather.get_solar_wind)
@@ -73,6 +76,7 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
                 raise HTTPException(status_code=503, detail="NOAA DSCOVR Telemetry Offline")
                 
             lat_row = sw_df.iloc[-1]
+            last_updated_time = str(lat_row['time_tag']) + " UTC"
             bz = float(lat_row['bz_gsm'])
             bt = float(lat_row['bt'])
             kp_val = float(kp_df.iloc[-1]['kp'])
@@ -96,6 +100,7 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
                 day_index = len(kp_df) - 1
             
             kp_val = float(kp_df.iloc[day_index]['kp'])
+            last_updated_time = str(kp_df.iloc[day_index]['time_tag']) + " UTC"
             
             bz = -3.0 
             bt = 7.0
@@ -126,7 +131,8 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
             geomagnetic_storm=bool(res.get("level") in ["HIGH", "EXTREME"]),
             cloud_cover=cloud_cover,
             temperature=weather["temperature"],
-            precipitation=weather["precipitation"]
+            precipitation=weather["precipitation"],
+            last_updated=last_updated_time
         )
     except Exception as e:
         import traceback

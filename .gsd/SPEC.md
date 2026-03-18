@@ -11,10 +11,10 @@ AuroraLens (Aurora Kashmir) is a premium space weather analytics platform design
 1. **Interactive 3D Visualization** — High-fidelity 3D globe using Three.js to visualize global aurora hotspots with a dedicated high-fidelity focus on Kashmir.
 2. **Real-time Telemetry Acquisition** — Automated ingestion of solar wind parameters (Bz, Bt, Speed, Density) and Kp indices from NOAA SWPC and DSCOVR missions.
 3. **ML-Powered Visibility Scoring** — Accurate aurora probability calculations for specific geographic coordinates using a pre-trained XGBoost inference engine.
+4. **User Persistence & Alerts** — Secure authentication and database integration for saved locations and proactive visibility alerts.
 
 ## Non-Goals (Out of Scope)
 - Historical data analysis beyond the last 7 days.
-- User authentication and persistent profiles (local-first/anonymous display).
 - Mobile application development (prio is Desktop/Web).
 
 ## Constraints
@@ -26,6 +26,8 @@ AuroraLens (Aurora Kashmir) is a premium space weather analytics platform design
 - [ ] User can view a 3D globe with real-time aurora intensity overlays.
 - [ ] Backend fetched data every 5 minutes and updates the prediction score.
 - [ ] The dashboard displays a "Kashmir Vision" probability score between 0-100%.
+- [ ] User can create an account and save "Campsites" (locations) for monitoring.
+- [ ] System sends automated alerts when visibility thresholds are met at saved locations.
 
 ## Technical Requirements
 
