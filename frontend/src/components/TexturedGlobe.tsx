@@ -159,7 +159,7 @@ function GlobeScene({
 
       {/* Interactive Earth Group — ONLY this rotates */}
       <Suspense fallback={null}>
-        <group ref={groupRef} position={[-1.4, -0.1, 0]}>
+        <group ref={groupRef} position={[-0.4, 0, 0]}>
           <EarthMesh kp={kp} />
         </group>
       </Suspense>
@@ -228,10 +228,6 @@ export default function TexturedGlobe({ kp = 0 }: TexturedGlobeProps) {
 
       {/* HUD buttons removed for global focus */}
 
-      {/* Kp badge */}
-      <div className="absolute top-8 right-8 z-10 glass-panel px-4 py-2 rounded-full text-sm font-bold text-aurora-green border border-aurora-green/40 bg-black/60 backdrop-blur-md">
-        Cosmic Tier: Kp {kp.toFixed(1)}
-      </div>
     </div>
   );
 }
