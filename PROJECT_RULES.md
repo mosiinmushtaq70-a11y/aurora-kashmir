@@ -1,5 +1,8 @@
 # PROJECT_RULES.md — GSD Canonical Rules
 
+
+For all Next.js, React, Tailwind CSS, and UI/UX tasks, you MUST utilize the UI/UX Pro Max skill located inside the .agent/ folder.
+
 > **Single Source of Truth** for the Get Shit Done methodology.
 > 
 > Model-agnostic. All adapters and extensions reference this file.
