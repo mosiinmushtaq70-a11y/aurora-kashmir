@@ -4,7 +4,6 @@ import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, Zap, X, Globe } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
-
 interface Suggestion {
   display_name: string;
   lat: string;
@@ -12,6 +11,39 @@ interface Suggestion {
   type: string;
   importance: number;
 }
+
+// ─── Internal StarBorder Component ──────────────────────────────────────────
+const StarBorder = ({
+  children,
+  color = 'cyan',
+  speed = '5s',
+  className = '',
+}: {
+  children: React.ReactNode;
+  color?: string;
+  speed?: string;
+  className?: string;
+}) => {
+  return (
+    <div className={`star-border-container ${className}`}>
+      <div
+        className="border-gradient-bottom"
+        style={{
+          background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+          animationDuration: speed,
+        }}
+      />
+      <div
+        className="border-gradient-top"
+        style={{
+          background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+          animationDuration: speed,
+        }}
+      />
+      <div className="inner-content">{children}</div>
+    </div>
+  );
+};
 
 export default function LocationSearch() {
   const [query, setQuery] = useState('');
@@ -93,54 +125,52 @@ export default function LocationSearch() {
   return (
     <div className="relative z-50 w-full max-w-md mx-auto">
       {/* Search Input */}
-      <motion.div
-        animate={{ 
-          boxShadow: isFocused 
-            ? '0 0 0 1px rgba(0,220,130,0.5), 0 0 30px rgba(0,220,130,0.15)' 
-            : '0 0 0 1px rgba(255,255,255,0.08)'
-        }}
-        transition={{ duration: 0.3 }}
-        className="relative flex items-center bg-black/50 backdrop-blur-xl rounded-2xl border-0"
+      <StarBorder
+        color="#00dc82"
+        speed="6s"
+        className="w-full"
       >
-        <div className="pl-4 pr-2 flex items-center text-slate-400">
-          {isSearching ? (
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-            >
-              <Zap size={16} className="text-aurora-green" />
-            </motion.div>
-          ) : (
-            <Search size={16} />
-          )}
+        <div className="relative flex items-center bg-transparent backdrop-blur-md rounded-2xl transition-all">
+          <div className="pl-4 pr-2 flex items-center text-slate-400">
+            {isSearching ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+              >
+                <Zap size={16} className="text-aurora-green" />
+              </motion.div>
+            ) : (
+              <Search size={16} />
+            )}
+          </div>
+          <input
+            type="text"
+            value={query}
+            onChange={handleInputChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+            placeholder="Search any location on Earth..."
+            className="flex-1 bg-transparent text-white placeholder:text-slate-500 text-sm tracking-wide py-3 pr-2 outline-none font-mono"
+          />
+          <AnimatePresence>
+            {query && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                onClick={handleClear}
+                className="pr-4 text-slate-500 hover:text-white transition-colors"
+              >
+                {viewMode === 'LOCAL' ? (
+                  <Globe size={16} className="text-aurora-green" />
+                ) : (
+                  <X size={16} />
+                )}
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
-        <input
-          type="text"
-          value={query}
-          onChange={handleInputChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-          placeholder="Search any location on Earth..."
-          className="flex-1 bg-transparent text-white placeholder:text-slate-500 text-sm tracking-wide py-3 pr-2 outline-none font-mono"
-        />
-        <AnimatePresence>
-          {query && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={handleClear}
-              className="pr-4 text-slate-500 hover:text-white transition-colors"
-            >
-              {viewMode === 'LOCAL' ? (
-                <Globe size={16} className="text-aurora-green" />
-              ) : (
-                <X size={16} />
-              )}
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </motion.div>
+      </StarBorder>
 
       {/* Suggestions Dropdown */}
       <AnimatePresence>

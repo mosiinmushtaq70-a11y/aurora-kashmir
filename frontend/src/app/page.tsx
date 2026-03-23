@@ -167,48 +167,43 @@ export default function Home() {
         {/* ─── MapLibre 3D Map (LOCAL mode) — overlays entire hero ─── */}
         <LocationMap />
 
-        {/* ─── Hero Header Overlay (only in GLOBAL mode) ─── */}
-        <AnimatePresence>
-          {viewMode === 'GLOBAL' && (
-            <motion.header
-              key="hero-header"
-              className="relative z-10 text-center pt-16 md:pt-24 pointer-events-none"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.5 }}
-            >
-              <motion.h1
-                className="text-6xl md:text-8xl font-extrabold text-white mb-4 orbitron"
-                style={{ textShadow: '0 0 50px rgba(0,220,130,0.6)' }}
+        {/* ─── Hero Content Wrapper (Title + Search) ─── */}
+        <div className="relative z-10 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-black/80 via-black/20 to-transparent w-full py-16 mb-16 pointer-events-auto">
+          
+          {/* ─── Hero Header Overlay (only in GLOBAL mode) ─── */}
+          <AnimatePresence>
+            {viewMode === 'GLOBAL' && (
+              <motion.header
+                key="hero-header"
+                className="text-center mb-8 pointer-events-none"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.5 }}
               >
-                AuroraLens
-              </motion.h1>
-              <motion.p className="text-white/60 text-xs md:text-sm tracking-widest font-mono uppercase mt-2">
-                COSMIC WEATHER &amp; AURORA FORECAST
-              </motion.p>
-            </motion.header>
-          )}
-        </AnimatePresence>
+                <motion.h1
+                  className="text-6xl md:text-8xl font-extrabold text-white tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-4 orbitron"
+                  style={{ textShadow: '0 0 50px rgba(0,220,130,0.6)' }}
+                >
+                  AuroraLens
+                </motion.h1>
+                <motion.p className="text-white/60 text-xs md:text-sm tracking-widest font-mono uppercase mt-2">
+                  COSMIC WEATHER &amp; AURORA FORECAST
+                </motion.p>
+              </motion.header>
+            )}
+          </AnimatePresence>
 
-        {/* ─── Search Bar (always visible) ─── */}
-        <motion.div
-          className="relative z-20 w-full px-6 flex flex-col items-center gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <LocationSearch />
-          {viewMode === 'GLOBAL' && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-slate-600 text-xs font-mono tracking-widest uppercase"
-            >
-              Search any location on Earth to zoom into local forecast
-            </motion.p>
-          )}
-        </motion.div>
+          {/* ─── Search Bar (always visible) ─── */}
+          <motion.div
+            className="w-full px-6 flex flex-col items-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <LocationSearch />
+          </motion.div>
+        </div>
 
         {/* ─── Scroll Indicator (GLOBAL only) ─── */}
         <AnimatePresence>
@@ -237,7 +232,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ delay: 0.9, duration: 0.5 }}
-            className="relative z-20 w-full border-t border-b border-white/10 bg-black/40 backdrop-blur-md py-2.5 px-6 overflow-hidden"
+            className="relative z-20 w-full border-t border-b border-white/10 bg-black/40 backdrop-blur-md py-2.5 px-6 overflow-visible"
           >
             <div className="flex items-center gap-6 justify-center flex-wrap">
               {/* Status */}
@@ -245,38 +240,67 @@ export default function Home() {
                 SYS: ONLINE
               </span>
               <span className="text-white/20 font-mono text-xs">|</span>
+              
               {/* KP / BT */}
-              <div className="flex items-center">
+              <div className="relative group flex items-center cursor-help">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">
                   KP-INDEX:&nbsp;<span className="text-white font-bold">
                     {data?.telemetry ? data.telemetry.bt_nt?.toFixed(1) : '---'}
                   </span>
                 </span>
                 <MagneticSparkline />
+                <div className="absolute top-10 left-0 w-48 p-2 bg-black/95 backdrop-blur-md border border-white/20 text-[10px] font-sans text-gray-300 rounded shadow-2xl z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="font-bold text-emerald-400 mb-1">DATA PROVENANCE</p>
+                  Estimated 3-hour planetary geomagnetic index. Measures solar-terrestrial magnetic disturbance.
+                </div>
               </div>
+
               <span className="text-white/20 font-mono text-xs">|</span>
+              
               {/* SW SPEED */}
-              <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">
-                WIND:&nbsp;<span className="text-white font-bold">
-                  {data?.telemetry ? `${(data.telemetry.speed_km_s > 10000 ? data.telemetry.speed_km_s / 1000 : data.telemetry.speed_km_s).toFixed(1)} KM/S` : '--- KM/S'}
+              <div className="relative group cursor-help">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">
+                  WIND:&nbsp;<span className="text-white font-bold">
+                    {data?.telemetry ? `${(data.telemetry.speed_km_s > 10000 ? data.telemetry.speed_km_s / 1000 : data.telemetry.speed_km_s).toFixed(1)} KM/S` : '--- KM/S'}
+                  </span>
                 </span>
-              </span>
+                <div className="absolute top-10 left-0 w-48 p-2 bg-black/95 backdrop-blur-md border border-white/20 text-[10px] font-sans text-gray-300 rounded shadow-2xl z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="font-bold text-emerald-400 mb-1">DATA PROVENANCE</p>
+                  Solar wind speed in km/s. High velocities (400+) can trigger geomagnetic storms.
+                </div>
+              </div>
+
               <span className="text-white/20 font-mono text-xs">|</span>
+              
               {/* BZ */}
-              <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">
-                BZ:&nbsp;<span className={`font-bold ${
-                  (data?.telemetry?.bz_nt ?? 0) < 0 ? 'text-red-400' : 'text-aurora-green'
-                }`}>
-                  {data?.telemetry ? `${data.telemetry.bz_nt?.toFixed(1)} nT` : '--- nT'}
+              <div className="relative group cursor-help">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">
+                  BZ:&nbsp;<span className={`font-bold ${
+                    (data?.telemetry?.bz_nt ?? 0) < 0 ? 'text-red-400' : 'text-aurora-green'
+                  }`}>
+                    {data?.telemetry ? `${data.telemetry.bz_nt?.toFixed(1)} nT` : '--- nT'}
+                  </span>
                 </span>
-              </span>
+                <div className="absolute top-10 left-0 w-48 p-2 bg-black/95 backdrop-blur-md border border-white/20 text-[10px] font-sans text-gray-300 rounded shadow-2xl z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="font-bold text-emerald-400 mb-1">DATA PROVENANCE</p>
+                  Interplanetary Magnetic Field Vector. Southward (negative) values indicate high aurora probability.
+                </div>
+              </div>
+
               <span className="text-white/20 font-mono text-xs">|</span>
+              
               {/* DENSITY */}
-              <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">
-                DENSITY:&nbsp;<span className="text-white font-bold">
-                  {data?.telemetry ? `${data.telemetry.density_p_cm3?.toFixed(1)} P/CC` : '--- P/CC'}
+              <div className="relative group cursor-help">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">
+                  DENSITY:&nbsp;<span className="text-white font-bold">
+                    {data?.telemetry ? `${data.telemetry.density_p_cm3?.toFixed(1)} P/CC` : '--- P/CC'}
+                  </span>
                 </span>
-              </span>
+                <div className="absolute top-10 left-0 w-48 p-2 bg-black/95 backdrop-blur-md border border-white/20 text-[10px] font-sans text-gray-300 rounded shadow-2xl z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="font-bold text-emerald-400 mb-1">DATA PROVENANCE</p>
+                  Proton density in particles per cubic centimeter. Higher density increases aurora brightness.
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -293,6 +317,9 @@ export default function Home() {
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.5 }}
           >
+            {/* ─── Background Grid Overlay ─── */}
+            <div className="absolute inset-x-0 top-0 bottom-0 z-[-1] pointer-events-none bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_120%_120%_at_50%_0%,#000_70%,transparent_100%)]" />
+
             {loading ? (
               <div className="animate-pulse flex space-x-4">
                 <div className="glass-panel h-48 w-full rounded-2xl bg-white/5" />
@@ -372,9 +399,20 @@ export default function Home() {
                       <p className="text-[14px] text-white/60 font-sans leading-relaxed">
                         This early-warning position allows our custom-trained XGBoost machine learning model to analyze continuous shifts in solar wind speed, density, temperature, and the crucial Interplanetary Magnetic Field (IMF or Bz) vector, providing highly accurate localized aurora probability forecasts.
                       </p>
-                    </div>
-                    
-                    <div className="flex-1 w-full flex flex-col items-center gap-8 justify-center z-10">
+                        {/* ─── Aerospace CTA ─── */}
+                        <div className="pt-4">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="relative inline-flex items-center justify-center px-8 py-3 font-mono text-xs uppercase tracking-[0.2em] text-white bg-transparent border border-white/30 hover:border-emerald-400 hover:bg-emerald-400/10 transition-all duration-300 overflow-hidden group shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+                          >
+                            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                            <span className="relative z-10">Connect System Control</span>
+                          </motion.button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 w-full flex flex-col items-center gap-8 justify-center z-10">
                       <SystemTerminal />
                       <div className="relative w-full max-w-sm aspect-square border border-white/5 bg-white/[0.02] flex items-center justify-center overflow-hidden">
                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,220,130,0.05)_0,transparent_70%)]" />
