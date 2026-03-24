@@ -21,7 +21,9 @@ router = APIRouter()
 class ForecastResponse(BaseModel):
     aurora_score: float
     confidence: str
+    level: str = "MINIMAL"
     message: str
+    tips: list = []
     telemetry: dict
     geomagnetic_storm: bool
     cloud_cover: float = 0.0
@@ -118,22 +120,35 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
         )
         
         # Return structured and decoupled data
+        import math
+        def safe_float(v, default=0.0):
+            try:
+                f = float(v)
+                if math.isnan(f) or math.isinf(f):
+                    return default
+                return f
+            except:
+                return default
+
         return ForecastResponse(
             aurora_score=res.get("score", 0),
             confidence="High" if res.get("prob_active", 0) > 0.5 else "Moderate",
+            level=res.get("level", "MINIMAL"),
             message=res.get("description", "Data successfully analyzed by AuroraLens API."),
+            tips=res.get("tips", []),
             telemetry={
-                "bz_nt": bz,
-                "bt_nt": bt,
-                "speed_km_s": speed if speed else 0.0,
-                "density_p_cm3": density if density else 0.0
+                "bz_nt": safe_float(bz),
+                "bt_nt": safe_float(bt),
+                "speed_km_s": safe_float(speed),
+                "density_p_cm3": safe_float(density)
             },
             geomagnetic_storm=bool(res.get("level") in ["HIGH", "EXTREME"]),
-            cloud_cover=cloud_cover,
-            temperature=weather["temperature"],
-            precipitation=weather["precipitation"],
+            cloud_cover=safe_float(cloud_cover),
+            temperature=safe_float(weather["temperature"]),
+            precipitation=safe_float(weather["precipitation"]),
             last_updated=last_updated_time
         )
+
     except Exception as e:
         import traceback
         traceback.print_exc()

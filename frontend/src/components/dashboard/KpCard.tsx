@@ -89,7 +89,7 @@ const KpCard: React.FC<KpCardProps> = ({ kp, history = [] }) => {
       </div>
 
       {/* Sparkline (ApexCharts) */}
-      <div className="flex-1 min-h-[60px] w-full mt-4 opacity-70 group-hover:opacity-100 transition-opacity">
+      <div className="flex-1 min-h-[40px] w-full mt-2 opacity-70 group-hover:opacity-100 transition-opacity">
         <Chart 
           options={chartOptions} 
           series={[{ name: 'Kp', data: chartData }]} 
@@ -100,9 +100,11 @@ const KpCard: React.FC<KpCardProps> = ({ kp, history = [] }) => {
       </div>
 
       {/* Footer Info */}
-      <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center opacity-60">
-        <span className="data-label text-[9px]">24H TREND</span>
-        <span className="font-mono text-[9px]">RES: 1.0H</span>
+      <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-1 opacity-90">
+        <span className="data-label text-[10px] text-aurora-primary font-bold">WHAT IS THIS?</span>
+        <span className="font-sans text-xs text-slate-300 leading-snug">
+          Measures global geomagnetic disturbance. <strong className="text-white">Kp {'>'} 4</strong> is required for visible auroras in mid-latitudes (Kp {'>'} 6 for global displays).
+        </span>
       </div>
     </div>
   );

@@ -9,12 +9,10 @@ interface KashmirVisionCardProps {
 
 const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
   // Gauge math
-  const radius = 80;
+  const radius = 70;
   const strokeWidth = 8;
   const normalizedRadius = radius - strokeWidth / 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  // We want a semi-circle (top half)
-  const arcLength = circumference / 2;
+  const arcLength = normalizedRadius * Math.PI;
   const offset = arcLength - (score / 100) * arcLength;
 
   const getStatus = (val: number) => {
@@ -32,37 +30,33 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
 
       {/* Header */}
       <div className="w-full mb-2 opacity-80 group-hover:opacity-100 transition-opacity">
-        <p className="section-label">KASHMIR VISION SCORE</p>
+        <p className="section-label">SOLAR FLARE PROBABILITY (12H)</p>
       </div>
 
       {/* Radial Gauge SVG */}
-      <div className="relative flex items-center justify-center pt-8">
+      <div className="relative flex items-center justify-center pt-2">
         <svg
-          height={radius * 1.2}
+          height={radius + 10}
           width={radius * 2}
-          className="transform -rotate-180"
+          viewBox={`0 0 ${radius * 2} ${radius + 10}`}
+          className="overflow-visible"
         >
           {/* Background Arc */}
-          <circle
+          <path
+            d={`M ${radius - normalizedRadius} ${radius} A ${normalizedRadius} ${normalizedRadius} 0 0 1 ${radius + normalizedRadius} ${radius}`}
             stroke="rgba(255,255,255,0.05)"
             fill="transparent"
             strokeWidth={strokeWidth}
-            strokeDasharray={`${arcLength} ${circumference}`}
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
             strokeLinecap="round"
           />
           {/* Progress Arc */}
-          <motion.circle
+          <motion.path
+            d={`M ${radius - normalizedRadius} ${radius} A ${normalizedRadius} ${normalizedRadius} 0 0 1 ${radius + normalizedRadius} ${radius}`}
             stroke={status.hex}
             fill="transparent"
             strokeWidth={strokeWidth}
-            strokeDasharray={`${arcLength} ${circumference}`}
+            strokeDasharray={arcLength}
             style={{ strokeDashoffset: offset }}
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
             strokeLinecap="round"
             initial={{ strokeDashoffset: arcLength }}
             animate={{ strokeDashoffset: offset }}
@@ -72,18 +66,18 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
         </svg>
 
         {/* Center Text */}
-        <div className="absolute top-[45%] left-1/2 transform -translate-x-1/2 translate-y-2 text-center">
-          <h3 className={`font-display text-5xl font-bold tracking-tighter ${status.color}`}>
-            {score.toFixed(0)}<span className="text-lg opacity-40">%</span>
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-center">
+          <h3 className={`font-display text-3xl font-bold tracking-tighter ${status.color}`}>
+            {score.toFixed(0)}<span className="text-xs opacity-40">%</span>
           </h3>
-          <p className={`font-mono text-[9px] tracking-[0.2em] mt-2 font-bold ${status.color}`}>
+          <p className={`font-mono text-[8px] tracking-[0.2em] mt-0.5 font-bold ${status.color}`}>
             {status.label}
           </p>
         </div>
       </div>
 
       {/* Local Telemetry Stats */}
-      <div className="w-full mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-2 opacity-80">
+      <div className="w-full mt-2 pt-3 border-t border-white/5 grid grid-cols-2 gap-2 opacity-80">
         <div className="bg-white/5 p-2 rounded-sm text-center">
           <p className="data-label text-[8px] mb-1">CLOUD COVER</p>
           <p className="font-mono text-[10px] text-white">12%</p>
@@ -95,7 +89,7 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
       </div>
 
       {/* AI Predictive Analysis Micro-Module */}
-      <div className="w-full mt-4 flex flex-col items-center justify-center gap-1.5 opacity-90">
+      <div className="w-full mt-2 flex flex-col items-center justify-center gap-1 opacity-90">
         <div className="flex items-center gap-2">
           {/* Pulsing indicator */}
           <div className="relative flex h-[6px] w-[6px]">

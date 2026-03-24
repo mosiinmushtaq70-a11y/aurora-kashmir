@@ -28,13 +28,10 @@ def load_ai_assets():
         feature_medians = joblib.load(os.path.join(MODEL_DIR, 'feature_medians.pkl'))
         print("Success: AI Models and Metadata loaded.")
     except Exception as e:
-        print(f"Warning: AI asset loading issue: {e}. One or more assets missing.")
-        # Fallback medians for critical features
+        print(f"Critical error loading AI models: {e}. Falling back to heuristic mode.")
+        # Ensure we have minimum fallback medians so the predictor can still run
         if not feature_medians:
             feature_medians = {'kp': 3.0, 'bz_gsm': 0.0, 'bt': 5.0, 'sw_speed': 400.0, 'proton_density': 5.0}
-                
-    except Exception as e:
-        print(f"Critical error loading primary AI models: {e}")
 
 load_ai_assets()
 

@@ -183,7 +183,7 @@ export default function AuroraGlobe({ kp = 5, onZoomComplete }: { kp?: number; o
           onClick={() => { setMode('kashmir'); (mountRef.current as HTMLDivElement & { switchMode: (m: string) => void })?.switchMode('kashmir'); }}
           className={`px-6 py-2 rounded-full text-sm font-semibold tracking-wider transition-all duration-300 ${mode === 'kashmir' ? 'bg-aurora-green text-black' : 'bg-black/60 text-aurora-green border-2 border-aurora-green hover:bg-aurora-green/20'}`}
         >
-          KASHMIR FOCUS
+          TARGET FOCUS
         </button>
       </div>
     </div>
