@@ -442,3 +442,27 @@
   0%   { transform: translate(0%, 0%);   opacity: 1; }
   100% { transform: translate(100%, 0%); opacity: 0; }
 }
+
+/* ─── MapLibre Attribution: Force Compact Mode ─── */
+/* Hides the open text panel by default; only the 'i' button is shown */
+.maplibregl-ctrl-attrib:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner {
+  display: none;
+}
+.maplibregl-ctrl-attrib {
+  /* Ensure it always renders as compact pill */
+  min-width: auto !important;
+  padding: 0 !important;
+  background: rgba(0,0,0,0.5) !important;
+  border-radius: 50% !important;
+}
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  border-radius: 50% !important;
+}
+/* When expanded (user clicked), restore normal layout */
+.maplibregl-ctrl-attrib.maplibregl-compact-show {
+  border-radius: 8px !important;
+  padding: 4px 8px !important;
+}
+.maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-inner {
+  display: block;
+}

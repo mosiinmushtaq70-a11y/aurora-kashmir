@@ -158,21 +158,59 @@ async def check_alert_conditions(user_lat: float, user_lon: float, user_email: s
         print(f"Alert condition check failed for {user_email}: {e}")
 
 async def start_alert_scheduler():
-    """Background task to run check_alert_conditions continuously across all active targets."""
-    import asyncpg
-    db_url = os.environ.get("DATABASE_URL")
+    """Background task to check aurora conditions for all active Supabase subscriptions."""
+    # Delay the first execution by 10 seconds to allow the server to start accepting requests first
+    await asyncio.sleep(10)
     
+    from supabase import create_client, Client
+    from datetime import date
+
+    supabase_url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
+
+    if not supabase_url or not supabase_key:
+        print("⚠️  Supabase credentials not found in environment. Alert scheduler disabled.")
+        return
+
+    supabase: Client = create_client(supabase_url, supabase_key)
+    print("✅ Alert scheduler started — connected to Supabase.")
+
     while True:
         try:
-            if db_url:
-                conn = await asyncpg.connect(db_url)
-                rows = await conn.fetch('SELECT email, lat, lon, "minScore" FROM "TargetLock" WHERE "isAlertEnabled" = true')
-                await conn.close()
-                for row in rows:
-                    await check_alert_conditions(float(row['lat']), float(row['lon']), row['email'], int(row['minScore']))
-            else:
-                print("⚠️ DATABASE_URL not set in Sentry backend. Target locks unreachable.")
+            today = date.today().isoformat()
+
+            # Fetch all alerts whose watch window is currently active
+            response = (
+                supabase.table("telemetry_alerts")
+                .select("email, target_location, latitude, longitude, start_date, end_date")
+                .lte("start_date", today)   # started on or before today
+                .gte("end_date", today)      # ends on or after today
+                .execute()
+            )
+
+            alerts = response.data or []
+            print(f"🔍 Scheduler cycle: {len(alerts)} active alert(s) found.")
+
+            for alert in alerts:
+                lat = alert.get("latitude")
+                lon = alert.get("longitude")
+                email = alert.get("email")
+                location = alert.get("target_location", "Unknown")
+
+                if lat is None or lon is None:
+                    print(f"⚠️  Skipping {email} — missing coordinates for {location}.")
+                    continue
+
+                print(f"🌌 Checking aurora conditions for {email} at {location} ({lat}, {lon})...")
+                await check_alert_conditions(
+                    user_lat=float(lat),
+                    user_lon=float(lon),
+                    user_email=email,
+                    min_score=75
+                )
+
         except Exception as e:
-            print(f"Error checking targets in db loop: {e}")
-            
-        await asyncio.sleep(305)
+            print(f"❌ Scheduler error: {e}")
+
+        # Wait 10 minutes before next cycle
+        await asyncio.sleep(600)

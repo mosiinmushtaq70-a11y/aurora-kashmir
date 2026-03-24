@@ -1,13 +1,41 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
-import Map, { MapRef, Marker, Source, Layer } from 'react-map-gl/maplibre';
+import { useRef, useEffect, useState, useMemo } from 'react';
+import Map, { MapRef, Marker, Source, Layer, AttributionControl } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
-import { ArrowLeft, Target, Zap, Eye, Wind, CloudOff, Cloud, Bell, Layers, Settings2, LogIn, MapPin, Star } from 'lucide-react';
+import { ArrowLeft, Target, Zap, Eye, Wind, CloudOff, Cloud, Bell, Layers, MapPin, Star, Search, Settings2 } from 'lucide-react';
 import { useAppStore, TargetLocation } from '@/store/useAppStore';
-import { useSession, signIn } from 'next-auth/react';
+import { subscribeToAlerts } from '@/app/actions/alertActions';
 import TimelineScrubber from './TimelineScrubber';
+import AIAssistantModal from './ui/AIAssistantModal';
+import MapSearchBar from './ui/MapSearchBar';
+
+// ─── CARTO Map Style Endpoints ────────────────────────────────────────────────
+const CARTO_DARK    = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
+const ESRI_SATELLITE_RASTER = {
+  version: 8 as const,
+  sources: {
+    'esri-satellite': {
+      type: 'raster' as const,
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256,
+      attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    }
+  },
+  layers: [
+    {
+      id: 'satellite-tiles',
+      type: 'raster' as const,
+      source: 'esri-satellite',
+      minzoom: 0,
+      maxzoom: 19
+    }
+  ]
+};
 
 function AnimatedNumber({ value, format }: { value: number, format?: (v: number) => string }) {
   const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
@@ -20,7 +48,61 @@ function AnimatedNumber({ value, format }: { value: number, format?: (v: number)
   return <motion.span>{display}</motion.span>;
 }
 
-function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast: LocalForecastData | null; primeSpots: any[]; onSpotClick?: (lat: number, lng: number, id: string) => void }) {
+export function getTacticalIntelligence(score: number) {
+  if (score < 45) return { title: "MINIMAL ACTIVITY", color: "text-slate-400", border: "border-slate-400" };
+  if (score <= 55) return { title: "TRANSITIONAL SHIFT", color: "text-amber-500", border: "border-amber-500" };
+  if (score < 65) return { title: "ACTIVE SUBSTORM", color: "text-[#4af626]", border: "border-[#4af626]" };
+  if (score <= 75) return { title: "HIGH INTENSITY", color: "text-cyan-400", border: "border-cyan-400" };
+  if (score < 85) return { title: "SEVERE STORM", color: "text-purple-400", border: "border-purple-400" };
+  return { title: "HISTORIC ANOMALY", color: "text-rose-500", border: "border-rose-500" };
+}
+
+function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick, locationName, temperature }: { forecast: LocalForecastData | null; primeSpots: any[]; onSpotClick?: (lat: number, lng: number, id: string) => void; locationName?: string; temperature?: number | null }) {
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [tacticalBrief, setTacticalBrief] = useState('Awaiting satellite telemetry...');
+  const [isBriefLoading, setIsBriefLoading] = useState(true);
+
+  const advisoryColor = useMemo(() => {
+    if (!forecast) return { border: 'border-slate-500', color: 'text-slate-500' };
+    return getTacticalIntelligence(forecast.aurora_score);
+  }, [forecast?.aurora_score]);
+
+  useEffect(() => {
+    if (!forecast || !locationName) return;
+    
+    let isMounted = true;
+    setIsBriefLoading(true);
+    
+    const timeoutId = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/tactical-brief', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            score: forecast.aurora_score,
+            location: locationName,
+            cloudCover: forecast.cloud_cover,
+            temperature: forecast.temperature
+          })
+        });
+        if (!res.ok) throw new Error('Uplink failed');
+        const data = await res.json();
+        if (isMounted && data.brief) {
+          setTacticalBrief(data.brief);
+        }
+      } catch (e) {
+        if (isMounted) setTacticalBrief('Telemetry connection lost. Rely on local radar.');
+      } finally {
+        if (isMounted) setIsBriefLoading(false);
+      }
+    }, 800);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [forecast?.aurora_score, locationName]);
+
   if (!forecast) return null;
 
   const getPhotographyInsight = () => {
@@ -45,47 +127,7 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
   const sky = getSkyInsight();
   const vis = getVisibilityInsight();
 
-  const getTacticalAdvisory = () => {
-    const score = forecast.aurora_score;
-    if (score > 75) {
-      const phrases = [
-        'Prime conditions detected. Deployment highly recommended.',
-        'Optimal viewing window. Execute observation plans.',
-        'High probability of auroral activity. Clear for travel.'
-      ];
-      return { 
-        text: phrases[Math.floor(Math.random() * phrases.length)],
-        color: 'border-aurora-green',
-        textColor: 'text-aurora-green'
-      };
-    } else if (score >= 40) {
-      const phrases = [
-        'Marginal conditions. Keep monitoring telemetry.',
-        'Activity possible. Stand by for updated solar wind data.',
-        'Moderate probability. Local cloud cover will dictate visibility.'
-      ];
-      return { 
-        text: phrases[Math.floor(Math.random() * phrases.length)],
-        color: 'border-amber-500',
-        textColor: 'text-amber-500'
-      };
-    } else {
-      const phrases = [
-        'Unfavorable conditions. Stand down.',
-        'Low probability. Travel not recommended for this sector tonight.',
-        'Insufficient solar activity. Abort observation plans.'
-      ];
-      return { 
-        text: phrases[Math.floor(Math.random() * phrases.length)],
-        color: 'border-red-500',
-        textColor: 'text-red-500'
-      };
-    }
-  };
-  
-  // Custom hook pattern to avoid hydration mismatch if random varies between server/client, 
-  // but since this is fully client-side rendered based on 'forecast' state, it's safe.
-  const [advisory] = useState(() => getTacticalAdvisory());
+
 
   const pollutionColor: Record<string, string> = {
     Minimal:  'text-aurora-green',
@@ -100,7 +142,7 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -80, opacity: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-      className="absolute top-24 left-0 w-72 z-30 pointer-events-auto overflow-y-auto max-h-[calc(100vh-8rem)] block"
+      className="w-full z-30 pointer-events-auto md:absolute md:top-24 md:left-0 md:w-72 md:overflow-y-auto md:max-h-[calc(100vh-8rem)]"
       style={{ scrollbarWidth: 'none' }}
       onWheel={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
@@ -108,12 +150,12 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
       <div className="flex flex-col gap-3 pl-4 pb-8 pr-2 pt-2">
 
       {/* ─── Tactical Advisory ─── */}
-      <div className={`glass-panel rounded-r-xl p-4 border-l-2 bg-black/60 shadow-xl ${advisory.color}`}>
+      <div className={`glass-panel rounded-r-xl p-4 border-l-2 bg-black/60 shadow-xl ${advisoryColor.border}`}>
         <div className="flex items-center gap-2 mb-2">
-          <Target size={14} className={advisory.textColor} />
-          <span className={`font-mono text-[10px] tracking-[0.2em] uppercase font-bold ${advisory.textColor}`}>Tactical Advisory</span>
+          <Target size={14} className={advisoryColor.color} />
+          <span className={`font-mono text-[10px] tracking-[0.2em] uppercase font-bold ${advisoryColor.color}`}>Tactical Advisory</span>
         </div>
-        <p className={`font-mono text-xs leading-relaxed opacity-90 ${advisory.textColor}`}>{advisory.text}</p>
+        <p className={`font-mono text-xs leading-relaxed opacity-90 ${advisoryColor.color} ${isBriefLoading ? 'animate-pulse' : ''}`}>{tacticalBrief}</p>
       </div>
 
       {/* ─── Main AI Insights ─── */}
@@ -131,26 +173,69 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
           </div>
         </div>
 
-        <div className="space-y-4">
-          {[
-            { label: "Photography", ...photo },
-            { label: "Sky Condition", ...sky },
-            { label: "Visibility", ...vis }
-          ].map((item, i) => (
-            <div key={i} className="flex gap-3">
-              <div className="mt-1">{item.icon}</div>
-              <div className="flex flex-col">
-                <span className="text-slate-500 text-[9px] uppercase tracking-wider font-bold mb-0.5">{item.label}</span>
-                <p className="text-white font-bold text-sm leading-tight">{item.text}</p>
-                <p className="text-slate-400 text-[10px] mt-0.5">{item.sub}</p>
+        {(() => {
+          const isVisible = forecast.aurora_score >= 50;
+
+          if (!isVisible) {
+            return (
+              <div className="flex flex-col items-center justify-center p-6 border border-amber-500/20 bg-amber-500/10 rounded-xl space-y-4 mb-4">
+                <Target size={24} className="text-amber-500 opacity-80" />
+                <span className="text-amber-500 font-mono text-center text-[10px] leading-relaxed uppercase font-bold tracking-widest">
+                  OPTICAL SENSORS STANDBY<br/>
+                  <span className="text-amber-500/70 text-[9px] tracking-normal">Conditions sub-optimal for photography.</span>
+                </span>
               </div>
-            </div>
-          ))}
-        </div>
+            );
+          }
+
+          return (
+            <>
+              <div className="space-y-4">
+                {[
+                  { label: "Photography", ...photo },
+                  { label: "Sky Condition", ...sky },
+                  { label: "Visibility", ...vis }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-3">
+                    <div className="mt-1">{item.icon}</div>
+                    <div className="flex flex-col">
+                      <span className="text-slate-500 text-[9px] uppercase tracking-wider font-bold mb-0.5">{item.label}</span>
+                      <p className="text-white font-bold text-sm leading-tight">{item.text}</p>
+                      <p className="text-slate-400 text-[10px] mt-0.5">{item.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                <div className="flex flex-col items-center justify-center p-2 bg-white/5 rounded-lg border border-white/10">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Aperture</span>
+                  <span className="text-white font-mono text-xs mt-1">f/2.8</span>
+                </div>
+                <div className="flex flex-col items-center justify-center p-2 bg-white/5 rounded-lg border border-white/10">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Exposure</span>
+                  <span className="text-white font-mono text-xs mt-1">15s</span>
+                </div>
+                <div className="flex flex-col items-center justify-center p-2 bg-white/5 rounded-lg border border-white/10">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">ISO</span>
+                  <span className="text-white font-mono text-xs mt-1">1600+</span>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setIsAIModalOpen(true)}
+                className="w-full py-3 mt-3 flex items-center justify-center gap-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 hover:text-blue-300 border border-blue-500/30 rounded-xl transition-colors group"
+              >
+                <Zap size={14} className="group-hover:scale-110 transition-transform" />
+                <span className="font-mono text-[9px] font-bold tracking-[0.2em] uppercase">INITIATE AI PHOTO ASSISTANT</span>
+              </button>
+            </>
+          );
+        })()}
 
         <div className="mt-4 pt-4 border-t border-white/5">
           <p className="text-[10px] text-slate-500 italic leading-relaxed">
-            AI has analyzed local atmospherics. {forecast.aurora_score > 40 ? "Great opportunity for sighting." : "Conditions are sub-optimal."}
+            AI has analyzed local atmospherics. {forecast.aurora_score >= 50 ? "Great opportunity for sighting." : "Conditions are sub-optimal."}
           </p>
         </div>
       </div>
@@ -226,6 +311,13 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
         <p className="text-[9px] text-slate-600 mt-3 italic text-center font-mono">Distances approx. · Mock data</p>
       </div>
       </div>
+      <AIAssistantModal 
+        isOpen={isAIModalOpen} 
+        onClose={() => setIsAIModalOpen(false)} 
+        locationName={locationName}
+        auroraScore={forecast.aurora_score}
+        temperature={temperature}
+      />
     </motion.div>
   );
 }
@@ -252,53 +344,78 @@ interface LocalForecastData {
 
 function LocalDataSidebar({ location, forecast, fetchError }: { location: TargetLocation; forecast: LocalForecastData | null; fetchError: string | null }) {
   const { isProMode, setProMode } = useAppStore();
-  const { data: session, status } = useSession();
   
   const [isAlertEnabled, setIsAlertEnabled] = useState(false);
-  const [alertEmail, setAlertEmail] = useState(session?.user?.email || '');
+  const [alertEmail, setAlertEmail] = useState('');
+  const [startDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(() => {
+    const tom = new Date();
+    tom.setDate(tom.getDate() + 1);
+    return tom.toISOString().split('T')[0];
+  });
+  const [maxEndDate] = useState(() => {
+    const max = new Date();
+    max.setMonth(max.getMonth() + 6);
+    return max.toISOString().split('T')[0];
+  });
   const [minScore, setMinScore] = useState(75);
   const [isSaving, setIsSaving] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [isInitializingWatch, setIsInitializingWatch] = useState(false);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    if (session?.user?.email && !alertEmail) {
-      setAlertEmail(session.user.email);
+    if (typeof window !== 'undefined') {
+      const savedEmail = localStorage.getItem('aurora_target_email');
+      if (savedEmail) {
+        setAlertEmail(savedEmail);
+      }
     }
-  }, [session?.user?.email]);
+  }, []);
 
-  const handleSaveTarget = async () => {
-    if (isAlertEnabled && !alertEmail) {
-      alert("Please enter an email for alerts.");
-      return;
-    }
-    
-    setIsSaving(true);
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleInitializeWatch = async () => {
+    const errors = [];
+    if (!startDate) errors.push('startDate');
+    if (!endDate) errors.push('endDate');
+    if (!alertEmail) errors.push('alertEmail');
+    if (!location?.name) errors.push('location');
+
+    setFormErrors(errors);
+    if (errors.length > 0) return;
+
+    setIsInitializingWatch(true);
+
     try {
-      const payload = {
-        name: location.name,
-        lat: location.lat,
-        lon: location.lng,
+      const result = await subscribeToAlerts({
         email: alertEmail,
-        minScore,
-        isAlertEnabled
-      };
-      
-      const res = await fetch('/api/targets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        target_location: location.name,
+        latitude: location.lat,
+        longitude: location.lng,
+        start_date: startDate,
+        end_date: endDate,
       });
-      
-      if (!res.ok) throw new Error("Failed to save target");
-      
-      alert("Target Locked! You will be alerted when activity spikes.");
-    } catch (e) {
-      console.error(e);
-      alert("Error saving target.");
+
+      if (result.success) {
+        setIsAlertModalOpen(false);
+        setFormErrors([]);
+        showToast('success', '[ SYSTEM ] Telemetry watch established.');
+      } else {
+        showToast('error', `[ ERROR ] ${result.error ?? 'Uplink failed. Retry.'}`);
+      }
+    } catch (err) {
+      showToast('error', '[ ERROR ] Could not reach uplink server.');
     } finally {
-      setIsSaving(false);
+      setIsInitializingWatch(false);
     }
   };
+
+
 
   const levelColors: Record<string, string> = {
     EXTREME: 'text-red-400',
@@ -314,12 +431,12 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 80, opacity: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-      className="absolute top-24 right-0 w-72 z-30 pointer-events-auto overflow-y-auto max-h-[calc(100vh-8rem)] block"
+      className="w-full z-30 pointer-events-auto md:absolute md:top-24 md:right-0 md:w-72 md:overflow-y-auto md:max-h-[calc(100vh-8rem)]"
       style={{ scrollbarWidth: 'none' }}
       onWheel={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
     >
-      <div className="flex flex-col gap-3 pr-4 pb-12 pl-2 pt-2">
+      <div className="flex flex-col gap-3 p-4 md:pr-4 md:pb-12 md:pl-2 md:pt-2">
       {/* Location Header */}
       <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/40 backdrop-blur-lg flex flex-col gap-3 shadow-xl">
         <div className="flex justify-between items-start">
@@ -335,37 +452,6 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
           </div>
           
           <div className="flex flex-col items-end gap-2">
-            <AnimatePresence mode="wait">
-              {status === 'authenticated' || isAlertEnabled ? (
-                <motion.button
-                  key="saved"
-                  onClick={handleSaveTarget}
-                  disabled={isSaving}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-aurora-green/10 text-aurora-green border border-aurora-green/30 shadow-lg shadow-aurora-green/10 transition-all font-mono text-[10px] uppercase tracking-tighter disabled:opacity-50"
-                  title="Lock Target"
-                >
-                  <Bell size={12} />
-                  <span>{isSaving ? "Saving..." : "Lock Target"}</span>
-                </motion.button>
-              ) : (
-                <motion.button
-                  key="login-to-save"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => signIn()}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-aurora-green hover:border-aurora-green/30 transition-all text-[10px] font-mono uppercase tracking-tighter"
-                >
-                  <LogIn size={12} />
-                  <span>Sign In to Save</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
           </div>
         </div>
 
@@ -424,14 +510,20 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
                     <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Start Date</label>
                     <input 
                       type="date"
-                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-aurora-green transition-colors scheme-dark"
+                      value={startDate}
+                      readOnly
+                      className="w-full bg-black/80 border border-white/5 rounded-xl px-3 py-2 text-xs text-slate-500 font-mono cursor-not-allowed scheme-dark"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500">End Date</label>
                     <input 
                       type="date"
-                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-aurora-green transition-colors scheme-dark"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate}
+                      max={maxEndDate}
+                      className={`w-full bg-black/50 border ${formErrors.includes('endDate') ? 'border-red-500' : 'border-white/10'} rounded-xl px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-aurora-green transition-colors scheme-dark`}
                     />
                   </div>
                 </div>
@@ -442,9 +534,14 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
                   <input 
                     type="email" 
                     placeholder="operator@auroralens.ai"
-                    defaultValue={alertEmail}
-                    onChange={(e) => setAlertEmail(e.target.value)}
-                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-600 focus:outline-none focus:border-aurora-green transition-colors"
+                    value={alertEmail}
+                    onChange={(e) => {
+                      setAlertEmail(e.target.value);
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('aurora_target_email', e.target.value);
+                      }
+                    }}
+                    className={`w-full bg-aurora-green/10 border ${formErrors.includes('alertEmail') ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-aurora-green/50 shadow-[0_0_15px_rgba(0,220,130,0.15)]'} rounded-xl px-4 py-3 text-sm text-aurora-green font-mono placeholder-aurora-green/40 focus:outline-none focus:border-aurora-green focus:shadow-[0_0_20px_rgba(0,220,130,0.3)] transition-all`}
                   />
                 </div>
               </div>
@@ -458,13 +555,34 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
                   Cancel
                 </button>
                 <button 
-                  onClick={() => setIsAlertModalOpen(false)}
-                  className="px-6 py-2 rounded-xl bg-aurora-green hover:bg-aurora-green/80 text-[#050B14] font-mono font-bold text-xs tracking-widest uppercase shadow-[0_0_15px_rgba(0,220,130,0.4)] transition-all"
+                  onClick={handleInitializeWatch}
+                  disabled={isInitializingWatch}
+                  className="px-6 py-2 rounded-xl bg-aurora-green hover:bg-aurora-green/80 text-[#050B14] font-mono font-bold text-xs tracking-widest uppercase shadow-[0_0_15px_rgba(0,220,130,0.4)] transition-all disabled:opacity-50"
                 >
-                  Initialize Watch
+                  {isInitializingWatch ? '[ INITIATING UPLINK... ]' : '[ INITIALIZE WATCH ]'}
                 </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Terminal Toast ─── */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key="toast"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-200 px-6 py-3 rounded-xl border font-mono text-xs tracking-widest uppercase shadow-2xl backdrop-blur-md ${
+              toast.type === 'success'
+                ? 'bg-aurora-green/10 border-aurora-green/40 text-aurora-green shadow-aurora-green/20'
+                : 'bg-red-500/10 border-red-500/40 text-red-400 shadow-red-500/20'
+            }`}
+          >
+            {toast.message}
           </motion.div>
         )}
       </AnimatePresence>
@@ -514,10 +632,14 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
                 style={{ background: `linear-gradient(90deg, #00dc82, ${forecast.aurora_score > 60 ? '#ff4444' : '#00d4ff'})` }}
               />
             </div>
-            <p className={`text-sm font-bold mt-2 ${levelColors[forecast.level] ?? 'text-slate-400'}`}>
-              {forecast.level}
-            </p>
-            <p className="text-slate-400 text-xs mt-1 leading-relaxed">{forecast.message}</p>
+            {(() => {
+              const intel = getTacticalIntelligence(forecast.aurora_score);
+              return (
+                <p className={`text-sm font-bold mt-2 ${intel.color}`}>
+                  {intel.title}
+                </p>
+              );
+            })()}
             <p className="text-[9px] text-slate-500 font-mono mt-2 mb-1">Last Updated: {forecast.last_updated.replace(' UTC', '')} UTC</p>
             
             {/* Pro Mode Toggle */}
@@ -537,24 +659,6 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
               </button>
             </div>
 
-            {/* Predictive Alert Toggle (Phase 9.0) */}
-            {status === 'authenticated' && (
-              <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                <span className="text-[10px] text-aurora-green font-mono uppercase tracking-widest flex items-center gap-1.5 shadow-aurora-green/20">
-                  <Bell size={12} /> Predictive 12h Alerts
-                </span>
-                <button 
-                  onClick={() => console.log('Predictive Alerts Toggled')}
-                  className={`w-8 h-4 rounded-full transition-colors relative bg-aurora-green shadow-[0_0_10px_rgba(0,220,130,0.3)] cursor-pointer`}
-                >
-                  <motion.div 
-                    className="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
-                    animate={{ x: 16 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Live Telemetry */}
@@ -633,7 +737,14 @@ export default function LocationMap() {
   const [mapReady, setMapReady] = useState(false);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
-  const [mapStyleUrl, setMapStyleUrl] = useState('https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json');
+  const [mapStyleUrl, setMapStyleUrl] = useState<string | any>(CARTO_DARK);
+  const [mapTheme, setMapTheme] = useState<'dark' | 'light'>('dark');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // ─── Sync mapStyleUrl with mapTheme (no re-keying = no flash) ────────────
+  useEffect(() => {
+    setMapStyleUrl(mapTheme === 'dark' ? CARTO_DARK : ESRI_SATELLITE_RASTER);
+  }, [mapTheme]);
 
   // ─── Map Resizing to clear bezels ──────────────────────────────────
   useEffect(() => {
@@ -654,7 +765,8 @@ export default function LocationMap() {
     setForecast(null);
     setFetchError(null);
 
-    const url = `http://localhost:8000/api/weather/forecast/global?lat=${targetLocation.lat}&lon=${targetLocation.lng}&hour_offset=${timeScrubber}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    const url = `${baseUrl}/api/weather/forecast/global?lat=${targetLocation.lat}&lon=${targetLocation.lng}&hour_offset=${timeScrubber}`;
     console.log('[LocationMap] Fetching forecast:', url);
 
     (async () => {
@@ -696,7 +808,7 @@ export default function LocationMap() {
     setTimeout(() => {
       map.flyTo({
         center: [loc.lng, loc.lat],
-        zoom: loc.zoom || 12,
+        zoom: loc.zoom || 14,
         pitch: 65,
         bearing: -15,
         duration: 4000,
@@ -728,7 +840,9 @@ export default function LocationMap() {
   const isVisible = viewMode === 'LOCAL';
 
   return (
-    <AnimatePresence>
+    <>
+
+      <AnimatePresence>
       {isVisible && targetLocation && (
         <motion.div
           key="local-map"
@@ -736,40 +850,74 @@ export default function LocationMap() {
           animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
           exit={{ opacity: 0, scale: 0.97, filter: 'blur(8px)' }}
           transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 z-30 pointer-events-auto"
+          className="absolute inset-0 z-30 pointer-events-auto flex flex-col md:block overflow-y-auto"
         >
-          {/* ─── Back to Global Button ─── */}
-          <motion.button
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
-            onClick={() => {
-              setSelectedSpotId(null);
-              returnToGlobal();
-            }}
-            className="fixed top-6 left-6 z-50 flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 px-5 py-2.5 rounded-full hover:bg-aurora-green/20 hover:border-aurora-green/50 hover:text-aurora-green transition-all font-mono text-xs tracking-widest uppercase shadow-2xl group"
-          >
-            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Global View
-          </motion.button>
+          {/* ─── Back to Global + Search Row ─── */}
+          <div className="fixed top-6 left-6 z-50 flex items-center gap-3 scale-75 md:scale-100 origin-top-left">
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              onClick={() => {
+                setSelectedSpotId(null);
+                returnToGlobal();
+              }}
+              className="flex items-center gap-1.5 md:gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 p-2.5 md:px-5 md:py-2.5 rounded-full hover:bg-aurora-green/20 hover:border-aurora-green/50 hover:text-aurora-green transition-all font-mono text-[9px] md:text-xs tracking-widest uppercase shadow-2xl group"
+            >
+              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden md:inline">Back to Global View</span>
+            </motion.button>
+
+            {/* Search Another Location — desktop only */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="hidden md:flex items-center gap-2"
+            >
+              <AnimatePresence mode="wait">
+                {isSearchOpen ? (
+                  <MapSearchBar key="searchbar" onClose={() => setIsSearchOpen(false)} />
+                ) : (
+                  <motion.button
+                    key="searchbtn"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    onClick={() => setIsSearchOpen(true)}
+                    className="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 px-5 py-2.5 rounded-full hover:bg-aurora-green/20 hover:border-aurora-green/50 hover:text-aurora-green transition-all font-mono text-xs tracking-widest uppercase shadow-2xl group"
+                  >
+                    <Search size={14} className="group-hover:scale-110 transition-transform" />
+                    Search Location
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Map Theme Toggle — desktop only */}
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+              onClick={() => setMapTheme(t => t === 'dark' ? 'light' : 'dark')}
+              title={mapTheme === 'dark' ? 'Switch to Satellite Map' : 'Switch to Dark Map'}
+              className={`hidden md:flex items-center gap-2 backdrop-blur-md border px-4 py-2.5 rounded-full transition-all font-mono text-xs tracking-widest uppercase shadow-2xl group ${
+                mapTheme === 'dark'
+                  ? 'bg-white/10 text-white border-white/20 hover:bg-amber-400/20 hover:border-amber-400/50 hover:text-amber-400'
+                  : 'bg-amber-400/20 text-amber-400 border-amber-400/50 hover:bg-white/10 hover:border-white/20 hover:text-white'
+              }`}
+            >
+              <Layers size={14} className="group-hover:scale-110 transition-transform" />
+              {mapTheme === 'dark' ? 'Satellite' : 'Dark Map'}
+            </motion.button>
+          </div>
 
 
-          {/* ─── Local Sidebar ─── */}
-          <LocalInsightsSidebar 
-            forecast={forecast} 
-            primeSpots={primeSpots} 
-            onSpotClick={(lat, lng, id) => {
-              setSelectedSpotId(id);
-              const map = mapRef.current?.getMap();
-              if (map) doFlyTo(map, { lat, lng, zoom: 10 });
-            }}
-          />
-          <LocalDataSidebar location={targetLocation} forecast={forecast} fetchError={fetchError} />
-
-          {/* ─── Map Container ─── */}
-            <div className="w-full h-full relative overflow-hidden bg-space-black">
+          {/* ─── Map Container (mobile: 45vh top, desktop: full screen) ─── */}
+          <div className="h-[45vh] shrink-0 w-full md:h-full md:absolute md:inset-0 relative overflow-hidden bg-space-black">
               <Map
                 ref={mapRef}
+                attributionControl={false}
                 initialViewState={{
                   // Start GLOBALLY zoomed out — this is what makes flyTo cinematic
                   longitude: 0,
@@ -787,7 +935,12 @@ export default function LocationMap() {
                 mapStyle={mapStyleUrl}
                 maxPitch={85}
                 minZoom={0}
+                maxZoom={20}
+                dragPan={true}
+                scrollZoom={true}
+                doubleClickZoom={true}
               >
+                <AttributionControl compact={true} position="bottom-right" customAttribution="" />
                 {/* ─── Prime Spots Market Overlays ─── */}
                 {primeSpots.map((spot, i) => {
                   const isSelected = selectedSpotId === spot.id;
@@ -806,7 +959,7 @@ export default function LocationMap() {
                           e.stopPropagation();
                           setSelectedSpotId(spot.id);
                           const map = mapRef.current?.getMap();
-                          if (map) doFlyTo(map, { lat: spot.lat, lng: spot.lng, zoom: 10 });
+                          if (map) doFlyTo(map, { lat: spot.lat, lng: spot.lng, zoom: 14 });
                         }}
                       >
                         {/* Detailed Label (Clicked) */}
@@ -858,28 +1011,67 @@ export default function LocationMap() {
                   );
                 })}
               </Map>
-              {/* ─── Center Crosshair Overlay (Removed per user request) ─── */}
+              {/* ─── Map Style Toggle (inside map, never overlaps timeline) ─── */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className="absolute bottom-4 right-3 z-40 pointer-events-auto md:hidden"
+              >
+                <button
+                  onClick={() => setMapTheme(t => t === 'dark' ? 'light' : 'dark')}
+                  className={`w-9 h-9 rounded-full backdrop-blur-md border border-white/10 transition-all flex items-center justify-center shadow-lg ${
+                    mapTheme === 'dark'
+                      ? 'bg-black/60 text-slate-300 hover:border-amber-400 hover:text-amber-400'
+                      : 'bg-amber-400/20 text-amber-400 hover:bg-black/60 hover:text-white'
+                  }`}
+                  title={mapTheme === 'dark' ? 'Switch to Satellite Map' : 'Switch to Dark Map'}>
+                  <Layers size={16} />
+                </button>
+              </motion.div>
             </div>
 
-            {/* ─── Floating Action Buttons (Bottom Right) ─── */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-              className="absolute bottom-12 md:bottom-12 right-6 z-40 flex flex-col gap-3 pointer-events-auto shadow-2xl"
-            >
-              <button 
-                onClick={() => setMapStyleUrl(prev => prev.includes('dark-matter') ? 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json')}
-                className={`w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-slate-300 hover:border-aurora-green hover:text-aurora-green transition-all flex items-center justify-center shadow-lg`} 
-                title="Toggle Topographic Overlay">
-                <Layers size={20} />
-              </button>
-            </motion.div>
+          {/* ─── Mobile Panels: scroll below map ─── */}
+          <div className="flex-1 overflow-y-auto bg-[#0a0f16] z-10 md:hidden">
+            <div className="flex flex-col gap-4 p-4 pb-24">
+              <LocalDataSidebar location={targetLocation} forecast={forecast} fetchError={fetchError} />
+              <LocalInsightsSidebar 
+                forecast={forecast} 
+                primeSpots={primeSpots} 
+                locationName={targetLocation?.name}
+                temperature={forecast?.temperature}
+                onSpotClick={(lat, lng, id) => {
+                  setSelectedSpotId(id);
+                  const map = mapRef.current?.getMap();
+                  if (map) doFlyTo(map, { lat, lng, zoom: 10 });
+                }}
+              />
+            </div>
+          </div>
 
-            {/* ─── Timeline Scrubber ─── */}
-            <TimelineScrubber />
+          {/* ─── Desktop Panels: overlay on map ─── */}
+          <div className="hidden md:block">
+            <LocalInsightsSidebar 
+              forecast={forecast} 
+              primeSpots={primeSpots} 
+              locationName={targetLocation?.name}
+              temperature={forecast?.temperature}
+              onSpotClick={(lat, lng, id) => {
+                setSelectedSpotId(id);
+                const map = mapRef.current?.getMap();
+                if (map) doFlyTo(map, { lat, lng, zoom: 10 });
+              }}
+            />
+            <LocalDataSidebar location={targetLocation} forecast={forecast} fetchError={fetchError} />
+          </div>
+
+          {/* Layers button moved inside map container above */}
+
+          {/* ─── Timeline Scrubber ─── */}
+          <TimelineScrubber />
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }

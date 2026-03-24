@@ -11,7 +11,8 @@ test.describe('ML Bridge Data Integrity', () => {
     );
 
     // 3. Trigger the location lookup for Alaska
-    const searchInput = page.getByPlaceholder('Search any location on Earth...');
+    // The placeholder is dynamic in TacticalOmnibar, so we use a more resilient locator
+    const searchInput = page.locator('input[type="text"]');
     await searchInput.fill('Alaska');
 
     // 4. Click the search result to trigger zoomToLocation

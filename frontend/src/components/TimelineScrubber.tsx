@@ -36,53 +36,46 @@ export default function TimelineScrubber() {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 50, opacity: 0 }}
       transition={{ delay: 0.6, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute bottom-12 md:bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] sm:w-[500px] md:w-[600px] p-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl"
+      className="fixed md:absolute bottom-4 md:bottom-8 left-0 md:left-1/2 md:-translate-x-1/2 z-50 w-full md:w-[600px]"
     >
-      <div className="flex justify-between items-center mb-4 md:mb-6">
-        <div className="flex items-center gap-2 text-aurora-green">
-          <Clock size={16} />
-          <span className="font-mono text-xs uppercase tracking-widest font-bold">Predictive Timeline</span>
-        </div>
-        <div className="bg-aurora-green/10 text-aurora-green border border-aurora-green/30 px-3 py-1 rounded-full font-mono text-xs font-bold shadow-[0_0_15px_rgba(0,220,130,0.2)] min-w-[100px] text-center">
-          {getLabel(timeScrubber)}
-        </div>
-      </div>
+      <div className="relative w-full px-8 md:p-0 flex flex-col items-center">
+        {/* Unified Tracker Wrapper */}
+        <div className="relative w-full h-6 md:h-2">
+          {/* Track Background (The Groove) */}
+          <div className="absolute inset-0 w-full h-full bg-black/60 md:bg-white/5 rounded-full border border-white/5 md:border-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] md:shadow-none" />
+          
+          {/* Active Track */}
+          <div 
+            className="absolute inset-y-0 left-0 bg-linear-to-r from-[#00d4ff]/40 to-aurora-green/40 md:from-[#00d4ff] md:to-aurora-green rounded-full shadow-[0_0_15px_rgba(0,220,130,0.2)] md:shadow-[0_0_15px_rgba(0,220,130,0.5)]"
+            style={{ width: `${(timeScrubber / 72) * 100}%` }}
+          />
 
-      <div className="relative w-full pb-4">
-        {/* Track Background */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full h-2 bg-white/5 rounded-full" />
-        
-        {/* Active Track */}
-        <div 
-          className="absolute top-1/2 -translate-y-1/2 left-0 h-2 bg-linear-to-r from-[#00d4ff] to-aurora-green rounded-full shadow-[0_0_15px_rgba(0,220,130,0.5)]"
-          style={{ width: `${(timeScrubber / 72) * 100}%` }}
-        />
+          {/* Custom Slider Input */}
+          <input
+            type="range"
+            min="0"
+            max="72"
+            step="3"
+            value={timeScrubber}
+            onChange={handleSliderChange}
+            className="absolute inset-0 w-full h-full appearance-none bg-transparent outline-none cursor-pointer z-50 slider-thumb"
+          />
 
-        {/* Custom Slider Input */}
-        <input
-          type="range"
-          min="0"
-          max="72"
-          step="3"
-          value={timeScrubber}
-          onChange={handleSliderChange}
-          className="relative w-full h-2 appearance-none bg-transparent outline-none cursor-pointer z-50 slider-thumb"
-        />
-
-        {/* Timeline Markers */}
-        <div className="absolute -bottom-1 left-0 w-full h-4 pointer-events-none data-ticks">
-          {[0, 24, 48, 72].map((hour) => (
-            <div
-              key={hour}
-              className="absolute top-0 flex flex-col items-center -translate-x-1/2"
-              style={{ left: calculateTickPosition(hour) }}
-            >
-              <div className={`w-px h-2 ${timeScrubber >= hour ? 'bg-aurora-green' : 'bg-white/20'}`} />
-              <span className={`text-[9px] font-mono mt-1 whitespace-nowrap ${timeScrubber >= hour ? 'text-white font-bold' : 'text-slate-500'}`}>
-                {getDayLabel(hour)}
-              </span>
-            </div>
-          ))}
+          {/* Timeline Markers */}
+          <div className="absolute top-full left-0 w-full h-6 pointer-events-none data-ticks mt-1 md:mt-2">
+            {[0, 24, 48, 72].map((hour) => (
+              <div
+                key={hour}
+                className="absolute top-0 flex flex-col items-center -translate-x-1/2"
+                style={{ left: calculateTickPosition(hour) }}
+              >
+                <div className={`w-px h-2 ${timeScrubber >= hour ? 'bg-aurora-green' : 'bg-white/20'}`} />
+                <span style={{ fontSize: '9px', lineHeight: '1' }} className={`font-mono mt-1 whitespace-nowrap ${timeScrubber >= hour ? 'text-white font-bold' : 'text-slate-500'}`}>
+                  {getDayLabel(hour)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -98,6 +91,10 @@ export default function TimelineScrubber() {
           box-shadow: 0 0 20px rgba(0, 220, 130, 0.8);
           cursor: grab;
           transition: transform 0.1s, box-shadow 0.2s;
+          margin-top: 0px; /* Center thumb in track */
+        }
+        .slider-thumb::-webkit-slider-runnable-track {
+          height: 100%; /* Important for alignment */
         }
         .slider-thumb::-webkit-slider-thumb:active {
           cursor: grabbing;

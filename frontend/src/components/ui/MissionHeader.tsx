@@ -73,26 +73,21 @@ export default function MissionHeader({ solarWind, kpIndex, imfBz, auroraKV }: M
       style={{
         position: 'relative',
         zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '1.25rem 2.5rem',
         borderBottom: '1px solid rgba(255,255,255,0.04)',
         background: 'rgba(2,4,9,0.05)', // Increased transparency
         backdropFilter: 'blur(8px)',
       }}
-      className="pointer-events-auto"
+      className="pointer-events-auto flex items-center justify-center sm:justify-between px-6 py-5 sm:px-10"
     >
       {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div className="flex items-center gap-3">
         <div style={{
           width: 28, height: 28,
           border: '1px solid rgba(0,220,130,0.5)',
           borderRadius: 4,
           boxShadow: '0 0 10px rgba(0,220,130,0.2)',
           background: 'rgba(0,220,130,0.08)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        }} className="hidden md:flex items-center justify-center">
           <div style={{
             width: 10, height: 10,
             borderRadius: '50%',
@@ -111,24 +106,17 @@ export default function MissionHeader({ solarWind, kpIndex, imfBz, auroraKV }: M
         </span>
       </div>
 
-      {/* Right: live stats */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
-        <HUDStat label="Solar Wind" value={solarWind} color="#38BDF8" />
-        <HUDStat label="Kp Index" value={kpIndex} color="#F59E0B" />
-        <HUDStat label="IMF Bz" value={imfBz} color="#A78BFA" />
-        <HUDStat label="Aurora KV" value={auroraKV} color="#00DC82" />
-      </div>
 
-      {/* Clock & Status pill */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+      {/* Clock & Status pill — hidden on mobile */}
+      <div style={{ gap: '1.5rem' }} className="hidden md:flex items-center">
         <MissionClock />
 
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
+          gap: 6,
           padding: '5px 14px', borderRadius: 9999,
           border: '1px solid rgba(0,220,130,0.2)',
           background: 'rgba(0,220,130,0.06)',
-        }}>
+        }} className="flex items-center">
           <div style={{
             width: 6, height: 6, borderRadius: '50%',
             background: '#00DC82',

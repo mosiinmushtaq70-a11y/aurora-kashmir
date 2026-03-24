@@ -1,0 +1,22 @@
+[
+  {
+    "id": "TC001",
+    "title": "Verify API Health",
+    "description": "Ensure GET /api/health returns status 200/ok."
+  },
+  {
+    "id": "TC002",
+    "title": "Fetch Solar Wind Data",
+    "description": "Ensure GET /api/weather/forecast/global returns valid JSON telemetry array."
+  },
+  {
+    "id": "TC003",
+    "title": "Fetch Historical Telemetry",
+    "description": "Ensure GET /api/weather/telemetry/history returns historical Kp index and telemetry data."
+  },
+  {
+    "id": "TC004",
+    "title": "Register Alert Subscription",
+    "description": "Ensure POST /api/alerts/subscribe accepts email, target_location, latitude, and longitude."
+  }
+]

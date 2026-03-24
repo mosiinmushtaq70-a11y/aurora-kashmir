@@ -1,31 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
+import React from 'react';
+import { ComposableMap as RSM_ComposableMap, Geographies as RSM_Geographies, Geography as RSM_Geography, Marker as RSM_Marker } from 'react-simple-maps';
 
 // Standard 110m TopoJSON for global bounds
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
 
 export default function GeomagneticHeatmap() {
-  const [forecastData, setForecastData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_BACKEND_URL ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forecast/global_heatmap` : 'http://localhost:8000/api/forecast/global_heatmap')
-      .then(res => res.json())
-      .then(data => {
-        setForecastData(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to load heatmap grid:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  // Use the current time interval (0) since we removed the 7-day scrubber
-  const currentData = forecastData?.timeline ? forecastData.timeline[0]?.points : [];
-
   const lightPollutionNodes = [
     // N. America
     [-74.0, 40.7], [-118.2, 34.0], [-87.6, 41.8], [-95.3, 29.7],
@@ -44,7 +25,7 @@ export default function GeomagneticHeatmap() {
       position: 'relative',
       zIndex: 10,
       padding: '0 4rem 6rem 4rem',
-    }} className="pointer-events-none">
+    }} className="pointer-events-none px-4 sm:px-16">
       
       {/* Section Divider */}
       <div className="flex items-center gap-4 mb-12">
@@ -57,7 +38,7 @@ export default function GeomagneticHeatmap() {
         
         {/* The Left Panel (Educational Context) */}
         <div className="col-span-1 lg:col-span-4 flex flex-col justify-center">
-          <div className="p-8 rounded bg-black/40 backdrop-blur-md border border-white/5">
+          <div className="p-6 md:p-8 rounded-xl bg-black/40 backdrop-blur-md border border-white/5">
             <h3 className="text-aurora-primary font-mono text-sm tracking-widest uppercase mb-6">
               Observation Prerequisites
             </h3>
@@ -72,8 +53,8 @@ export default function GeomagneticHeatmap() {
           </div>
         </div>
 
-        {/* The Right Panel (Interactive Map) mb-0 */}
-        <div className="col-span-1 lg:col-span-8">
+        {/* The Right Panel (Interactive Map) mb-0 - Hidden on mobile! */}
+        <div className="hidden md:block col-span-1 lg:col-span-8">
           <div style={{
             width: '100%',
             minHeight: 600,
@@ -87,75 +68,51 @@ export default function GeomagneticHeatmap() {
             flexDirection: 'column',
           }}>
             {/* Dynamic Map Area */}
-            {loading ? (
-              <div className="flex-1 flex flex-col items-center justify-center font-mono text-aurora-primary gap-4">
-                 <div className="w-8 h-8 rounded-full border-t-2 border-r-2 border-aurora-primary animate-spin" />
-                 <p className="text-[10px] tracking-widest uppercase">Initializing XGBoost Grid...</p>
-              </div>
-            ) : (
-              <div className="flex-1 relative w-full h-full pb-10">
-                <ComposableMap projection="geoMercator" projectionConfig={{ scale: 110 }} width={800} height={400} style={{ width: "100%", height: "100%" }}>
-                  <Geographies geography={geoUrl}>
-                    {({ geographies }) =>
-                      geographies.map((geo) => (
-                        <Geography
-                          key={geo.rsmKey}
-                          geography={geo}
-                          fill="#020409"
-                          stroke="rgba(100, 116, 139, 0.3)" // dark slate inner borders
-                          strokeWidth={0.5}
-                          style={{
-                            default: { outline: "none" },
-                            hover: { outline: "none", fill: "rgba(255,255,255,0.02)" },
-                            pressed: { outline: "none" },
-                          }}
-                        />
-                      ))
-                    }
-                  </Geographies>
-                  
-                  {/* Layer 1: Aurora Heatmap (Green/Amber at the poles) */}
-                  {currentData?.map((pt: any, i: number) => {
-                    const isHigh = pt.score > 60;
-                    const color = isHigh ? "#F59E0B" : "#00DC82";
-                    return (
-                      <Marker key={i} coordinates={[pt.lon, pt.lat]}>
-                        <circle r={isHigh ? 14 : 9} fill={color} opacity={0.4} filter="blur(8px)" />
-                        <circle r={isHigh ? 6 : 4} fill={color} opacity={0.8} filter="blur(3px)" />
-                        <circle r={isHigh ? 2 : 1} fill="#FFF" opacity={0.9} />
-                      </Marker>
-                    );
-                  })}
+            <div className="flex-1 relative w-full h-full pb-10">
+              <RSM_ComposableMap projection="geoMercator" projectionConfig={{ scale: 110 }} width={800} height={400} style={{ width: "100%", height: "100%" }}>
+                <RSM_Geographies geography={geoUrl}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => (
+                      <RSM_Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        fill="#020409"
+                        stroke="rgba(100, 116, 139, 0.3)" // dark slate inner borders
+                        strokeWidth={0.5}
+                        style={{
+                          default: { outline: "none" },
+                          hover: { outline: "none", fill: "rgba(255,255,255,0.02)" },
+                          pressed: { outline: "none" },
+                        }}
+                      />
+                    ))
+                  }
+                </RSM_Geographies>
 
-                  {/* Layer 2: Light Pollution Grid (Amber Dots at Equator/Cities) */}
-                  {lightPollutionNodes.map((pt, i) => (
-                    <Marker key={`lp-${i}`} coordinates={pt as [number, number]}>
-                       <circle r={12} fill="#F59E0B" opacity={0.2} filter="blur(4px)" />
-                       <circle r={4} fill="#F59E0B" opacity={0.6} />
-                       <circle r={1} fill="#FFF" opacity={0.9} />
-                    </Marker>
-                  ))}
-                </ComposableMap>
-
-                {/* Minimal coordinate labels */}
-                {[
-                  ['top-3 left-4', '90.0°N 180.0°W'], 
-                  ['top-3 right-4', '90.0°N 180.0°E'],
-                  ['bottom-14 left-4', '0.0°N 180.0°W'], 
-                  ['bottom-14 right-4', '0.0°N 180.0°E']
-                ].map(([pos, label]) => (
-                  <span key={label} className={`absolute ${pos} font-mono text-[8px] text-white/20 tracking-widest pointer-events-none`}>{label}</span>
+                {/* Layer 2: Light Pollution Grid (Amber Dots at Equator/Cities) */}
+                {lightPollutionNodes.map((pt, i) => (
+                  <RSM_Marker key={`lp-${i}`} coordinates={pt as [number, number]}>
+                      <circle r={12} fill="#F59E0B" opacity={0.2} filter="blur(4px)" />
+                      <circle r={4} fill="#F59E0B" opacity={0.6} />
+                      <circle r={1} fill="#FFF" opacity={0.9} />
+                  </RSM_Marker>
                 ))}
-              </div>
-            )}
+              </RSM_ComposableMap>
+
+              {/* Minimal coordinate labels */}
+              {[
+                ['top-3 left-4', '90.0°N 180.0°W'], 
+                ['top-3 right-4', '90.0°N 180.0°E'],
+                ['bottom-14 left-4', '0.0°N 180.0°W'], 
+                ['bottom-14 right-4', '0.0°N 180.0°E']
+              ].map(([pos, label]) => (
+                <span key={label} className={`absolute ${pos} font-mono text-[8px] text-white/20 tracking-widest pointer-events-none`}>{label}</span>
+              ))}
+            </div>
 
             {/* The Map Legend */}
             <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-md border-t border-white/10 p-4">
               <div className="flex flex-wrap items-center justify-center gap-8">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-aurora-primary shadow-[0_0_8px_rgba(0,220,130,0.8)]" />
-                  <span className="font-mono text-[10px] tracking-widest text-slate-300 uppercase">Auroral Oval</span>
-                </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-accent-solar shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
                   <span className="font-mono text-[10px] tracking-widest text-slate-300 uppercase">Urban Light Pollution</span>

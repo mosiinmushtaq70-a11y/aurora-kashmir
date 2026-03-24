@@ -11,3 +11,8 @@ imbalanced-learn
 fastapi
 uvicorn[standard]
 pydantic
+sqlalchemy
+supabase
+resend
+httpx
+watchfiles
