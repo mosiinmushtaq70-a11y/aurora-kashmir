@@ -66,6 +66,33 @@
     0%, 100% { opacity: 0.6; }
     50%       { opacity: 1;   }
   }
+
+}
+
+/* ─── Global Keyframes (Used by inline styles) ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.5; filter: blur(24px); }
+  50%      { opacity: 0.9; filter: blur(32px); }
+}
+
+@keyframes earthSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+@keyframes orbitalSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes auroraOvalPulse {
+  0%   { opacity: 0.15; transform: translate(-50%, -50%) scale(0.95); }
+  100% { opacity: 0.35; transform: translate(-50%, -50%) scale(1.10); }
 }
 
 /* ─── Base Layer ─── */
@@ -112,6 +139,35 @@
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Range Slider Thumbs ─── */
+.slider-thumb-aurora::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00DC82;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 220, 130, 0.5);
+  transition: transform 0.1s ease;
+}
+.slider-thumb-aurora::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.slider-thumb-aurora::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: #00DC82;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 220, 130, 0.5);
+  transition: transform 0.1s ease;
+}
+.slider-thumb-aurora::-moz-range-thumb:hover {
+  transform: scale(1.2);
 }
 
 /* ─── Glass Panel Variants ─── */

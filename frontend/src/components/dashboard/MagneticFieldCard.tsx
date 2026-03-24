@@ -103,7 +103,7 @@ const MagneticFieldCard: React.FC<MagneticFieldCardProps> = ({ bz, history = [] 
       </div>
 
       {/* Sparkline (Magnetic Field Trend) */}
-      <div className="h-[40px] w-full mt-2 opacity-50 group-hover:opacity-100 transition-opacity">
+      <div className="h-[30px] w-full mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
         <Chart 
           options={chartOptions} 
           series={[{ name: 'Bz', data: chartData }]} 
@@ -113,16 +113,12 @@ const MagneticFieldCard: React.FC<MagneticFieldCardProps> = ({ bz, history = [] 
         />
       </div>
 
-      {/* Footer statistics */}
-      <div className="mt-4 pt-3 border-t border-white/5 flex justify-between items-center opacity-80">
-        <div>
-          <span className="data-label text-[8px]">BY COMPONENT</span>
-          <span className="font-mono text-[9px] text-white ml-2">4.2 NT</span>
-        </div>
-        <div>
-          <span className="data-label text-[8px]">SAMPLING</span>
-          <span className="font-mono text-[9px] text-white ml-2">LIVE / 1HZ</span>
-        </div>
+      {/* Footer Info */}
+      <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-1 opacity-90">
+        <span className="data-label text-[10px] font-bold" style={{ color: theme.hex }}>WHAT IS THIS?</span>
+        <span className="font-sans text-xs text-slate-300 leading-snug">
+          Interplanetary Magnetic Field. A negative Bz (<strong className="text-white">{'<'} 0 nT</strong>) means it points 'South', cracking Earth's shield to fuel the aurora.
+        </span>
       </div>
     </div>
   );

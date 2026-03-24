@@ -94,7 +94,7 @@ const SolarWindCard: React.FC<SolarWindCardProps> = ({ speed, density, history =
       </div>
 
       {/* Sparkline (Velocity Trend) */}
-      <div className="h-[50px] w-full mt-6 opacity-60 group-hover:opacity-100 transition-opacity">
+      <div className="h-[35px] w-full mt-4 opacity-70 group-hover:opacity-100 transition-opacity">
         <Chart 
           options={chartOptions} 
           series={[{ name: 'Velocity', data: speedData }]} 
@@ -105,15 +105,11 @@ const SolarWindCard: React.FC<SolarWindCardProps> = ({ speed, density, history =
       </div>
 
       {/* Footer Info */}
-      <div className="mt-4 pt-3 border-t border-white/5 flex justify-between items-center opacity-80">
-        <div>
-          <span className="data-label text-[8px]">STREAK</span>
-          <span className="font-mono text-[9px] text-white ml-2">ACTIVE</span>
-        </div>
-        <div>
-          <span className="data-label text-[8px]">L1 SOURCE</span>
-          <span className="font-mono text-[9px] text-white ml-2">ACE/DSCOVR</span>
-        </div>
+      <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-1 opacity-90">
+        <span className="data-label text-[10px] text-accent-ice font-bold">WHAT IS THIS?</span>
+        <span className="font-sans text-xs text-slate-300 leading-snug">
+          Dictates how fast solar plasma strikes Earth. Velocities <strong className="text-white">{'>'} 500 km/s</strong> create sufficient pressure for vivid, active auroras.
+        </span>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { AuthProvider } from '@/components/providers/AuthProvider'
 
 export const metadata: Metadata = {
   title: 'AuroraLens | Professional Global Aurora Forecast',
-  description: 'AI-powered space weather and aurora borealis forecasting for Kashmir and beyond.',
+  description: 'AI-powered space weather and aurora borealis forecasting for the globe.',
 }
 
 export default function RootLayout({

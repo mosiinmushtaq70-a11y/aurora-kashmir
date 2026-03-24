@@ -1,12 +1,16 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Target, Bell, Wind } from 'lucide-react';
 import TexturedGlobe from '@/components/TexturedGlobe';
 import LocationMap from '@/components/LocationMap';
-import LocationSearch from '@/components/LocationSearch';
-import LightPillar from '@/components/LightPillar';
+import OrbitalGrid from '@/components/ui/OrbitalGrid';
+import MissionHeader from '@/components/ui/MissionHeader';
+import TacticalOmnibar from '@/components/ui/TacticalOmnibar';
+import GeomagneticHeatmap from '@/components/ui/GeomagneticHeatmap';
+import OpticalNetworkGrid from '@/components/ui/OpticalNetworkGrid';
+import CommandTerminal from '@/components/ui/CommandTerminal';
 import { useAppStore } from '@/store/useAppStore';
 
 // Modular Dashboard Components
@@ -31,38 +35,6 @@ interface ForecastData {
   cloud_cover: number;
 }
 
-// ─── HUD Components ────────────────────────────────────────────────────────────
-
-/** Animated mission terminal log — IBM Plex Mono output */
-const SystemTerminal = () => {
-  const [lines, setLines] = useState<string[]>([]);
-  const logs = [
-    "> [11:15:30] INGESTING L1 TELEMETRY... SUCCESS",
-    "> [11:15:32] BZ SOUTHWARD SHIFT DETECTED (-4.2 NT)",
-    "> [11:15:34] UPDATING NEURAL FORECAST MODEL... OK"
-  ];
-  useEffect(() => {
-    let index = 0;
-    const interval = setInterval(() => {
-      setLines(prev => {
-        if (prev.length >= logs.length) return prev;
-        return [...prev, logs[index]];
-      });
-      index++;
-      if (index >= logs.length) clearInterval(interval);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-  return (
-    <div className="bg-bg-void border border-white/10 h-32 w-full max-w-md font-mono text-xs text-aurora-primary/70 p-4 flex flex-col justify-end relative shadow-[0_0_15px_rgba(0,0,0,0.8)_inset] scan-line-active">
-      <div className="space-y-1">
-        {lines.map((l, i) => <div key={i} className="text-text-secondary font-mono text-[10px] tracking-wide">{l}</div>)}
-        <div><span className="animate-pulse inline-block w-2 bg-aurora-primary/70 h-3" /></div>
-      </div>
-    </div>
-  );
-};
-
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -76,309 +48,412 @@ export default function Home() {
   const API_BASE_URL = 'http://localhost:8000';
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/weather/forecast/global`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Forecast Fetch Error:', err);
-        setError('Space Weather API unreachable.');
-        setLoading(false);
-      });
+    const CACHE_KEY_FORECAST = 'auroralens_forecast_cache';
+    const CACHE_KEY_HISTORY = 'auroralens_history_cache';
+    const CACHE_EXPIRY = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 
-    fetch(`${API_BASE_URL}/api/weather/telemetry/history`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        if (json.data && json.data.length > 0) {
-          setHistory(json.data);
-          setKp(json.data[json.data.length - 1].kp);
+    const fetchWithCache = async (url: string, cacheKey: string) => {
+      const now = Date.now();
+      const cachedStr = localStorage.getItem(cacheKey);
+      let cachedData = null;
+      let cacheTime = 0;
+
+      if (cachedStr) {
+        try {
+          const parsed = JSON.parse(cachedStr);
+          cachedData = parsed.data;
+          cacheTime = parsed.timestamp;
+        } catch (e) {
+          // Handle corrupted cache
+          localStorage.removeItem(cacheKey);
         }
-      })
-      .catch((err) => console.error('History Fetch Error:', err));
+      }
+
+      // Return active cache if less than 12 hours old
+      if (cachedData && (now - cacheTime < CACHE_EXPIRY)) {
+        return cachedData;
+      }
+
+      // Cache expired or missing -> Fetch LIVE data
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        const json = await res.json();
+        
+        // Save fresh data to local cache
+        localStorage.setItem(cacheKey, JSON.stringify({
+          data: json,
+          timestamp: now
+        }));
+        
+        return json;
+      } catch (err) {
+        // Fallback Network Error Logic: Serve expired cache to prevent crash
+        if (cachedData) {
+          console.warn(`[Network] ${url} fetch failed. Falling back to stale cache to prevent crash.`);
+          return cachedData;
+        }
+        throw err;
+      }
+    };
+
+    setLoading(true);
+
+    Promise.all([
+      fetchWithCache(`${API_BASE_URL}/api/weather/forecast/global`, CACHE_KEY_FORECAST),
+      fetchWithCache(`${API_BASE_URL}/api/weather/telemetry/history`, CACHE_KEY_HISTORY)
+    ])
+    .then(([forecastJson, historyJson]) => {
+      setData(forecastJson);
+      if (historyJson.data && historyJson.data.length > 0) {
+        setHistory(historyJson.data);
+        setKp(historyJson.data[historyJson.data.length - 1].kp);
+      }
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error('Data Fetch Error:', err);
+      setError('Telemetry stream unreachable. Awaiting sync...');
+      setLoading(false);
+    });
+
   }, []);
 
   return (
-    <div className="min-h-screen w-screen overflow-y-auto p-0 m-0 text-text-primary relative overflow-x-hidden bg-bg-void">
-
-      {/* ─── Fixed WebGL Aurora Background ─── */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <LightPillar
-          topColor="#2db936"
-          bottomColor="#4b13e7"
-          intensity={1.3}
-          rotationSpeed={0.4}
-          glowAmount={0.002}
-          pillarWidth={3}
-          pillarHeight={0.4}
-          noiseIntensity={0}
-          pillarRotation={25}
-          interactive={false}
-          mixBlendMode="screen"
-          quality="high"
-        />
+    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden p-0 m-0 text-text-primary bg-bg-void">
+      
+      {/* ─── Layer 0: The Optical Satellite Background ─── */}
+      <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden">
+        {viewMode === 'GLOBAL' ? (
+          <>
+            {/* ── The Physical Earth Imagery ── */}
+            <img
+              src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=2000&auto=format&fit=crop"
+              alt="Top-down satellite feed"
+              className="grayscale contrast-125 brightness-75 opacity-30 mix-blend-screen"
+              style={{
+                width: '120vmax',
+                height: '120vmax',
+                objectFit: 'cover',
+                flexShrink: 0,
+                WebkitMaskImage: 'radial-gradient(circle at center, black 20%, transparent 70%)',
+                maskImage: 'radial-gradient(circle at center, black 20%, transparent 70%)',
+                filter: 'hue-rotate(180deg)',
+                transformOrigin: 'center center',
+                animation: 'earthSpin 140s linear infinite',
+                willChange: 'transform',
+              }}
+            />
+            {/* ── The Auroral Oval (Pulsing Center Glow) ── */}
+            <div 
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '35vmax',
+                height: '35vmax',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(0,220,130,1) 0%, rgba(0,220,130,0) 65%)',
+                animation: 'auroraOvalPulse 4s ease-in-out infinite alternate',
+                mixBlendMode: 'screen',
+              }}
+            />
+          </>
+        ) : (
+          <div className="w-[120vmax] h-[120vmax] flex items-center justify-center pointer-events-auto">
+            <LocationMap />
+          </div>
+        )}
       </div>
 
-      {/* ─── Layout Layer ─── */}
-      <div className="relative z-10 w-full flex flex-col pt-24">
-        
-        {/* ─── Main Mission Control Content ─── */}
-        <div className="max-w-(--breakpoint-2xl) mx-auto w-full px-6 lg:px-12 pb-24 space-y-24">
-          
-          {/* ══════════════════════════════════════
-              HERO SECTION — Status & Primary Globe
-              ══════════════════════════════════════ */}
-          <section className="relative flex flex-col items-center justify-center min-h-[70vh]">
-            
-            {/* Status Batch */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="mb-8"
-            >
-              <div className="flex items-center gap-2 border border-white/10 bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full">
-                <div className="w-1.5 h-1.5 rounded-full bg-aurora-primary animate-pulse shadow-[0_0_6px_rgba(0,220,130,0.9)]" />
-                <span className="text-[10px] uppercase tracking-[0.3em] font-medium text-text-secondary">System Normal / Global Telemetry Active</span>
-              </div>
-            </motion.div>
-            {/* Title HUD Header */}
-            <div className="text-center space-y-4 mb-32 relative z-10">
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-6xl md:text-8xl font-bold tracking-tighter text-white"
-                style={{ 
-                  fontFamily: 'Orbitron, sans-serif',
-                  textShadow: '0 0 50px rgba(0,220,130,0.4)'
-                }}
-              >
-                AURORA<span className="text-aurora-primary">KASHMIR</span>
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.6 }}
-                transition={{ duration: 1, delay: 0.6 }}
-                className="text-xs md:text-sm uppercase tracking-[0.5em] text-text-secondary"
-                style={{ fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                L1 Lagrange Point &amp; Region Specific Forecasting
-              </motion.p>
-            </div>
-
-            {/* Globe / Map Viewport - Extreme Left Alignment */}
-            <div className="absolute left-[-5%] top-[12%] w-[85vh] aspect-square flex items-center justify-start pointer-events-none transition-all duration-1000">
-              {viewMode === 'GLOBAL' ? (
-                <Suspense fallback={<div className="text-white opacity-20">Loading 3D Engine...</div>}>
-                  <div className="w-full h-full opacity-80">
-                    <TexturedGlobe kp={kp} />
-                  </div>
-                </Suspense>
-              ) : (
-                <LocationMap />
-              )}
-              
-              {/* Location Target UI Surround */}
-              <div className="absolute inset-0 border border-white/5 rounded-full scale-110 pointer-events-none" />
-              <div className="absolute inset-0 border border-white/5 rounded-full scale-125 opacity-50 pointer-events-none" />
-            </div>
-
-            {/* Search Overlay */}
-            <div className="mt-16 w-full max-w-xl">
-              <LocationSearch />
-            </div>
-
-            {/* Scroll Indicator (Global only) */}
-            <AnimatePresence>
-              {viewMode === 'GLOBAL' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="mt-16 flex flex-col items-center"
-                >
-                  <span className="text-[10px] uppercase tracking-[0.4em] text-text-secondary mb-4 opacity-40 font-mono">
-                    Explore Telemetry
-                  </span>
-                  <div className="w-px h-12 bg-linear-to-b from-aurora-primary to-transparent" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </section>
-
-          {/* ══════════════════════════════════════
-              TICKER SECTION — Live Stream Feed
-              ══════════════════════════════════════ */}
-          <motion.section
+      {/* ─── Layer 1: Orbital Grid ─── */}
+      <AnimatePresence>
+        {viewMode === 'GLOBAL' && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="relative z-20 w-full border-t border-b border-white/6 glass-panel-sm py-3 px-8 overflow-visible scan-line-active"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            <div className="flex items-center gap-10 justify-center flex-wrap">
-              <div className="flex items-center gap-4">
-                <span className="section-label text-[9px]! opacity-60">KP-GEOMAG</span>
-                <span className={`font-mono text-sm font-bold ${kp >= 5 ? 'text-accent-solar animate-pulse' : 'text-aurora-primary'}`}>
-                  {kp.toFixed(1)}
-                </span>
-                <div className="flex gap-[2px] h-3 items-end opacity-40">
-                  {[8, 12, 10, 16, 12].map((h, i) => <div key={i} className="w-1 bg-white" style={{ height: `${h}px` }} />)}
-                </div>
-              </div>
+            <OrbitalGrid />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              <div className="h-4 w-px bg-white/10" />
+      {/* ─── Layer 2: Deep space vignette ─── */}
+      <AnimatePresence>
+        {viewMode === 'GLOBAL' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 pointer-events-none z-10"
+            style={{
+              background: 'radial-gradient(ellipse 65% 65% at 50% 52%, transparent 20%, rgba(2,4,9,0.88) 100%)',
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-              <div className="flex items-center gap-4">
-                <span className="section-label text-[9px]! opacity-60">IMF BZ</span>
-                <span className={`font-mono text-sm font-bold ${(data?.telemetry.bz_nt ?? 0) < 0 ? 'text-accent-danger' : 'text-text-primary'}`}>
-                  {(data?.telemetry.bz_nt ?? 0).toFixed(1)} nT
-                </span>
-              </div>
+      {/* ─── Layer 3: Modular Header ─── */}
+      <MissionHeader 
+        solarWind={`${(data?.telemetry.speed_km_s ?? 0).toFixed(0)} km/s`}
+        kpIndex={kp.toFixed(1)}
+        imfBz={`${(data?.telemetry.bz_nt ?? 0).toFixed(1)} nT`}
+        auroraKV={data?.aurora_score ? `>${data.aurora_score}%` : '85%'}
+      />
 
-              <div className="h-4 w-px bg-white/10" />
-
-              <div className="flex items-center gap-4">
-                <span className="section-label text-[9px]! opacity-60">Solar Wind</span>
-                <span className="font-mono text-sm font-bold text-accent-ice">{(data?.telemetry.speed_km_s ?? 0).toFixed(0)} <span className="opacity-40">km/s</span></span>
-              </div>
-            </div>
-          </motion.section>
-
-          {/* ══════════════════════════════════════
-              DASHBOARD SECTION — Bento Telemetry
-              ══════════════════════════════════════ */}
-          <section id="telemetry-grid" className="relative min-h-[400px]">
-             {/* Background Grid Overlay */}
-             <div className="absolute inset-x-0 top-0 bottom-0 z-[-1] pointer-events-none bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_120%_120%_at_50%_0%,#000_70%,transparent_100%)]" />
-
-            {loading ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-aurora-primary font-mono text-xs animate-pulse tracking-[0.3em]">
-                  SYNCHRONIZING WITH DEEP SPACE GATEWAY...
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-                
-                {/* KP Index Indicator */}
-                <KpCard kp={kp} history={history} />
-
-                {/* Solar Wind Telemetry */}
-                <SolarWindCard 
-                  speed={data?.telemetry.speed_km_s ?? 0} 
-                  density={data?.telemetry.density_p_cm3 ?? 0} 
-                  history={history}
-                />
-
-                {/* IMF Magnetic Component */}
-                <MagneticFieldCard 
-                  bz={data?.telemetry.bz_nt ?? 0} 
-                  history={history}
-                />
-
-                {/* Kashmir Region Projection */}
-                <KashmirVisionCard score={data?.aurora_score ?? 0} />
-
-              </div>
-            )}
-          </section>
-
-          {/* ══════════════════════════════════════
-              SECTION 02 — Mission Command
-              ══════════════════════════════════════ */}
-          <section className="space-y-8">
-            <div className="flex items-center gap-4 border-b border-white/6 pb-4">
-              <span className="section-label">[01] Mission Command & AI Architecture</span>
-              <div className="flex-1 h-px bg-linear-to-r from-aurora-primary/20 to-transparent" />
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-10 items-stretch border border-white/6 glass-panel p-8 md:p-12 relative overflow-hidden group rounded-xl">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-aurora-primary/5 blur-[120px] pointer-events-none" />
-              
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex px-3 py-1 rounded-sm bg-aurora-primary/10 border border-aurora-primary/20 text-aurora-primary font-mono text-[9px] tracking-widest">
-                  L1 LAGRANGE POINT DEPLOYMENT
-                </div>
-                <h2 className="font-display text-4xl lg:text-5xl font-bold tracking-tighter text-white">
-                  Predictive Space Weather <br/><span className="text-aurora-primary">Neural Engine V4.0</span>
-                </h2>
-                <p className="text-text-secondary leading-relaxed font-body text-sm max-w-xl">
-                  Leveraging real-time telemetry from the DSCOVR and ACE spacecraft, AuroraLens provides sub-minute accuracy for geomagnetic storm onset. Our custom XGBoost models analyze solar wind speed, density, and IMF vectors to calculate visibility for the Kashmir region.
+      {/* ─── Main Dashboard Assembly ─── */}
+      <div className="relative z-20 w-full flex flex-col">
+        
+        {/* ── Hero Centerpiece ── */}
+        <main className={`flex flex-col items-center gap-10 px-8 pointer-events-none transition-all duration-700 ease-in-out ${viewMode === 'GLOBAL' ? 'justify-center min-h-[90vh] py-20' : 'justify-start min-h-0 pt-8 pb-0'}`}>
+          <AnimatePresence mode="wait">
+            {viewMode === 'GLOBAL' && (
+              <motion.div 
+                key="hero-title"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className="text-center space-y-3"
+              >
+                <p className="font-mono text-[0.65rem] tracking-[0.45em] text-white/20 uppercase">
+                  Geomagnetic Intelligence Platform · Command Interface
                 </p>
-                <div className="pt-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="relative px-8 py-3 text-[10px] uppercase tracking-widest font-bold text-white border border-white/10 bg-white/5 hover:border-aurora-primary hover:bg-aurora-primary/5 transition-all overflow-hidden group shadow-[0_4px_24px_rgba(0,0,0,0.5)] cursor-pointer"
-                    style={{ fontFamily: 'JetBrains Mono, monospace' }}
-                  >
-                    <span className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer" />
-                    Launch System Diagnostics
-                  </motion.button>
+                <h1 className="font-orbitron font-black text-5xl md:text-[4.8rem] tracking-tight text-white leading-[1.05]"
+                    style={{ textShadow: '0 0 60px rgba(0,220,130,0.2)' }}>
+                  WHERE IS THE AURORA<br />
+                  <span className="text-aurora-primary">TONIGHT?</span>
+                </h1>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence mode="wait">
+            {viewMode === 'GLOBAL' && (
+              <motion.div
+                key="hero-search"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+              >
+                <TacticalOmnibar />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence mode="wait">
+            {viewMode === 'GLOBAL' && (
+              <motion.div 
+                key="hero-bottom"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className="flex flex-col items-center gap-4 w-full"
+              >
+                {/* ── Mission Capability Typography Block ── */}
+                <div className="max-w-2xl mx-auto mt-4 mb-4 text-center px-6">
+                  <p className="text-slate-400 text-sm md:text-base leading-relaxed font-sans">
+                    <span className="text-aurora-primary font-mono text-xs font-bold tracking-widest mr-2">[ MISSION CAPABILITY ]</span>
+                    Most forecasts rely on generic planetary averages. We intercept raw solar wind telemetry from the 
+                    <span className="text-white font-mono text-xs mx-1">L1 Lagrange point</span>
+                    and feed it through a neural network trained on a
+                    <span className="text-white font-mono text-xs mx-1">60-year geomagnetic baseline</span>.
+                    The result is hyper-localized auroral probability, atmospheric clearance analysis, and tactical photography parameters for your exact coordinates.
+                  </p>
                 </div>
-              </div>
 
-              <div className="flex-1 flex flex-col items-center justify-center gap-8 py-10 lg:py-0 border-l border-white/5 pl-0 lg:pl-10">
-                <SystemTerminal />
-                <div className="relative w-full max-w-xs aspect-square border border-white/5 bg-white/1.5 flex items-center justify-center rounded-lg overflow-hidden">
-                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,220,130,0.06)_0,transparent_70%)]" />
-                   <div className="text-center z-10 font-mono">
-                      <p className="text-[10px] text-aurora-primary mb-6">[ L1 SECTOR SCAN ]</p>
-                      <div className="w-24 h-24 border border-aurora-primary/20 rounded-full flex items-center justify-center animate-spin-slow">
-                        <div className="w-12 h-12 border-t border-white/20 rounded-full" />
-                      </div>
-                   </div>
+                {/* ── L1 Orbital Vector Mini-Map ── */}
+                <div className="flex flex-col items-center gap-2 opacity-70 mt-2">
+                  <span className="font-mono text-[10px] text-white/40 tracking-[0.25em] uppercase">
+                    SUN · L1 · EARTH ORBITAL VECTOR
+                  </span>
+                  <svg width="260" height="26" viewBox="0 0 260 26" className="overflow-visible">
+                    {/* Sun */}
+                    <circle cx="8" cy="13" r="5" fill="#F59E0B" filter="url(#hero-solar-glow)" />
+                    <circle cx="8" cy="13" r="8" fill="none" stroke="#F59E0B" strokeWidth="0.5" strokeOpacity="0.4" />
+                    {/* Trajectory */}
+                    <line x1="24" y1="13" x2="232" y2="13" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="3 3" />
+                    {/* L1 Point at ~80% */}
+                    <g transform="translate(195, 13)">
+                      <rect x="-3" y="-3" width="6" height="6" fill="none" stroke="#00DC82" strokeWidth="1" transform="rotate(45)" opacity="0.9" />
+                      <text x="0" y="-8" textAnchor="middle" fill="#00DC82" fontSize="8" fontFamily="JetBrains Mono, monospace" letterSpacing="0.1em">L1</text>
+                    </g>
+                    {/* Earth */}
+                    <circle cx="248" cy="13" r="3.5" fill="#38BDF8" opacity="0.9" />
+                    <defs>
+                      <filter id="hero-solar-glow">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                      </filter>
+                    </defs>
+                  </svg>
                 </div>
-              </div>
-            </div>
-          </section>
 
-          {/* ══════════════════════════════════════
-              SECTION 03 — Global Targets
-              ══════════════════════════════════════ */}
-          <section className="space-y-8">
-            <div className="flex items-center gap-4 border-b border-white/6 pb-4">
-              <span className="section-label">[02] Verified Observational Targets</span>
-              <div className="flex-1 h-px bg-linear-to-r from-aurora-primary/20 to-transparent" />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/6 border border-white/6 overflow-hidden rounded-sm">
-              {[
-                { id: 101, loc: "TROMSØ, NORWAY",    img: "https://images.unsplash.com/photo-1531366936337-779c643e1150?q=80&w=800" },
-                { id: 102, loc: "FAIRBANKS, AK",     img: "https://images.unsplash.com/photo-1579033461387-adaa06db995b?q=80&w=800" },
-                { id: 103, loc: "REYKJAVÍK, IS",     img: "https://images.unsplash.com/photo-1520796338006-03f6f9662b66?q=80&w=800" },
-                { id: 104, loc: "YELLOWKNIFE, CA",   img: "https://images.unsplash.com/photo-1533215206306-0ce0fcc68593?q=80&w=800" }
-              ].map((spot) => (
-                <div key={spot.id} className="relative aspect-3/4 group overflow-hidden bg-bg-deep cursor-pointer">
-                  <img src={spot.img} alt={spot.loc} className="w-full h-full object-cover opacity-40 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 select-none" />
-                  <div className="absolute inset-0 bg-linear-to-t from-bg-void via-bg-void/40 to-transparent opacity-90 group-hover:opacity-50 transition-all duration-700" />
-                  <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                    <div className="translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                      <p className="section-label text-[8px] text-aurora-primary mb-1">STATION ACTIVE</p>
-                      <h3 className="font-display text-lg text-white font-bold">{spot.loc}</h3>
-                    </div>
+                {/* Neural Net Status */}
+                <div className="flex flex-col items-center gap-1 opacity-60">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-aurora-primary animate-pulse shadow-[0_0_8px_#00DC82]" />
+                    <p className="font-mono text-[10px] tracking-widest text-white/45 uppercase">
+                      NEURAL NET FORECAST: <span className="text-aurora-primary">ACTIVE</span>
+                    </p>
                   </div>
+                  <p className="font-mono text-[8px] tracking-widest text-white/20 uppercase">
+                    CONFIDENCE: {data?.confidence ?? '88.4%'}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </section>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
 
-          {/* Footer */}
-          <footer className="text-center py-20 border-t border-white/5">
-             <p className="text-text-dim font-mono text-[9px] uppercase tracking-[0.5em]">
-                AURORALENS · SPACE KASHMIR INITIATIVE · {new Date().getFullYear()}
-             </p>
-          </footer>
+        {/* ── Dashboard Lower Sections ── */}
+        <AnimatePresence mode="wait">
+          {viewMode === 'GLOBAL' && (
+            <motion.div
+              key="dashboard-lower"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+            >
+              {/* ── Telemetry Bento Grid ── */}
+              <section className="px-16 pb-24 space-y-16">
+                <div className="flex flex-col items-center gap-6 mb-12">
+                  <div className="w-px h-16 bg-linear-to-b from-transparent to-aurora-primary/40" />
+                  <h2 className="font-orbitron text-2xl tracking-[0.2em] text-white text-center">
+                    L1 TELEMETRY DOWNLINK
+                  </h2>
+                </div>
 
-        </div>
+                {loading ? (
+                  <div className="text-center font-mono text-[10px] text-aurora-primary tracking-[0.2em] opacity-60">
+                    SYNCHRONIZING WITH DEEP SPACE GATEWAY...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pointer-events-auto max-w-[1400px] mx-auto animate-[fadeIn_800ms_ease_forwards]">
+                    <KpCard kp={kp} history={history} />
+                    <SolarWindCard 
+                      speed={data?.telemetry.speed_km_s ?? 0} 
+                      density={data?.telemetry.density_p_cm3 ?? 0} 
+                      history={history}
+                    />
+                    <MagneticFieldCard 
+                      bz={data?.telemetry.bz_nt ?? 0} 
+                      history={history}
+                    />
+                    <KashmirVisionCard score={data?.aurora_score ?? 0} />
+                  </div>
+                )}
+              </section>
+
+              {/* ── Modular Dashboard Sections ── */}
+              <GeomagneticHeatmap />
+              <ActiveHotspots />
+              <OpticalNetworkGrid />
+              <CommandTerminal />
+
+              {/* ── Footer ── */}
+              <footer className="py-12 border-t border-white/10 text-center">
+                 <p className="text-slate-400 font-mono text-[10px] tracking-[0.4em] uppercase">
+                    AURORALENS · GLOBAL INTELLIGENCE NETWORK · {new Date().getFullYear()}
+                 </p>
+              </footer>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
     </div>
+  );
+}
+
+// ─── Local Components ────────────────────────────────────────────────────────
+
+function ActiveHotspots() {
+  const zoomToLocation = useAppStore((state) => state.zoomToLocation);
+
+  const HOTSPOTS = [
+    {
+      id: 'kirkjufell',
+      name: 'Kirkjufell, Iceland',
+      coords: '64.92° N, 23.31° W',
+      lat: 64.92,
+      lng: -23.31,
+      image: '/hotspots/kirkjufell.jpg'
+    },
+    {
+      id: 'tromso',
+      name: 'Tromsø, Norway',
+      coords: '69.64° N, 18.95° E',
+      lat: 69.64,
+      lng: 18.95,
+      image: '/hotspots/tromso.jpg'
+    },
+    {
+      id: 'denali',
+      name: 'Denali, Alaska',
+      coords: '63.11° N, 151.19° W',
+      lat: 63.11,
+      lng: -151.19,
+      image: '/hotspots/denali.jpg'
+    }
+  ];
+
+  return (
+    <section className="w-full max-w-[1400px] mx-auto px-8 pb-32 pointer-events-auto">
+      <h2 className="text-aurora-primary font-mono text-sm tracking-widest uppercase mb-6 drop-shadow-[0_0_12px_rgba(0,220,130,0.5)]">
+        [ ACTIVE HOTSPOTS ]
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {HOTSPOTS.map((spot) => (
+          <div
+            key={spot.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => zoomToLocation({ lat: spot.lat, lng: spot.lng, name: spot.name, zoom: 4 })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                zoomToLocation({ lat: spot.lat, lng: spot.lng, name: spot.name, zoom: 4 });
+              }
+            }}
+            className="group relative h-64 w-full rounded-2xl overflow-hidden border border-white/5 transition-colors duration-300 hover:border-aurora-primary/50 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-aurora-primary/50 flex flex-col justify-end"
+          >
+            {/* The Image is rendered purely with standard Next.js parameters, unoptimized was not working and Unsplash may block. Let's fix the z-index to 0 */}
+            <div className="absolute inset-0 z-0 bg-[#0a0f18]" />
+            <Image 
+              src={spot.image}
+              alt={spot.name}
+              fill
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110 z-0"
+              quality={75}
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+            {/* Gradient Overlay for Text Legibility (z-10 ensures it is above image) */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#020409] via-transparent to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+            
+            {/* Interactive Data Overlay */}
+            <div className="relative z-20 p-6 w-full flex flex-col">
+              <h3 className="text-white font-orbitron tracking-[0.15em] text-xl mb-1 transition-colors duration-300 group-hover:text-aurora-primary">
+                {spot.name}
+              </h3>
+              <p className="text-slate-400 font-mono text-[10px] tracking-widest">
+                {spot.coords}
+              </p>
+            </div>
+            
+            {/* HUD Bracket Accents */}
+            <div className="absolute top-4 left-4 z-20 w-4 h-4 border-t border-l border-white/20 transition-all duration-300 group-hover:w-6 group-hover:h-6 group-hover:border-aurora-primary/40 pointer-events-none" />
+            <div className="absolute bottom-4 right-4 z-20 w-4 h-4 border-b border-r border-white/10 transition-all duration-300 group-hover:w-6 group-hover:h-6 group-hover:border-aurora-primary/40 pointer-events-none" />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

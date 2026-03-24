@@ -45,6 +45,48 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
   const sky = getSkyInsight();
   const vis = getVisibilityInsight();
 
+  const getTacticalAdvisory = () => {
+    const score = forecast.aurora_score;
+    if (score > 75) {
+      const phrases = [
+        'Prime conditions detected. Deployment highly recommended.',
+        'Optimal viewing window. Execute observation plans.',
+        'High probability of auroral activity. Clear for travel.'
+      ];
+      return { 
+        text: phrases[Math.floor(Math.random() * phrases.length)],
+        color: 'border-aurora-green',
+        textColor: 'text-aurora-green'
+      };
+    } else if (score >= 40) {
+      const phrases = [
+        'Marginal conditions. Keep monitoring telemetry.',
+        'Activity possible. Stand by for updated solar wind data.',
+        'Moderate probability. Local cloud cover will dictate visibility.'
+      ];
+      return { 
+        text: phrases[Math.floor(Math.random() * phrases.length)],
+        color: 'border-amber-500',
+        textColor: 'text-amber-500'
+      };
+    } else {
+      const phrases = [
+        'Unfavorable conditions. Stand down.',
+        'Low probability. Travel not recommended for this sector tonight.',
+        'Insufficient solar activity. Abort observation plans.'
+      ];
+      return { 
+        text: phrases[Math.floor(Math.random() * phrases.length)],
+        color: 'border-red-500',
+        textColor: 'text-red-500'
+      };
+    }
+  };
+  
+  // Custom hook pattern to avoid hydration mismatch if random varies between server/client, 
+  // but since this is fully client-side rendered based on 'forecast' state, it's safe.
+  const [advisory] = useState(() => getTacticalAdvisory());
+
   const pollutionColor: Record<string, string> = {
     Minimal:  'text-aurora-green',
     Low:      'text-sky-400',
@@ -58,11 +100,22 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: -80, opacity: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-      className="absolute top-24 left-0 w-72 z-30 pointer-events-auto flex flex-col gap-3 pl-4 overflow-y-auto max-h-[calc(100vh-8rem)] pb-4"
+      className="absolute top-24 left-0 w-72 z-30 pointer-events-auto overflow-y-auto max-h-[calc(100vh-8rem)] block"
       style={{ scrollbarWidth: 'none' }}
       onWheel={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
     >
+      <div className="flex flex-col gap-3 pl-4 pb-8 pr-2 pt-2">
+
+      {/* ─── Tactical Advisory ─── */}
+      <div className={`glass-panel rounded-r-xl p-4 border-l-2 bg-black/60 shadow-xl ${advisory.color}`}>
+        <div className="flex items-center gap-2 mb-2">
+          <Target size={14} className={advisory.textColor} />
+          <span className={`font-mono text-[10px] tracking-[0.2em] uppercase font-bold ${advisory.textColor}`}>Tactical Advisory</span>
+        </div>
+        <p className={`font-mono text-xs leading-relaxed opacity-90 ${advisory.textColor}`}>{advisory.text}</p>
+      </div>
+
       {/* ─── Main AI Insights ─── */}
       <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/40 backdrop-blur-lg shadow-xl">
         <div className="flex justify-between items-start mb-4">
@@ -172,6 +225,7 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick }: { forecast:
 
         <p className="text-[9px] text-slate-600 mt-3 italic text-center font-mono">Distances approx. · Mock data</p>
       </div>
+      </div>
     </motion.div>
   );
 }
@@ -204,6 +258,7 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
   const [alertEmail, setAlertEmail] = useState(session?.user?.email || '');
   const [minScore, setMinScore] = useState(75);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
 
   useEffect(() => {
     if (session?.user?.email && !alertEmail) {
@@ -259,11 +314,12 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 80, opacity: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-      className="absolute top-24 right-0 w-72 z-30 pointer-events-auto flex flex-col gap-3 pr-4 overflow-y-auto max-h-[calc(100vh-8rem)] pb-8"
+      className="absolute top-24 right-0 w-72 z-30 pointer-events-auto overflow-y-auto max-h-[calc(100vh-8rem)] block"
       style={{ scrollbarWidth: 'none' }}
       onWheel={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
     >
+      <div className="flex flex-col gap-3 pr-4 pb-12 pl-2 pt-2">
       {/* Location Header */}
       <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/40 backdrop-blur-lg flex flex-col gap-3 shadow-xl">
         <div className="flex justify-between items-start">
@@ -315,50 +371,103 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
 
         {/* ─── Active Monitoring Section ─── */}
         <div className="mt-2 pt-3 border-t border-white/10">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Active Monitoring</span>
-            {/* Custom Tailwind Toggle Switch */}
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" checked={isAlertEnabled} onChange={() => setIsAlertEnabled(!isAlertEnabled)} />
-              <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-aurora-green shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"></div>
-            </label>
-          </div>
+          <button 
+            type="button"
+            onClick={() => setIsAlertModalOpen(true)}
+            className="w-full bg-white/5 hover:bg-aurora-green/10 border border-white/10 hover:border-aurora-green/50 text-slate-300 hover:text-aurora-green transition-all rounded-xl py-2.5 font-mono text-[10px] uppercase tracking-widest font-bold shadow-lg flex justify-center items-center gap-2"
+          >
+            [ CONFIGURE TARGET ALERTS ]
+          </button>
+        </div>
 
-          <AnimatePresence>
-            {isAlertEnabled && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="flex flex-col gap-3 overflow-hidden"
-              >
-                <input 
-                  type="email" 
-                  value={alertEmail}
-                  onChange={(e) => setAlertEmail(e.target.value)}
-                  placeholder="Alert Email Address"
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-aurora-green transition-colors"
-                />
-                
-                <div className="flex flex-col gap-1 pb-1">
-                  <div className="flex justify-between items-center mb-1 border-white/10 pt-2 border-t">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Min Score:</span>
-                    <span className="text-xs text-aurora-green font-bold">{minScore}</span>
-                  </div>
+      </div>
+
+      {/* ─── Alert Configuration Modal ─── */}
+      <AnimatePresence>
+        {isAlertModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-100 backdrop-blur-md bg-black/50 overflow-y-auto pointer-events-auto flex justify-center"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              className="mt-[15vh] w-[90%] max-w-lg h-fit bg-[#050B14]/90 border border-white/10 shadow-2xl shadow-aurora-green/20 rounded-2xl overflow-hidden backdrop-blur-xl"
+            >
+              <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center gap-3">
+                <Bell size={18} className="text-aurora-green" />
+                <h2 className="font-mono text-xs font-bold tracking-[0.2em] uppercase text-white">Telemetry Watch Alert</h2>
+              </div>
+              
+              <div className="p-6 flex flex-col gap-6">
+                {/* Target Sector */}
+                <div className="flex flex-col gap-2 relative">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Target Sector (Location)</label>
                   <input 
-                    type="range" 
-                    min="50" 
-                    max="100" 
-                    value={minScore}
-                    onChange={(e) => setMinScore(parseInt(e.target.value, 10))}
-                    className="w-full h-1 appearance-none bg-white/20 rounded-full outline-none cursor-pointer accent-[#00dc82]"
+                    type="text" 
+                    value={location.name}
+                    readOnly
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-aurora-green transition-colors"
+                  />
+                  {/* Visual Dropdown Mock */}
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#050B14]/90 border border-white/10 rounded-xl backdrop-blur-md hidden opacity-0 pointer-events-none">
+                     <p className="p-3 text-xs text-slate-400 font-mono">Suggested matches...</p>
+                  </div>
+                </div>
+
+                {/* Observation Window */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Start Date</label>
+                    <input 
+                      type="date"
+                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-aurora-green transition-colors scheme-dark"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500">End Date</label>
+                    <input 
+                      type="date"
+                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 font-mono focus:outline-none focus:border-aurora-green transition-colors scheme-dark"
+                    />
+                  </div>
+                </div>
+
+                {/* Comms Link */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Comms Link (Email)</label>
+                  <input 
+                    type="email" 
+                    placeholder="operator@auroralens.ai"
+                    defaultValue={alertEmail}
+                    onChange={(e) => setAlertEmail(e.target.value)}
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-600 focus:outline-none focus:border-aurora-green transition-colors"
                   />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+              </div>
+
+              {/* Actions */}
+              <div className="px-6 py-4 bg-black/40 border-t border-white/10 flex items-center justify-end gap-3">
+                <button 
+                  onClick={() => setIsAlertModalOpen(false)}
+                  className="px-4 py-2 text-xs font-mono tracking-widest uppercase text-slate-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => setIsAlertModalOpen(false)}
+                  className="px-6 py-2 rounded-xl bg-aurora-green hover:bg-aurora-green/80 text-[#050B14] font-mono font-bold text-xs tracking-widest uppercase shadow-[0_0_15px_rgba(0,220,130,0.4)] transition-all"
+                >
+                  Initialize Watch
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Aurora Score */}
       {forecast ? (
@@ -508,6 +617,7 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
           </div>
         </div>
       )}
+      </div>
     </motion.div>
   );
 }
@@ -706,7 +816,7 @@ export default function LocationMap() {
                               initial={{ opacity: 0, y: 10, scale: 0.9 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.9 }}
-                              className="absolute bottom-6 flex flex-col items-center pointer-events-none z-[70] whitespace-nowrap"
+                              className="absolute bottom-6 flex flex-col items-center pointer-events-none z-70 whitespace-nowrap"
                             >
                               <div className="bg-black/80 backdrop-blur-md border border-aurora-green/50 px-3 py-1.5 rounded-lg shadow-[0_0_20px_rgba(0,220,130,0.3)] flex flex-col items-center gap-0.5">
                                 <span className="text-white text-[11px] font-bold font-mono">{dynamicName}</span>
@@ -724,7 +834,7 @@ export default function LocationMap() {
                               initial={{ opacity: 0, y: 5 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 2 }}
-                              className="absolute bottom-4 flex flex-col items-center pointer-events-none z-[60] whitespace-nowrap"
+                              className="absolute bottom-4 flex flex-col items-center pointer-events-none z-60 whitespace-nowrap"
                             >
                               <div className="bg-black/60 backdrop-blur-sm border border-white/20 px-2 py-1 rounded text-white text-[9px] font-mono shadow-md">
                                 {dynamicName}
@@ -748,20 +858,7 @@ export default function LocationMap() {
                   );
                 })}
               </Map>
-              {/* ─── Target Crosshair Overlay ─── */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.5, duration: 0.5, type: 'spring', stiffness: 200 }}
-                className="absolute inset-0 pointer-events-none flex items-center justify-center"
-              >
-                <div className="relative">
-                  <div className="absolute -inset-6 border border-aurora-green/20 rounded-full animate-ping" />
-                  <Target size={32} className="text-aurora-green drop-shadow-[0_0_20px_rgba(0,220,130,0.8)]" />
-                </div>
-              </motion.div>
-
-              {/* ─── Cinematic Edge Vignette (Removed) ─── */}
+              {/* ─── Center Crosshair Overlay (Removed per user request) ─── */}
             </div>
 
             {/* ─── Floating Action Buttons (Bottom Right) ─── */}
