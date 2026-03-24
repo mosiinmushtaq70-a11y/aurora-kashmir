@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Navigation } from '@/components/Navigation'
 import ClickSpark from '@/components/ui/ClickSpark'
-import { AuthProvider } from '@/components/providers/AuthProvider'
+
 
 export const metadata: Metadata = {
   title: 'AuroraLens | Professional Global Aurora Forecast',
@@ -26,7 +25,6 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-bg-void antialiased">
-        <AuthProvider>
           <ClickSpark
             sparkColor='#00DC82'
             sparkSize={8}
@@ -34,13 +32,11 @@ export default function RootLayout({
             sparkCount={7}
             duration={400}
           >
-            {/* Navigation is a floating overlay, does not consume layout space */}
-            <Navigation />
+
             <main className="min-h-screen w-screen relative overflow-x-hidden p-0 m-0">
               {children}
             </main>
           </ClickSpark>
-        </AuthProvider>
       </body>
     </html>
   )

@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Settings, Menu, X, Zap, LogIn, LogOut, User } from 'lucide-react';
+import { Globe, Settings, Menu, X, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession, signIn, signOut } from 'next-auth/react';
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: Globe },
@@ -14,7 +13,6 @@ const navItems = [
 export function Navigation() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session, status } = useSession();
 
   return (
     <>
@@ -116,58 +114,8 @@ export function Navigation() {
               })}
             </div>
 
-            {/* Footer / Auth */}
-            <div className="mt-auto space-y-2 pb-4">
-              <AnimatePresence mode="wait">
-                {status === 'authenticated' ? (
-                  <motion.div
-                    key="auth-user"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex flex-col space-y-2"
-                  >
-                    <div className="flex items-center space-x-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                      <div className="w-8 h-8 rounded-full bg-aurora-green/20 flex items-center justify-center border border-aurora-green/30 overflow-hidden">
-                        {session?.user?.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={session?.user?.image} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <User size={16} className="text-aurora-green" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{session?.user?.name || 'Logged In'}</p>
-                        <p className="text-[10px] text-slate-500 truncate">{session?.user?.email}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => signOut()}
-                      className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition group"
-                    >
-                      <LogOut size={20} className="group-hover:scale-110 transition-transform" />
-                      <span className="text-sm font-medium">Sign Out</span>
-                    </button>
-                  </motion.div>
-                ) : (
-                  <motion.button
-                    key="auth-signin"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    onClick={() => signIn()}
-                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-aurora-green bg-aurora-green/5 hover:bg-aurora-green/10 border border-aurora-green/20 transition group"
-                  >
-                    <LogIn size={20} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-medium">Sign In</span>
-                  </motion.button>
-                )}
-              </AnimatePresence>
-
-              <div className="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition cursor-pointer">
-                <Settings size={20} />
-                <span className="text-sm font-medium">Settings</span>
-              </div>
+            {/* Footer */}
+            <div className="mt-auto pb-4">
             </div>
           </motion.nav>
         )}

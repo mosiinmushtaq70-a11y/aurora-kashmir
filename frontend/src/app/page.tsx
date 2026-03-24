@@ -121,27 +121,41 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden p-0 m-0 text-text-primary bg-bg-void">
       
+      
       {/* ─── Layer 0: The Optical Satellite Background ─── */}
       <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden">
         {viewMode === 'GLOBAL' ? (
           <>
+            {/* ── Responsive Earth Sizing & Masking ── */}
+            <style>{`
+              .earth-img {
+                width: 180vw;
+                height: 180vw;
+                object-fit: cover;
+                flex-shrink: 0;
+                -webkit-mask-image: radial-gradient(circle at center, black 15%, transparent 50%);
+                mask-image: radial-gradient(circle at center, black 15%, transparent 50%);
+                filter: hue-rotate(180deg) brightness(0.975);
+                transform-origin: center center;
+                animation: earthSpin 140s linear infinite;
+                will-change: transform;
+              }
+              @media (min-width: 640px) {
+                .earth-img {
+                  width: 120vmax;
+                  height: 120vmax;
+                  -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 70%);
+                  mask-image: radial-gradient(circle at center, black 20%, transparent 70%);
+                  filter: hue-rotate(180deg) brightness(0.75);
+                }
+              }
+            `}</style>
+
             {/* ── The Physical Earth Imagery ── */}
             <img
               src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=2000&auto=format&fit=crop"
               alt="Top-down satellite feed"
-              className="grayscale contrast-125 brightness-75 opacity-30 mix-blend-screen"
-              style={{
-                width: '120vmax',
-                height: '120vmax',
-                objectFit: 'cover',
-                flexShrink: 0,
-                WebkitMaskImage: 'radial-gradient(circle at center, black 20%, transparent 70%)',
-                maskImage: 'radial-gradient(circle at center, black 20%, transparent 70%)',
-                filter: 'hue-rotate(180deg)',
-                transformOrigin: 'center center',
-                animation: 'earthSpin 140s linear infinite',
-                willChange: 'transform',
-              }}
+              className="grayscale contrast-125 opacity-30 mix-blend-screen earth-img"
             />
             {/* ── The Auroral Oval (Pulsing Center Glow) ── */}
             <div 
@@ -184,13 +198,25 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* ─── Layer 3: Modular Header ─── */}
-      <MissionHeader 
-        solarWind={`${(data?.telemetry.speed_km_s ?? 0).toFixed(0)} km/s`}
-        kpIndex={kp.toFixed(1)}
-        imfBz={`${(data?.telemetry.bz_nt ?? 0).toFixed(1)} nT`}
-        auroraKV={data?.aurora_score ? `>${data.aurora_score}%` : '85%'}
-      />
+      {/* ─── Layer 3: Modular Header (hidden in LOCAL/map mode) ─── */}
+      <AnimatePresence>
+        {viewMode === 'GLOBAL' && (
+          <motion.div
+            key="mission-header"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          >
+            <MissionHeader 
+              solarWind={`${(data?.telemetry.speed_km_s ?? 0).toFixed(0)} km/s`}
+              kpIndex={kp.toFixed(1)}
+              imfBz={`${(data?.telemetry.bz_nt ?? 0).toFixed(1)} nT`}
+              auroraKV={data?.aurora_score ? `>${data.aurora_score}%` : '85%'}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ─── Main Dashboard Assembly ─── */}
       <div className="relative z-20 w-full flex flex-col">

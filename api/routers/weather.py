@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 import sys
 import os
 from pydantic import BaseModel
+from datetime import datetime
+import pandas as pd
 
 # Ensure src module is properly resolvable
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -73,19 +75,30 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
             
             sw_df, kp_df, plasma_df, weather = await asyncio.gather(mag_task, kp_task, plasma_task, weather_task)
             cloud_cover = weather["cloud_cover"]
-            
-            if sw_df is None or sw_df.empty or kp_df is None or kp_df.empty:
-                raise HTTPException(status_code=503, detail="NOAA DSCOVR Telemetry Offline")
+            # Verify real-time telemetry and use safe fallbacks if NOAA is offline
+            if sw_df is not None and not sw_df.empty:
+                lat_row = sw_df.iloc[-1]
+                last_updated_time = str(lat_row['time_tag']) + " UTC"
+                bz = float(lat_row['bz_gsm'])
+                bt = float(lat_row['bt'])
+            else:
+                last_updated_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') + " UTC (Fallback)"
+                bz = -2.5
+                bt = 6.0
                 
-            lat_row = sw_df.iloc[-1]
-            last_updated_time = str(lat_row['time_tag']) + " UTC"
-            bz = float(lat_row['bz_gsm'])
-            bt = float(lat_row['bt'])
-            kp_val = float(kp_df.iloc[-1]['kp'])
-            
-            speed = float(plasma_df.iloc[-1]['speed']) if plasma_df is not None and not plasma_df.empty else None
-            density = float(plasma_df.iloc[-1]['density']) if plasma_df is not None and not plasma_df.empty else None
-            temp = float(plasma_df.iloc[-1]['temperature']) if plasma_df is not None and not plasma_df.empty else None
+            if kp_df is not None and not kp_df.empty:
+                kp_val = float(kp_df.iloc[-1]['kp'])
+            else:
+                kp_val = 2.0
+                
+            if plasma_df is not None and not plasma_df.empty:
+                speed = float(plasma_df.iloc[-1]['speed']) if not pd.isna(plasma_df.iloc[-1]['speed']) else 400.0
+                density = float(plasma_df.iloc[-1]['density']) if not pd.isna(plasma_df.iloc[-1]['density']) else 5.0
+                temp = float(plasma_df.iloc[-1]['temperature']) if not pd.isna(plasma_df.iloc[-1]['temperature']) else 100000.0
+            else:
+                speed = 400.0
+                density = 5.0
+                temp = 100000.0
         
         else:
             # Future Forecast (Time Scrubber)
@@ -93,16 +106,17 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
             kp_df, weather = await asyncio.gather(kp_7day_task, weather_task)
             cloud_cover = weather["cloud_cover"]
             
-            if kp_df is None or kp_df.empty:
-                raise HTTPException(status_code=503, detail="NOAA 27-day Outlook Offline")
-            
-            # Map hour_offset to the correct day index
-            day_index = hour_offset // 24
-            if day_index >= len(kp_df):
-                day_index = len(kp_df) - 1
-            
-            kp_val = float(kp_df.iloc[day_index]['kp'])
-            last_updated_time = str(kp_df.iloc[day_index]['time_tag']) + " UTC"
+            if kp_df is not None and not kp_df.empty:
+                day_index = hour_offset // 24
+                if day_index >= len(kp_df):
+                    day_index = len(kp_df) - 1
+                kp_val = float(kp_df.iloc[day_index]['kp'])
+                last_updated_time = str(kp_df.iloc[day_index]['time_tag']) + " UTC"
+            else:
+                kp_val = 3.0
+                from datetime import timedelta
+                predicted_date = datetime.utcnow() + timedelta(hours=hour_offset)
+                last_updated_time = predicted_date.strftime('%Y-%m-%d %H:%M:%S') + " UTC (Fallback)"
             
             bz = -3.0 
             bt = 7.0
@@ -149,6 +163,8 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
             last_updated=last_updated_time
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         traceback.print_exc()
