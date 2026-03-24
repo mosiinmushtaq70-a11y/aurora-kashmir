@@ -2,39 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 
-// ─── UTC Mission Clock ────────────────────────────────────────────────────────
-function MissionClock() {
-  const [timeStr, setTimeStr] = useState<string>('SYS_TIME // --:--:-- UTC');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const tick = () => {
-      const now = new Date();
-      const hh = String(now.getUTCHours()).padStart(2, '0');
-      const mm = String(now.getUTCMinutes()).padStart(2, '0');
-      const ss = String(now.getUTCSeconds()).padStart(2, '0');
-      setTimeStr(`SYS_TIME // ${hh}:${mm}:${ss} UTC`);
-    };
-
-    tick(); // Initial tick
-    const timer = setInterval(tick, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div style={{
-      fontFamily: 'JetBrains Mono, monospace',
-      fontSize: '0.65rem',
-      letterSpacing: '0.15em',
-      color: 'rgba(255,255,255,0.4)', // --text-dim terminal feel
-      opacity: mounted ? 1 : 0.5,
-      transition: 'opacity 300ms ease',
-    }}>
-      {timeStr}
-    </div>
-  );
-}
 
 // ─── HUD Stat Row ─────────────────────────────────────────────────────────────
 function HUDStat({ label, value, color }: { label: string; value: string; color: string }) {
@@ -70,31 +37,10 @@ interface MissionHeaderProps {
 export default function MissionHeader({ solarWind, kpIndex, imfBz, auroraKV }: MissionHeaderProps) {
   return (
     <header
-      style={{
-        position: 'relative',
-        zIndex: 100,
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
-        background: 'rgba(2,4,9,0.05)', // Increased transparency
-        backdropFilter: 'blur(8px)',
-      }}
-      className="pointer-events-auto flex items-center justify-center sm:justify-between px-6 py-5 sm:px-10"
+      className="fixed w-full top-0 z-50 bg-[#0B1015]/70 backdrop-blur-md border-b border-slate-800/50 pointer-events-auto flex items-center justify-between px-6 py-5 sm:px-10"
     >
       {/* Logo */}
-      <div className="flex items-center gap-3">
-        <div style={{
-          width: 28, height: 28,
-          border: '1px solid rgba(0,220,130,0.5)',
-          borderRadius: 4,
-          boxShadow: '0 0 10px rgba(0,220,130,0.2)',
-          background: 'rgba(0,220,130,0.08)',
-        }} className="hidden md:flex items-center justify-center">
-          <div style={{
-            width: 10, height: 10,
-            borderRadius: '50%',
-            background: 'rgba(0,220,130,0.6)',
-            boxShadow: '0 0 6px rgba(0,220,130,0.8)',
-          }} />
-        </div>
+      <div className="flex items-center">
         <span style={{
           fontFamily: 'Orbitron, sans-serif',
           fontSize: '0.95rem',
@@ -107,29 +53,11 @@ export default function MissionHeader({ solarWind, kpIndex, imfBz, auroraKV }: M
       </div>
 
 
-      {/* Clock & Status pill — hidden on mobile */}
-      <div style={{ gap: '1.5rem' }} className="hidden md:flex items-center">
-        <MissionClock />
-
-        <div style={{
-          gap: 6,
-          padding: '5px 14px', borderRadius: 9999,
-          border: '1px solid rgba(0,220,130,0.2)',
-          background: 'rgba(0,220,130,0.06)',
-        }} className="flex items-center">
-          <div style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: '#00DC82',
-            boxShadow: '0 0 6px #00DC82',
-            animation: 'pulseGlow 2s ease-in-out infinite',
-          }} />
-          <span style={{
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.62rem',
-            color: '#00DC82',
-            letterSpacing: '0.15em',
-          }}>SYSTEM NOMINAL</span>
-        </div>
+      {/* Navigation Links — hidden on mobile */}
+      <div className="hidden md:flex items-center gap-8">
+        <span className="text-sm font-medium text-slate-400 hover:text-[#4af626] transition-colors cursor-pointer">Forecast Map</span>
+        <span className="text-sm font-medium text-slate-400 hover:text-[#4af626] transition-colors cursor-pointer">AI Assistant</span>
+        <span className="text-sm font-medium text-slate-400 hover:text-[#4af626] transition-colors cursor-pointer">Alerts</span>
       </div>
     </header>
   );

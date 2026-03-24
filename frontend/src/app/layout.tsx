@@ -1,7 +1,29 @@
 import type { Metadata } from 'next'
+import { Orbitron, IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import ClickSpark from '@/components/ui/ClickSpark'
 
+const orbitron = Orbitron({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '900'],
+  variable: '--font-orbitron',
+  display: 'swap',
+})
+
+const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-ibm-plex-sans',
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'AuroraLens | Professional Global Aurora Forecast',
@@ -14,15 +36,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
+    <html lang="en" className={`dark ${orbitron.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable}`} style={{ colorScheme: 'dark' }}>
       <head>
-        {/* ─── Google Fonts: Design System v1.0 Typography ─── */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body className="bg-bg-void antialiased">
           <ClickSpark

@@ -62,7 +62,7 @@ const KpCard: React.FC<KpCardProps> = ({ kp, history = [] }) => {
   };
 
   return (
-    <div className={`relative group telemetry-card p-6 overflow-hidden h-full flex flex-col justify-between ${isHighActivity ? status.glow : ''}`}>
+    <div className={`relative group telemetry-card p-4 md:p-6 overflow-hidden h-full flex flex-col justify-between ${isHighActivity ? status.glow : ''}`}>
       {/* HUD Brackets Container */}
       <div className="hud-brackets" />
 
@@ -71,8 +71,8 @@ const KpCard: React.FC<KpCardProps> = ({ kp, history = [] }) => {
         <div>
           <p className="section-label mb-1">GEOMAGNETIC INDEX</p>
           <div className="flex items-baseline gap-2">
-            <h3 className="font-display text-4xl font-bold tracking-tighter">
-              KP<span className={status.color}>{kp.toFixed(1)}</span>
+            <h3 className="font-display text-3xl md:text-5xl font-bold tracking-tighter">
+              KP <span className={status.color}>{kp.toFixed(1)}</span>
             </h3>
             {isHighActivity && (
               <motion.div 
@@ -83,13 +83,13 @@ const KpCard: React.FC<KpCardProps> = ({ kp, history = [] }) => {
             )}
           </div>
         </div>
-        <div className={`badge-${isHighActivity ? 'warning' : 'online'} text-[9px]`}>
+        <div className={`hidden md:block badge-${isHighActivity ? 'warning' : 'online'} text-[9px]`}>
           {status.label}
         </div>
       </div>
 
       {/* Sparkline (ApexCharts) */}
-      <div className="flex-1 min-h-[40px] w-full mt-2 opacity-70 group-hover:opacity-100 transition-opacity">
+      <div className="hidden md:block flex-1 min-h-[40px] w-full mt-2 opacity-70 group-hover:opacity-100 transition-opacity">
         <Chart 
           options={chartOptions} 
           series={[{ name: 'Kp', data: chartData }]} 
@@ -99,13 +99,16 @@ const KpCard: React.FC<KpCardProps> = ({ kp, history = [] }) => {
         />
       </div>
 
-      {/* Footer Info */}
-      <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-1 opacity-90">
-        <span className="data-label text-[10px] text-aurora-primary font-bold">WHAT IS THIS?</span>
-        <span className="font-sans text-xs text-slate-300 leading-snug">
+      {/* Footer Info (Animated Details) */}
+      <details className="hidden md:block mt-3 pt-3 border-t border-white/5 opacity-90 group cursor-pointer">
+        <summary className="data-label text-[10px] text-aurora-primary font-bold outline-none flex items-center justify-between list-none [&::-webkit-details-marker]:hidden">
+          WHAT IS THIS?
+          <span className="text-white/30 group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <p className="font-sans text-xs text-slate-300 leading-snug mt-2 pointer-events-none">
           Measures global geomagnetic disturbance. <strong className="text-white">Kp {'>'} 4</strong> is required for visible auroras in mid-latitudes (Kp {'>'} 6 for global displays).
-        </span>
-      </div>
+        </p>
+      </details>
     </div>
   );
 };

@@ -157,21 +157,7 @@ export default function Home() {
               alt="Top-down satellite feed"
               className="grayscale contrast-125 opacity-30 mix-blend-screen earth-img"
             />
-            {/* ── The Auroral Oval (Pulsing Center Glow) ── */}
-            <div 
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '35vmax',
-                height: '35vmax',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(0,220,130,1) 0%, rgba(0,220,130,0) 65%)',
-                animation: 'auroraOvalPulse 4s ease-in-out infinite alternate',
-                mixBlendMode: 'screen',
-              }}
-            />
+
           </>
         ) : (
           <div className="w-[120vmax] h-[120vmax] flex items-center justify-center pointer-events-auto">
@@ -219,10 +205,10 @@ export default function Home() {
       </AnimatePresence>
 
       {/* ─── Main Dashboard Assembly ─── */}
-      <div className="relative z-20 w-full flex flex-col">
+      <div className="relative z-20 w-full flex flex-col pointer-events-none">
         
         {/* ── Hero Centerpiece ── */}
-        <main className={`flex flex-col items-center gap-10 px-8 pointer-events-none transition-all duration-700 ease-in-out ${viewMode === 'GLOBAL' ? 'justify-center min-h-[90vh] py-20' : 'justify-start min-h-0 pt-8 pb-0'}`}>
+        <main className={`flex flex-col items-center gap-10 px-8 pointer-events-none transition-all duration-700 ease-in-out ${viewMode === 'GLOBAL' ? 'justify-center min-h-[90vh] pt-32 pb-20' : 'justify-start min-h-0 pt-28 pb-0'}`}>
           <AnimatePresence mode="wait">
             {viewMode === 'GLOBAL' && (
               <motion.div 
@@ -233,13 +219,13 @@ export default function Home() {
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
                 className="text-center space-y-3"
               >
-                <p className="font-mono text-[0.65rem] tracking-[0.45em] text-white/20 uppercase">
-                  Geomagnetic Intelligence Platform · Command Interface
+                <p className="text-xs md:text-sm text-slate-400 tracking-widest uppercase mb-2">
+                  ML-DRIVEN NORTHERN LIGHTS FORECASTING
                 </p>
-                <h1 className="font-orbitron font-black text-5xl md:text-[4.8rem] tracking-tight text-white leading-[1.05]"
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight font-sans text-transparent bg-clip-text bg-linear-to-b from-white to-slate-400 leading-[1.05]"
                     style={{ textShadow: '0 0 60px rgba(0,220,130,0.2)' }}>
-                  WHERE IS THE AURORA<br />
-                  <span className="text-aurora-primary">TONIGHT?</span>
+                  TRACK THE AURORA<br />
+                  <span className="text-[#4af626]">ANYWHERE</span>
                 </h1>
               </motion.div>
             )}
@@ -269,56 +255,53 @@ export default function Home() {
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
                 className="flex flex-col items-center gap-4 w-full"
               >
-                {/* ── Mission Capability Typography Block ── */}
-                <div className="max-w-2xl mx-auto mt-4 mb-4 text-center px-6">
-                  <p className="text-slate-400 text-sm md:text-base leading-relaxed font-sans">
-                    <span className="text-aurora-primary font-mono text-xs font-bold tracking-widest mr-2">[ MISSION CAPABILITY ]</span>
-                    Most forecasts rely on generic planetary averages. We intercept raw solar wind telemetry from the 
-                    <span className="text-white font-mono text-xs mx-1">L1 Lagrange point</span>
-                    and feed it through a neural network trained on a
-                    <span className="text-white font-mono text-xs mx-1">60-year geomagnetic baseline</span>.
-                    The result is hyper-localized auroral probability, atmospheric clearance analysis, and tactical photography parameters for your exact coordinates.
+                {/* ── Plain-English Feature Row ── */}
+                <div className="mt-8 flex flex-col items-center">
+                  <p className="text-slate-300 md:text-lg font-light text-center max-w-2xl mb-8">
+                    Plan the ultimate aurora hunting adventure. We analyze decades of solar data and real-time weather conditions to pinpoint exactly when and where the Northern Lights will appear, complete with expert camera settings for your location.
                   </p>
-                </div>
-
-                {/* ── L1 Orbital Vector Mini-Map ── */}
-                <div className="flex flex-col items-center gap-2 opacity-70 mt-2">
-                  <span className="font-mono text-[10px] text-white/40 tracking-[0.25em] uppercase">
-                    SUN · L1 · EARTH ORBITAL VECTOR
-                  </span>
-                  <svg width="260" height="26" viewBox="0 0 260 26" className="overflow-visible">
-                    {/* Sun */}
-                    <circle cx="8" cy="13" r="5" fill="#F59E0B" filter="url(#hero-solar-glow)" />
-                    <circle cx="8" cy="13" r="8" fill="none" stroke="#F59E0B" strokeWidth="0.5" strokeOpacity="0.4" />
-                    {/* Trajectory */}
-                    <line x1="24" y1="13" x2="232" y2="13" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="3 3" />
-                    {/* L1 Point at ~80% */}
-                    <g transform="translate(195, 13)">
-                      <rect x="-3" y="-3" width="6" height="6" fill="none" stroke="#00DC82" strokeWidth="1" transform="rotate(45)" opacity="0.9" />
-                      <text x="0" y="-8" textAnchor="middle" fill="#00DC82" fontSize="8" fontFamily="JetBrains Mono, monospace" letterSpacing="0.1em">L1</text>
-                    </g>
-                    {/* Earth */}
-                    <circle cx="248" cy="13" r="3.5" fill="#38BDF8" opacity="0.9" />
-                    <defs>
-                      <filter id="hero-solar-glow">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
-                        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                      </filter>
-                    </defs>
-                  </svg>
-                </div>
-
-                {/* Neural Net Status */}
-                <div className="flex flex-col items-center gap-1 opacity-60">
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-aurora-primary animate-pulse shadow-[0_0_8px_#00DC82]" />
-                    <p className="font-mono text-[10px] tracking-widest text-white/45 uppercase">
-                      NEURAL NET FORECAST: <span className="text-aurora-primary">ACTIVE</span>
-                    </p>
+                  
+                  {/* Feature Badges */}
+                  <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm md:text-base text-slate-400 font-medium">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#4af626]">✦</span> Precision ML Forecast
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#4af626]">✦</span> Atmospheric Visibility
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#4af626]">✦</span> AI Photography Chatbot
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#4af626]">✦</span> Automated Email Alerts
+                    </div>
                   </div>
-                  <p className="font-mono text-[8px] tracking-widest text-white/20 uppercase">
-                    CONFIDENCE: {data?.confidence ?? '88.4%'}
-                  </p>
+                </div>
+
+                {/* ── CSS Animated Orrery ── */}
+                <div className="-mt-4 flex flex-col items-center gap-6 mb-4 relative z-10">
+                  <div className="relative w-40 h-40 flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
+                    {/* The Sun (Center) */}
+                    <div className="absolute w-6 h-6 bg-amber-500 rounded-full drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]" />
+                    
+                    {/* Earth & Its Orbit */}
+                    <div className="absolute w-32 h-32 border border-slate-700/50 rounded-full animate-[spin_15s_linear_infinite] flex items-center justify-center">
+                      <div className="absolute -top-2 w-4 h-4 bg-cyan-400 rounded-full drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                        {/* The Moon & Its Orbit (Nested inside Earth) */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border border-slate-600/30 rounded-full animate-[spin_3s_linear_infinite]">
+                          <div className="absolute -top-1 left-1/2 w-1.5 h-1.5 bg-slate-200 rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Pill */}
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-sm shadow-lg">
+                    <div className="bg-amber-500 rounded-full w-2 h-2 animate-pulse shadow-[0_0_8px_#F59E0B]" />
+                    <span className="font-mono text-[10px] tracking-[0.2em] text-slate-300 uppercase font-medium">
+                      HELIOPHYSIC TELEMETRY ACTIVE
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -336,10 +319,10 @@ export default function Home() {
               transition={{ duration: 0.5, ease: 'easeInOut' }}
             >
               {/* ── Telemetry Bento Grid ── */}
-              <section className="px-16 pb-24 space-y-16">
+              <section className="px-4 md:px-16 pb-24 space-y-16 pointer-events-auto">
                 <div className="flex flex-col items-center gap-6 mb-12">
                   <div className="w-px h-16 bg-linear-to-b from-transparent to-aurora-primary/40" />
-                  <h2 className="font-orbitron text-2xl tracking-[0.2em] text-white text-center">
+                  <h2 className="font-orbitron text-xl md:text-2xl tracking-[0.2em] text-white text-center">
                     L1 TELEMETRY DOWNLINK
                   </h2>
                 </div>
@@ -349,7 +332,7 @@ export default function Home() {
                     SYNCHRONIZING WITH DEEP SPACE GATEWAY...
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pointer-events-auto max-w-[1400px] mx-auto animate-[fadeIn_800ms_ease_forwards]">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 pointer-events-auto max-w-[1400px] mx-auto animate-[fadeIn_800ms_ease_forwards]">
                     <KpCard kp={kp} history={history} />
                     <SolarWindCard 
                       speed={data?.telemetry.speed_km_s ?? 0} 

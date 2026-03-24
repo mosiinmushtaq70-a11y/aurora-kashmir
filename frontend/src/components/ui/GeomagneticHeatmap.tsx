@@ -24,8 +24,7 @@ export default function GeomagneticHeatmap() {
     <section style={{
       position: 'relative',
       zIndex: 10,
-      padding: '0 4rem 6rem 4rem',
-    }} className="pointer-events-none px-4 sm:px-16">
+    }} className="pointer-events-none pt-0 pb-24 px-4 md:px-16">
       
       {/* Section Divider */}
       <div className="flex items-center gap-4 mb-12">
@@ -39,15 +38,15 @@ export default function GeomagneticHeatmap() {
         {/* The Left Panel (Educational Context) */}
         <div className="col-span-1 lg:col-span-4 flex flex-col justify-center">
           <div className="p-6 md:p-8 rounded-xl bg-black/40 backdrop-blur-md border border-white/5">
-            <h3 className="text-aurora-primary font-mono text-sm tracking-widest uppercase mb-6">
+            <h3 className="text-aurora-primary font-mono text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6">
               Observation Prerequisites
             </h3>
             
-            <p className="text-slate-300 text-sm leading-relaxed mb-6">
+            <p className="text-slate-300 text-xs md:text-sm leading-relaxed mb-4 md:mb-6">
               The biggest threat to aurora hunting isn't low solar activity; it's the weather. Auroras occur 100km above the Earth. If local cloud cover blocks your line of sight to the upper atmosphere, even the most intense geomagnetic storms will be completely invisible.
             </p>
             
-            <p className="text-slate-300 text-sm leading-relaxed">
+            <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
               Auroral light is incredibly faint. Artificial light from cities and highways reflects off the atmosphere and washes out the night sky. To capture the aurora, you must travel outside of the amber light-pollution zones into pitch-black environments.
             </p>
           </div>

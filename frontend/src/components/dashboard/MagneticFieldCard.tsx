@@ -59,19 +59,19 @@ const MagneticFieldCard: React.FC<MagneticFieldCardProps> = ({ bz, history = [] 
   };
 
   return (
-    <div className={`relative group telemetry-card p-6 overflow-hidden h-full flex flex-col justify-between ${theme.glow}`}>
+    <div className={`relative group telemetry-card p-4 md:p-6 overflow-hidden h-full flex flex-col justify-between ${theme.glow}`}>
       {/* Bento Brackets */}
       <div className="hud-brackets" />
 
       {/* Header */}
       <div className="mb-6 flex justify-between items-start opacity-80 group-hover:opacity-100 transition-opacity">
         <div className="flex items-center gap-3">
-          <div className={`p-2 border border-white/10 bg-white/5 rounded-sm ${isSouthward ? 'bg-accent-solar/5 border-accent-solar/20' : ''}`}>
+          <div className={`hidden md:block p-2 border border-white/10 bg-white/5 rounded-sm ${isSouthward ? 'bg-accent-solar/5 border-accent-solar/20' : ''}`}>
             <Target size={16} className={theme.color} />
           </div>
           <p className="section-label">IMF BZ VECTOR</p>
         </div>
-        <div className={`badge-${isCritical ? 'danger' : isSouthward ? 'warning' : 'online'} text-[9px]`}>
+        <div className={`hidden md:block badge-${isCritical ? 'danger' : isSouthward ? 'warning' : 'online'} text-[9px]`}>
           {theme.label}
         </div>
       </div>
@@ -79,14 +79,14 @@ const MagneticFieldCard: React.FC<MagneticFieldCardProps> = ({ bz, history = [] 
       {/* Primary Metric */}
       <div className="flex-1 flex flex-col justify-center">
         <div className="flex items-baseline gap-2 mb-2">
-          <h3 className={`font-display text-4xl font-bold tracking-tighter ${theme.color}`}>
+          <h3 className={`font-display text-3xl md:text-5xl font-bold tracking-tighter ${theme.color}`}>
             {bz.toFixed(1)}
           </h3>
           <span className="text-[10px] text-text-dim font-mono">NT</span>
         </div>
 
         {/* Orientation Indicator */}
-        <div className="flex items-center gap-4 py-4">
+        <div className="hidden md:flex items-center gap-4 py-4">
           <div className="flex-1 h-px bg-white/5 relative">
             {/* Zero point marker */}
             <div className="absolute left-1/2 -top-1 w-px h-2 bg-white/20" />
@@ -103,7 +103,7 @@ const MagneticFieldCard: React.FC<MagneticFieldCardProps> = ({ bz, history = [] 
       </div>
 
       {/* Sparkline (Magnetic Field Trend) */}
-      <div className="h-[30px] w-full mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
+      <div className="hidden md:block h-[30px] w-full mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
         <Chart 
           options={chartOptions} 
           series={[{ name: 'Bz', data: chartData }]} 
@@ -113,13 +113,16 @@ const MagneticFieldCard: React.FC<MagneticFieldCardProps> = ({ bz, history = [] 
         />
       </div>
 
-      {/* Footer Info */}
-      <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-1 opacity-90">
-        <span className="data-label text-[10px] font-bold" style={{ color: theme.hex }}>WHAT IS THIS?</span>
-        <span className="font-sans text-xs text-slate-300 leading-snug">
+      {/* Footer Info (Animated Details) */}
+      <details className="hidden md:block mt-3 pt-3 border-t border-white/5 opacity-90 group cursor-pointer">
+        <summary className="data-label text-[10px] font-bold outline-none flex items-center justify-between list-none [&::-webkit-details-marker]:hidden" style={{ color: theme.hex }}>
+          WHAT IS THIS?
+          <span className="text-white/30 group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <p className="font-sans text-xs text-slate-300 leading-snug mt-2 pointer-events-none">
           Interplanetary Magnetic Field. A negative Bz (<strong className="text-white">{'<'} 0 nT</strong>) means it points 'South', cracking Earth's shield to fuel the aurora.
-        </span>
-      </div>
+        </p>
+      </details>
     </div>
   );
 };

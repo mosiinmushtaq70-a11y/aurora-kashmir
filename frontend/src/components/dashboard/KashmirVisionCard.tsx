@@ -24,7 +24,7 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
   const status = getStatus(score);
 
   return (
-    <div className={`relative group telemetry-card p-6 overflow-hidden h-full flex flex-col items-center justify-between ${status.glow}`}>
+    <div className={`relative group telemetry-card p-4 md:p-6 overflow-hidden h-full flex flex-col items-center justify-between ${status.glow}`}>
       {/* Bento Brackets */}
       <div className="hud-brackets" />
 
@@ -34,12 +34,12 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
       </div>
 
       {/* Radial Gauge SVG */}
-      <div className="relative flex items-center justify-center pt-2">
+      <div className="relative flex-1 w-full flex flex-col md:flex-row items-center justify-center pt-2">
         <svg
           height={radius + 10}
           width={radius * 2}
           viewBox={`0 0 ${radius * 2} ${radius + 10}`}
-          className="overflow-visible"
+          className="hidden md:block overflow-visible relative"
         >
           {/* Background Arc */}
           <path
@@ -66,9 +66,9 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
         </svg>
 
         {/* Center Text */}
-        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-center">
-          <h3 className={`font-display text-3xl font-bold tracking-tighter ${status.color}`}>
-            {score.toFixed(0)}<span className="text-xs opacity-40">%</span>
+        <div className="md:absolute md:-bottom-3 inset-x-0 w-full text-center flex flex-col items-center justify-center mt-4 md:mt-0">
+          <h3 className={`font-display text-3xl md:text-5xl font-bold tracking-tighter ${status.color}`}>
+            {score.toFixed(0)}<span className="text-xs md:text-sm opacity-40">%</span>
           </h3>
           <p className={`font-mono text-[8px] tracking-[0.2em] mt-0.5 font-bold ${status.color}`}>
             {status.label}
@@ -77,7 +77,7 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
       </div>
 
       {/* Local Telemetry Stats */}
-      <div className="w-full mt-2 pt-3 border-t border-white/5 grid grid-cols-2 gap-2 opacity-80">
+      <div className="hidden md:grid w-full mt-2 pt-3 border-t border-white/5 grid-cols-2 gap-2 opacity-80">
         <div className="bg-white/5 p-2 rounded-sm text-center">
           <p className="data-label text-[8px] mb-1">CLOUD COVER</p>
           <p className="font-mono text-[10px] text-white">12%</p>
@@ -89,7 +89,7 @@ const KashmirVisionCard: React.FC<KashmirVisionCardProps> = ({ score }) => {
       </div>
 
       {/* AI Predictive Analysis Micro-Module */}
-      <div className="w-full mt-2 flex flex-col items-center justify-center gap-1 opacity-90">
+      <div className="hidden md:flex w-full mt-2 flex-col items-center justify-center gap-1 opacity-90">
         <div className="flex items-center gap-2">
           {/* Pulsing indicator */}
           <div className="relative flex h-[6px] w-[6px]">
