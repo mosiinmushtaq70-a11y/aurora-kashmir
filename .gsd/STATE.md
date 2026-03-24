@@ -1,71 +1,72 @@
 # GSD State File — AuroraKashmir Project
 
 ## Current Position
-- **Phase**: Phase 22 — Mobile Layout Refinement & HUD Polishing
-- **Task**: Final Verification & Deployment Readiness
-- **Status**: Stable (resumed 2026-03-24 15:10 IST)
+- **Phase**: Phase 4 — Production Polish & Deployment (Final UI/UX Refinements)
+- **Task**: Pause and Commit
+- **Status**: Paused at 2026-03-24 23:05 IST
 
 ---
 
 ## Last Session Summary
-Focused on refining the mobile experience to ensure a premium, space-inspired HUD across all devices. Implemented a split-layout for mobile maps, optimized the command terminal, and cleaned up navigation clutter. Also resolved critical backend dependency issues.
+Focused on a comprehensive UI/UX overhaul for the landing page and mobile experience. Pivoted messaging to "ML-DRIVEN", unified search aesthetics, implemented a pure CSS Orrery, and refactored the telemetry dashboard for mobile glanceability. Also fixed critical font loading issues over network tunnels.
 
 ### Accomplishments
-- [x] **Mobile Layout Refactor**: Implemented a `60vh` split-map layout in `LocationMap.tsx`.
-- [x] **HUD Polish**: 
-    - Moved and resized the "Back to Global View" button (70% scale on mobile, original on desktop).
-    - Hid the top bar (Mission Clock/Status) on mobile to maximize real estate.
-    - Simplified `CommandTerminal` for mobile (shrunk padding, fonts, and hostname).
-- [x] **Navigation Cleanup**: Removed the global hamburger menu (`Navigation.tsx`) to favor a cleaner, button-driven flow.
-- [x] **Map Attribution**: Forced MapLibre attribution into a compact "i" button via CSS to prevent UI overlap.
-- [x] **Landing Page Optimization**: Hid the static `GeomagneticHeatmap` on mobile to avoid layout shifts.
-- [x] **Backend Fix**: Resolved `ModuleNotFoundError` for `sqlalchemy`, `supabase`, and `resend` in the `D:\python` environment.
-- [x] **Alert Scheduler**: Verified that the background scheduler correctly connects to Supabase and processes subscriptions.
+- [x] **UI Messaging Pivot**: Transitioned to "ML-DRIVEN" and "Atmospheric Visibility" terminology across hero and badges.
+- [x] **Search UI Unification**: Synced landing page `TacticalOmnibar` with premium `MapSearchBar` focus/glow aesthetics.
+- [x] **CSS Orrery**: Built a pure Tailwind CSS animated top-down orbital model (Sun, Earth, Moon).
+- [x] **Mobile Telemetry Refactor**: Implemented a 2x2 grid layout and hid complex charts/labels for 375px breakpoints.
+- [x] **Font Injection**: Refactored `layout.tsx` to use `next/font/google` for robust rendering over tunnels/proxies.
+- [x] **Sightseeing Integration**: Replaced mock data with real-world OpenStreetMap Overpass POI queries.
+- [x] **Site Intelligence Update**: Reverted tactical brief brevity to original 2-sentence depth and renamed header for fluency.
 
 ---
 
 ## In-Progress Work
-- **Final Checks**: Performing a build check to ensure all new UI changes be correctly bundled.
+- Telemetry mobile refactor and font loading fixes are complete and ready for deployment.
 
 ### Modified Files
-- `frontend/src/components/LocationMap.tsx`: Responsive button and layout.
-- `frontend/src/components/ui/MissionHeader.tsx`: Responsive header visibility.
-- `frontend/src/app/page.tsx`: Landing page conditional visibility.
-- `frontend/src/components/ui/CommandTerminal.tsx`: Compact mobile terminal.
-- `frontend/src/app/layout.tsx`: Removed global navigation.
-- `frontend/src/app/globals.css`: Compact map attribution styles.
-- `requirements.txt`: Updated with full project dependencies.
+- `frontend/src/app/api/sightseeing/route.ts`
+- `frontend/src/app/api/tactical-brief/route.ts`
+- `frontend/src/app/globals.css`
+- `frontend/src/app/layout.tsx`
+- `frontend/src/app/page.tsx`
+- `frontend/src/components/LocationMap.tsx`
+- `frontend/src/components/dashboard/KashmirVisionCard.tsx`
+- `frontend/src/components/dashboard/KpCard.tsx`
+- `frontend/src/components/dashboard/MagneticFieldCard.tsx`
+- `frontend/src/components/dashboard/SolarWindCard.tsx`
+- `frontend/src/components/ui/GeomagneticHeatmap.tsx`
+- `frontend/src/components/ui/MissionHeader.tsx`
+- `frontend/src/components/ui/TacticalOmnibar.tsx`
 
 ### Tests Status
-- **Frontend**: Manually verified on mobile/desktop breakpoints.
+- **Frontend**: Manually verified on desktop and simulated mobile; pending physical device verification after deployment.
 - **Backend**: STABLE and Running.
 
 ---
 
 ## Blockers
-- None at this time.
+- **Tunnel Asset Limitations**: Local tunnels (Pinggy/Ngrok) occasionally block font/static asset downloads on specific physical hardware due to strict mobile CORS.
 
 ---
 
 ## Context Dump
 
 ### Decisions Made
-- **Responsive Scaling**: Decided to use `scale-70` on the back button ONLY for mobile to maintain desktop usability.
-- **Reduced Header Clutter**: Removing the clock on mobile ensures the map area remains primary.
-- **Only-Binary Install**: To bypass `pyiceberg` build failures on Python 3.14 (the environment used), installed `supabase` using the `--only-binary=:all:` flag.
+- **Brevity Revert**: Decided that 2-sentence briefs provided significantly better "intel" value than the 1-sentence constraint.
+- **Icon Visibility**: Hid secondary telemetry icons on mobile to reduce visual noise in the 2x2 grid.
+- **Next.js Font Loading**: Switched from `<link>` tags to `next/font/google` to ensure font files are bundled locally.
 
 ### Approaches Tried
-- **attributionControl prop**: Tried using the object prop in `react-map-gl`, but it caused TS linting issues. Switched to a robust CSS override in `globals.css`.
+- **Linear SVG Downlink**: Initially implemented a SUN-L1-EARTH linear model, but replaced it with a more hypnotic top-down Orrery per architectural directive.
+- **Negative Margin Tuning**: Tuned the Orrery's vertical position using `-mt-4` to sit flush under hero features.
 
 ### Current Hypothesis
-- All components are now working in harmony. The system is ready for its final build attempt.
-
-### Files of Interest
-- `api/main.py`: Core backend logic.
-- `api/services/alerts.py`: Scheduler logic.
+- Deploying to Vercel will resolve all remaining font rendering issues on the physical Redmi device by serving assets from a trusted Enterprise CDN.
 
 ---
 
 ## Next Steps
-1. **Build Check**: `npm run build` to verify Next.js deployment readiness.
-2. **Phase 23**: Prepare for Vercel deployment. Review environment variables and API routing configurations for edge compatibility.
+1. **Physical Device Verification**: Verify font rendering on hardware after Vercel deployment.
+2. **Vercel Deployment**: Finalize environment variables and trigger production build.
+3. **Marker Clustering**: Implement clustering in `LocationMap.tsx` for high-density areas.

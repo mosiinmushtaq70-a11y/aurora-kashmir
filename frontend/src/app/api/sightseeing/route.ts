@@ -13,27 +13,53 @@ export async function GET(request: Request) {
   const baseLon = parseFloat(lonStr);
   const offset = 0.2;
 
-  // Generate 3x3 grid
+  // Generate 3x3 grid fallback
   const grid = [];
   for (let i = -1; i <= 1; i++) {
     for (let j = -1; j <= 1; j++) {
       grid.push({
         lat: baseLat + i * offset,
         lon: baseLon + j * offset,
+        name: null
       });
     }
   }
 
-  // Fetch Kp estimation from our global route (we can just fetch it or default to 5 for now,
-  // let's fetch from the global route or just use a default since it might be slow to loop.
-  // Actually, wait, let's just use a fixed Kp of 5 for the score math here since we don't have
-  // a dedicated Kp endpoint, or we can fetch it. Let's assume Kp=5 for the formula as we don't 
-  // want to block on the global route fetching NOAA.
-  const Kp = 5.0;
+  // 1. Fetch real viewpoints/peaks from Overpass API (50km radius)
+  let poiPoints: any[] = [];
+  try {
+    const query = `
+      [out:json][timeout:10];
+      (
+        node["natural"="peak"](around:50000, ${baseLat}, ${baseLon});
+        node["tourism"="viewpoint"](around:50000, ${baseLat}, ${baseLon});
+      );
+      out body 10;
+    `;
+    const overpassRes = await fetch(`https://overpass-api.de/api/interpreter`, {
+      method: "POST",
+      body: query
+    });
+    if (overpassRes.ok) {
+      const overpassData = await overpassRes.json();
+      poiPoints = overpassData.elements.map((el: any) => ({
+        lat: el.lat,
+        lon: el.lon,
+        name: el.tags?.name || (el.tags?.natural === 'peak' ? 'Unnamed Peak' : 'Observation Point')
+      }));
+    }
+  } catch (err) {
+    console.error("Overpass API failed, falling back to grid", err);
+  }
 
-  // Fetch Elevation and Weather for each point
+  // Combine real spots with grid fallback, limit to 6 to avoid rate limits on weather API
+  const searchPoints = poiPoints.length >= 3 ? poiPoints.slice(0, 6) : [...poiPoints, ...grid].slice(0, 6);
+
+  const Kp = 5.0; // Baseline for internal sorting
+
+  // 2. Fetch Elevation and Weather for each real point
   const pointsData = await Promise.all(
-    grid.map(async (point, idx) => {
+    searchPoints.map(async (point, idx) => {
       try {
         const [elvRes, wxRes] = await Promise.all([
           fetch(`https://api.open-meteo.com/v1/elevation?latitude=${point.lat}&longitude=${point.lon}`),
@@ -46,53 +72,54 @@ export async function GET(request: Request) {
         const altitude = elvData?.elevation?.[0] || 0;
         const cloudCover = wxData?.current?.cloud_cover || 0;
 
-        const score = (Kp * 10) + (altitude / 100) - (cloudCover * 1.2);
+        const score = (Kp * 10) + (altitude / 100) - (cloudCover * 1.5);
+
+        // Distance in km using Haversine approximation
+        const R = 6371; // Earth's radius in km
+        const dLat = (point.lat - baseLat) * Math.PI / 180;
+        const dLon = (point.lon - baseLon) * Math.PI / 180;
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(baseLat * Math.PI / 180) * Math.cos(point.lat * Math.PI / 180) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        const distance = R * c;
 
         return {
-          id: idx + 1,
+          id: `poi-${idx}`,
           lat: point.lat,
-          lng: point.lon, // use lng for frontend matching
+          lng: point.lon, 
           altitude,
           cloudCover,
           score,
-          // Calculate distance mock roughly: offset * 111km
-          distance: `${((Math.abs(point.lat - baseLat) + Math.abs(point.lon - baseLon)) * 111 / 2).toFixed(1)} km`,
-          lightPollution: "Low", // Just mock for now or calculate from distance
+          distance: `${distance.toFixed(1)} km`,
+          lightPollution: distance > 20 ? "Low" : "Moderate",
           rating: score > 50 ? "Excellent" : "Good",
-          stars: score > 50 ? 5 : 4
+          stars: score > 50 ? 5 : (score > 30 ? 4 : 3),
+          name: point.name // Retain real name
         };
       } catch (err) {
-        console.error("Error fetching point", err);
-        return {
-          id: idx + 1,
-          lat: point.lat,
-          lng: point.lon,
-          altitude: 0,
-          cloudCover: 100,
-          score: -100,
-          distance: "Unknown",
-          lightPollution: "High",
-          rating: "Poor",
-          stars: 1
-        };
+        console.error("Error fetching point data", err);
+        return null;
       }
     })
   );
 
+  const validPoints = pointsData.filter((p) => p !== null);
+
   // Sort by score descending and take top 3
-  const topPoints = pointsData
-    .sort((a, b) => b.score - a.score)
+  const topPoints = validPoints
+    .sort((a, b) => b!.score - a!.score)
     .slice(0, 3)
-    .map((p, i) => {
-      // Dynamic naming logic and reasons are handled on the frontend, we just pass the raw data
-      // but we need a 'name' field fallback or we'll let frontend override it.
-      let name = `Peak @ ${p.altitude}m`;
-      if (p.altitude > 2000) name = `High Altitude Peak @ ${p.altitude}m`;
-      else if (p.cloudCover < 10) name = "Clear Sky Valley";
-      
+    .map((p) => {
+      let finalName = p!.name;
+      // Fallback naming if no real name was found
+      if (!finalName) {
+        finalName = p!.altitude > 1000 ? `High Altitude Terrain @ ${p!.altitude}m` : `Clear Sky Valley`;
+      }
       return {
         ...p,
-        name
+        name: finalName
       };
     });
 

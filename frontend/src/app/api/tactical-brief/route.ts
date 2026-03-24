@@ -11,7 +11,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { score, location, cloudCover, temperature } = body;
-
     const systemPrompt = `You are a tactical weather/aurora satellite AI. The user is targeting ${location}. Score is ${score}/100. Clouds: ${cloudCover}%. Temp: ${temperature}°C. Write a strict, 2-sentence tactical briefing. If the score is near a threshold (e.g., 49), note that photographic evidence is likely even if naked-eye visibility is low. No greetings, just raw tactical data.`;
 
     const completion = await openai.chat.completions.create({

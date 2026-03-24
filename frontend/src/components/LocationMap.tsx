@@ -11,8 +11,30 @@ import TimelineScrubber from './TimelineScrubber';
 import AIAssistantModal from './ui/AIAssistantModal';
 import MapSearchBar from './ui/MapSearchBar';
 
-// ─── CARTO Map Style Endpoints ────────────────────────────────────────────────
-const CARTO_DARK    = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const CARTO_DARK = {
+  version: 8 as const,
+  sources: {
+    'carto-dark': {
+      type: 'raster' as const,
+      tiles: [
+        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }
+  },
+  layers: [
+    {
+      id: 'carto-dark-layer',
+      type: 'raster' as const,
+      source: 'carto-dark',
+      minzoom: 0,
+      maxzoom: 19
+    }
+  ]
+};
 
 const ESRI_SATELLITE_RASTER = {
   version: 8 as const,
@@ -149,17 +171,17 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick, locationName,
     >
       <div className="flex flex-col gap-3 pl-4 pb-8 pr-2 pt-2">
 
-      {/* ─── Tactical Advisory ─── */}
-      <div className={`glass-panel rounded-r-xl p-4 border-l-2 bg-black/60 shadow-xl ${advisoryColor.border}`}>
+      {/* ─── Site Intelligence ─── */}
+      <div className={`glass-panel rounded-r-xl p-4 border-l-2 bg-[#0B1015]/85 backdrop-blur-md border border-slate-800 shadow-xl ${advisoryColor.border}`}>
         <div className="flex items-center gap-2 mb-2">
           <Target size={14} className={advisoryColor.color} />
-          <span className={`font-mono text-[10px] tracking-[0.2em] uppercase font-bold ${advisoryColor.color}`}>Tactical Advisory</span>
+          <span className={`font-mono text-[10px] tracking-[0.2em] uppercase font-bold ${advisoryColor.color}`}>Site Intelligence</span>
         </div>
-        <p className={`font-mono text-xs leading-relaxed opacity-90 ${advisoryColor.color} ${isBriefLoading ? 'animate-pulse' : ''}`}>{tacticalBrief}</p>
+        <p className={`font-mono text-xs leading-relaxed opacity-100 text-slate-200 ${isBriefLoading ? 'animate-pulse' : ''}`}>{tacticalBrief}</p>
       </div>
 
       {/* ─── Main AI Insights ─── */}
-      <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/40 backdrop-blur-lg shadow-xl">
+      <div className="glass-panel rounded-2xl p-4 bg-[#0B1015]/85 backdrop-blur-md border border-slate-800 shadow-xl">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-500/20 rounded-lg">
@@ -241,7 +263,7 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick, locationName,
       </div>
 
       {/* ─── Prime Viewing Spots ─── */}
-      <div className="glass-panel rounded-2xl p-4 border border-aurora-green/20 bg-black/60 backdrop-blur-2xl shadow-[0_0_30px_rgba(0,220,130,0.08)]">
+      <div className="glass-panel rounded-2xl p-4 bg-[#0B1015]/85 backdrop-blur-md border border-slate-800 shadow-[0_0_30px_rgba(0,220,130,0.08)]">
         <div className="flex items-center gap-2 mb-3">
           <div className="p-1.5 bg-aurora-green/15 rounded-lg">
             <MapPin size={14} className="text-aurora-green" />
@@ -250,10 +272,13 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick, locationName,
         </div>
 
         <div className="flex flex-col gap-2">
-          {primeSpots.map((spot, i) => {
-            let dynamicName = `Peak @ ${spot.altitude || 0}m`;
-            if (spot.altitude > 2000) dynamicName = `High Altitude Peak @ ${spot.altitude}m`;
-            else if (spot.cloudCover < 10) dynamicName = `Clear Sky Valley`;
+          {forecast && forecast.aurora_score >= 40 ? (
+            primeSpots.map((spot, i) => {
+            let dynamicName = spot.name || `Peak @ ${spot.altitude || 0}m`;
+            if (!spot.name) {
+              if (spot.altitude > 2000) dynamicName = `High Altitude Peak @ ${spot.altitude}m`;
+              else if (spot.cloudCover < 10) dynamicName = `Clear Sky Valley`;
+            }
 
             let reason = "Optimal Conditions";
             if (spot.cloudCover < 15) reason = "Pristine Clarity";
@@ -305,10 +330,18 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick, locationName,
                 </div>
               </motion.div>
             );
-          })}
+          })) : (
+            <div className="flex flex-col items-center justify-center p-6 border border-slate-700/50 bg-slate-800/20 rounded-xl space-y-3 mt-2">
+              <CloudOff size={24} className="text-slate-500 opacity-80" />
+              <span className="text-slate-400 font-mono text-center text-[10px] leading-relaxed uppercase font-bold tracking-widest">
+                NO PRIME SPOTS AVAILABLE<br/>
+                <span className="text-slate-500 text-[9px] tracking-normal">Aurora visibility is too low.</span>
+              </span>
+            </div>
+          )}
         </div>
 
-        <p className="text-[9px] text-slate-600 mt-3 italic text-center font-mono">Distances approx. · Mock data</p>
+        <p className="text-[9px] text-slate-600 mt-3 italic text-center font-mono">Distances approx.</p>
       </div>
       </div>
       <AIAssistantModal 
@@ -438,7 +471,7 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
     >
       <div className="flex flex-col gap-3 p-4 md:pr-4 md:pb-12 md:pl-2 md:pt-2">
       {/* Location Header */}
-      <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/40 backdrop-blur-lg flex flex-col gap-3 shadow-xl">
+      <div className="glass-panel rounded-2xl p-4 bg-[#0B1015]/85 backdrop-blur-md border border-slate-800 flex flex-col gap-3 shadow-xl">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
@@ -671,7 +704,7 @@ function LocalDataSidebar({ location, forecast, fetchError }: { location: Target
                 transition={{ duration: 0.3, ease: 'easeOut' }}
                 className="overflow-hidden"
               >
-                <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-black/40 backdrop-blur-lg shadow-xl mt-1">
+                <div className="glass-panel rounded-2xl p-4 bg-[#0B1015]/85 backdrop-blur-md border border-slate-800 shadow-xl mt-1">
                   <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                     <p className="text-slate-400 text-xs tracking-widest font-mono uppercase">Live Telemetry</p>
                     <div className="flex items-center gap-1.5">
@@ -942,7 +975,7 @@ export default function LocationMap() {
               >
                 <AttributionControl compact={true} position="bottom-right" customAttribution="" />
                 {/* ─── Prime Spots Market Overlays ─── */}
-                {primeSpots.map((spot, i) => {
+                {forecast && forecast.aurora_score >= 40 && primeSpots.map((spot, i) => {
                   const isSelected = selectedSpotId === spot.id;
                   const isHovered = hoveredSpotId === spot.id;
                   

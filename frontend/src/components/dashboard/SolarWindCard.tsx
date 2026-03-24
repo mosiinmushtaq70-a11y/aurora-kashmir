@@ -50,13 +50,13 @@ const SolarWindCard: React.FC<SolarWindCardProps> = ({ speed, density, history =
   };
 
   return (
-    <div className="relative group telemetry-card p-6 overflow-hidden h-full flex flex-col justify-between">
+    <div className="relative group telemetry-card p-4 md:p-6 overflow-hidden h-full flex flex-col justify-between">
       {/* Bento Brackets */}
       <div className="hud-brackets" />
 
       {/* Header */}
       <div className="mb-6 flex items-center gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
-        <div className="p-2 border border-accent-ice/20 bg-accent-ice/5 rounded-sm">
+        <div className="hidden md:block p-2 border border-accent-ice/20 bg-accent-ice/5 rounded-sm">
           <Wind size={16} className="text-accent-ice" />
         </div>
         <p className="section-label">SOLAR WIND TELEMETRY</p>
@@ -71,7 +71,7 @@ const SolarWindCard: React.FC<SolarWindCardProps> = ({ speed, density, history =
             <span className="text-[10px] text-text-dim font-mono">KM/S</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="font-display text-4xl font-bold tracking-tighter text-white">
+            <h3 className="font-display text-3xl md:text-5xl font-bold tracking-tighter text-white">
               {speed.toFixed(0)}
             </h3>
             <div className="w-1.5 h-1.5 bg-accent-ice rounded-full animate-pulse shadow-[0_0_8px_#67E8F9]" />
@@ -85,7 +85,7 @@ const SolarWindCard: React.FC<SolarWindCardProps> = ({ speed, density, history =
             <span className="text-[10px] text-text-dim font-mono">P/CM³</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="font-display text-3xl font-semibold tracking-tight text-white">
+            <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-white">
               {density.toFixed(2)}
             </h3>
             <div className="flex-1 h-px bg-white/5 ml-4 mb-2" />
@@ -94,7 +94,7 @@ const SolarWindCard: React.FC<SolarWindCardProps> = ({ speed, density, history =
       </div>
 
       {/* Sparkline (Velocity Trend) */}
-      <div className="h-[35px] w-full mt-4 opacity-70 group-hover:opacity-100 transition-opacity">
+      <div className="hidden md:block h-[35px] w-full mt-4 opacity-70 group-hover:opacity-100 transition-opacity">
         <Chart 
           options={chartOptions} 
           series={[{ name: 'Velocity', data: speedData }]} 
@@ -104,13 +104,16 @@ const SolarWindCard: React.FC<SolarWindCardProps> = ({ speed, density, history =
         />
       </div>
 
-      {/* Footer Info */}
-      <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-1 opacity-90">
-        <span className="data-label text-[10px] text-accent-ice font-bold">WHAT IS THIS?</span>
-        <span className="font-sans text-xs text-slate-300 leading-snug">
+      {/* Footer Info (Animated Details) */}
+      <details className="hidden md:block mt-3 pt-3 border-t border-white/5 opacity-90 group cursor-pointer">
+        <summary className="data-label text-[10px] text-accent-ice font-bold outline-none flex items-center justify-between list-none [&::-webkit-details-marker]:hidden">
+          WHAT IS THIS?
+          <span className="text-white/30 group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <p className="font-sans text-xs text-slate-300 leading-snug mt-2 pointer-events-none">
           Dictates how fast solar plasma strikes Earth. Velocities <strong className="text-white">{'>'} 500 km/s</strong> create sufficient pressure for vivid, active auroras.
-        </span>
-      </div>
+        </p>
+      </details>
     </div>
   );
 };

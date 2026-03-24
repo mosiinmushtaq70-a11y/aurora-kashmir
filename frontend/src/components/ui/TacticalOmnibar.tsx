@@ -61,7 +61,7 @@ const BOOT_SEQUENCE = [
   '> INITIALIZING NEURAL ENGINE...',
   '> INGESTING NOAA ARCHIVE [1964-PRESENT]...',
   '> WEIGHTS LOADED. SYSTEM READY.',
-  '> Target Sector: '
+  '> Search city or coordinates...'
 ];
 
 function useTypingPlaceholder(isFocused: boolean) {
@@ -205,7 +205,7 @@ export default function TacticalOmnibar() {
           borderRadius: 16,
           background: 'transparent',
           boxShadow: focused || (suggestions.length > 0 && query)
-            ? '0 0 40px rgba(0,220,130,0.2), 0 0 80px rgba(0,220,130,0.1)'
+            ? '0 0 40px rgba(0,220,130,0.15), 0 0 80px rgba(0,220,130,0.08)'
             : '0 0 0 transparent',
           transition: 'box-shadow 400ms ease',
           pointerEvents: 'none',
@@ -222,14 +222,14 @@ export default function TacticalOmnibar() {
           gap: '1rem',
           padding: '1.1rem 1.5rem',
           borderRadius: 14,
-          background: focused ? 'rgba(0,220,130,0.06)' : 'rgba(255,255,255,0.035)',
+          background: focused ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.035)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          border: `1px solid ${focused ? 'rgba(0,220,130,0.5)' : 'rgba(255,255,255,0.1)'}`,
+          border: `1px solid ${focused ? 'rgba(0,220,130,0.4)' : 'rgba(255,255,255,0.1)'}`,
           boxShadow: focused
-            ? 'inset 0 1px 0 rgba(0,220,130,0.08), 0 1px 40px rgba(0,0,0,0.5)'
+            ? '0 0 20px rgba(0,220,130,0.15), inset 0 1px 0 rgba(0,220,130,0.08), 0 1px 40px rgba(0,0,0,0.5)'
             : 'inset 0 1px 0 rgba(255,255,255,0.04)',
-          transition: 'all 250ms ease',
+          transition: 'all 300ms ease-in-out',
           zIndex: 10,
         }}
       >
@@ -253,7 +253,7 @@ export default function TacticalOmnibar() {
           onChange={handleInputChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 200)}
-          placeholder={focused ? "Enter coordinates or city name..." : placeholderText}
+          placeholder={focused ? "> Search city or coordinates..." : placeholderText}
           style={{
             flex: 1,
             background: 'transparent',
