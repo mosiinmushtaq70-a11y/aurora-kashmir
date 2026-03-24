@@ -5,11 +5,10 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import TexturedGlobe from '@/components/TexturedGlobe';
 import LocationMap from '@/components/LocationMap';
-import OrbitalGrid from '@/components/ui/OrbitalGrid';
+
 import MissionHeader from '@/components/ui/MissionHeader';
 import TacticalOmnibar from '@/components/ui/TacticalOmnibar';
 import GeomagneticHeatmap from '@/components/ui/GeomagneticHeatmap';
-import OpticalNetworkGrid from '@/components/ui/OpticalNetworkGrid';
 import CommandTerminal from '@/components/ui/CommandTerminal';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -167,19 +166,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* ─── Layer 1: Orbital Grid ─── */}
-      <AnimatePresence>
-        {viewMode === 'GLOBAL' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <OrbitalGrid />
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* ─── Layer 2: Deep space vignette ─── */}
       <AnimatePresence>
@@ -354,8 +341,6 @@ export default function Home() {
 
               {/* ── Modular Dashboard Sections ── */}
               <GeomagneticHeatmap />
-              <ActiveHotspots />
-              <OpticalNetworkGrid />
               <CommandTerminal />
 
               {/* ── Footer ── */}
@@ -373,87 +358,4 @@ export default function Home() {
   );
 }
 
-// ─── Local Components ────────────────────────────────────────────────────────
 
-function ActiveHotspots() {
-  const zoomToLocation = useAppStore((state) => state.zoomToLocation);
-
-  const HOTSPOTS = [
-    {
-      id: 'kirkjufell',
-      name: 'Kirkjufell, Iceland',
-      coords: '64.92° N, 23.31° W',
-      lat: 64.92,
-      lng: -23.31,
-      image: '/hotspots/kirkjufell.jpg'
-    },
-    {
-      id: 'tromso',
-      name: 'Tromsø, Norway',
-      coords: '69.64° N, 18.95° E',
-      lat: 69.64,
-      lng: 18.95,
-      image: '/hotspots/tromso.jpg'
-    },
-    {
-      id: 'denali',
-      name: 'Denali, Alaska',
-      coords: '63.11° N, 151.19° W',
-      lat: 63.11,
-      lng: -151.19,
-      image: '/hotspots/denali.jpg'
-    }
-  ];
-
-  return (
-    <section className="w-full max-w-[1400px] mx-auto px-8 pb-32 pointer-events-auto">
-      <h2 className="text-aurora-primary font-mono text-sm tracking-widest uppercase mb-6 drop-shadow-[0_0_12px_rgba(0,220,130,0.5)]">
-        [ ACTIVE HOTSPOTS ]
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {HOTSPOTS.map((spot) => (
-          <div
-            key={spot.id}
-            role="button"
-            tabIndex={0}
-            onClick={() => zoomToLocation({ lat: spot.lat, lng: spot.lng, name: spot.name, zoom: 4 })}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                zoomToLocation({ lat: spot.lat, lng: spot.lng, name: spot.name, zoom: 4 });
-              }
-            }}
-            className="group relative h-64 w-full rounded-2xl overflow-hidden border border-white/5 transition-colors duration-300 hover:border-aurora-primary/50 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-aurora-primary/50 flex flex-col justify-end"
-          >
-            {/* The Image is rendered purely with standard Next.js parameters, unoptimized was not working and Unsplash may block. Let's fix the z-index to 0 */}
-            <div className="absolute inset-0 z-0 bg-[#0a0f18]" />
-            <Image 
-              src={spot.image}
-              alt={spot.name}
-              fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110 z-0"
-              quality={75}
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
-            {/* Gradient Overlay for Text Legibility (z-10 ensures it is above image) */}
-            <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#020409] via-transparent to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
-            
-            {/* Interactive Data Overlay */}
-            <div className="relative z-20 p-6 w-full flex flex-col">
-              <h3 className="text-white font-orbitron tracking-[0.15em] text-xl mb-1 transition-colors duration-300 group-hover:text-aurora-primary">
-                {spot.name}
-              </h3>
-              <p className="text-slate-400 font-mono text-[10px] tracking-widest">
-                {spot.coords}
-              </p>
-            </div>
-            
-            {/* HUD Bracket Accents */}
-            <div className="absolute top-4 left-4 z-20 w-4 h-4 border-t border-l border-white/20 transition-all duration-300 group-hover:w-6 group-hover:h-6 group-hover:border-aurora-primary/40 pointer-events-none" />
-            <div className="absolute bottom-4 right-4 z-20 w-4 h-4 border-b border-r border-white/10 transition-all duration-300 group-hover:w-6 group-hover:h-6 group-hover:border-aurora-primary/40 pointer-events-none" />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}

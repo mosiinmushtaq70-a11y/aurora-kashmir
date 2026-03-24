@@ -22,15 +22,13 @@ Successfully neutralized a cascade of frontend rendering bugs. Stripped the unst
 ---
 
 ## In-Progress Work
-- **Frontend**: The Hotspots gallery is complete and operational. Map routing works.
+- **Frontend**: Navigation and map routing are operational.
 - **Backend**: `/api/forecast/global_heatmap` is stable and returning pure XGBoost telemetry.
 
 ### Modified Files
 - `backend/main.py`: Reverted to core telemetry (no requests/cloud logic).
 - `frontend/src/components/ui/GeomagneticHeatmap.tsx`: Legend and layers simplified.
-- `frontend/src/app/page.tsx`: Embedded the new `<ActiveHotspots />` layer and static `<Image>` routing.
-- `frontend/public/hotspots/*`: Localized three high-res topography JPEGs.
-- `frontend/next.config.ts`: Added (but currently bypassed) Unsplash to `remotePatterns`.
+- `frontend/src/app/page.tsx`: Removed `<ActiveHotspots />` and `<OpticalNetworkGrid />`.
 
 ### Tests Status
 - UI manually verified. Visuals are rendering identically to the design spec.
@@ -46,11 +44,10 @@ Successfully neutralized a cascade of frontend rendering bugs. Stripped the unst
 
 ### Decisions Made
 - **Abandon Cloud APIs**: Real-time cloud cover from Open-Meteo was causing extreme state volatility. Decided an empty, stable map is infinitely better than a broken map.
-- **Local Static Assets**: Next.js `Image` optimization was silently failing to pull Unsplash URLs despite `next.config.ts` permissions. Switched immediately to local `/hotspots/` assets to eliminate the external network dependency entirely.
-- **DOM Restructuring**: Abandoned `<button>` for `<div role="button">` to ensure Z-index and absolute positioning layers inside the Hotspot cards didn't collapse cross-browser.
+- **Modular Header**: Integrated `MissionHeader` and `TacticalOmnibar`.
 
 ### Files of Interest
-- `frontend/src/app/page.tsx`: Contains the new `ActiveHotspots` isolated functional component.
+- `frontend/src/app/page.tsx`: Main dashboard implementation.
 - `backend/main.py`: The `GLOBAL_HEATMAP_CACHE` is now pristine.
 
 ---
