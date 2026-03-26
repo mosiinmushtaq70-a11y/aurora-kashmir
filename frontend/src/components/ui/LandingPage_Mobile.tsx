@@ -291,7 +291,7 @@ const LandingPage_Mobile: React.FC = () => {
         <section className="w-full py-20 md:py-32 relative overflow-hidden bg-[#080B11]">
           <div className="max-w-7xl mx-auto px-6">
             {/* Connector line (desktop only) */}
-            <div className="hidden md:block absolute top-1/2 left-0 w-full h-[1px] bg-linear-to-r from-transparent via-cyan-500/10 to-transparent -z-10"></div>
+            <div className="hidden md:block absolute top-1/2 left-0 w-full h-px bg-linear-to-r from-transparent via-cyan-500/10 to-transparent -z-10"></div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center relative z-10">
 
@@ -301,8 +301,8 @@ const LandingPage_Mobile: React.FC = () => {
                   <div className="absolute inset-0 rounded-full border border-cyan-400/30 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
                   <div className="absolute inset-2 rounded-full border border-cyan-400/20 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite_1s]"></div>
                   <div className="relative z-10 w-8 h-8 flex items-center justify-center">
-                    <div className="absolute w-full h-[1px] bg-cyan-400/60"></div>
-                    <div className="absolute h-full w-[1px] bg-cyan-400/60"></div>
+                    <div className="absolute w-full h-px bg-cyan-400/60"></div>
+                    <div className="absolute h-full w-px bg-cyan-400/60"></div>
                     <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></div>
                   </div>
                 </div>
@@ -407,9 +407,9 @@ const LandingPage_Mobile: React.FC = () => {
               <div className="w-full md:w-48 h-32 flex gap-1 items-end">
                 <div className="bg-[#44e2cd]/40 h-[40%] w-full rounded-t-lg transition-all duration-500 group-hover:h-[50%]"></div>
                 <div className="bg-[#44e2cd]/60 h-[70%] w-full rounded-t-lg transition-all duration-700 group-hover:h-[85%]"></div>
-                <div className="bg-[#44e2cd] h-[100%] w-full rounded-t-lg transition-all duration-300 group-hover:scale-y-110 origin-bottom"></div>
+                <div className="bg-[#44e2cd] h-full w-full rounded-t-lg transition-all duration-300 group-hover:scale-y-110 origin-bottom"></div>
                 <div className="bg-[#44e2cd]/50 h-[60%] w-full rounded-t-lg transition-all duration-500 group-hover:h-[75%]"></div>
-                <div className="bg-[#44e2cd]/80 h-[90%] w-full rounded-t-lg transition-all duration-1000 group-hover:h-[100%]"></div>
+                <div className="bg-[#44e2cd]/80 h-[90%] w-full rounded-t-lg transition-all duration-1000 group-hover:h-full"></div>
               </div>
             </div>
 
