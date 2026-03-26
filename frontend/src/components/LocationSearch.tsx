@@ -126,7 +126,7 @@ export default function LocationSearch() {
     <div className="relative z-50 w-full max-w-md mx-auto">
       {/* Search Input */}
       <StarBorder
-        color="#00dc82"
+        color="#22d3ee"
         speed="6s"
         className="w-full"
       >
@@ -137,7 +137,7 @@ export default function LocationSearch() {
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
               >
-                <Zap size={16} className="text-aurora-green" />
+                <Zap size={16} className="text-cyan-400" />
               </motion.div>
             ) : (
               <Search size={16} />
@@ -150,7 +150,7 @@ export default function LocationSearch() {
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             placeholder="Search any location on Earth..."
-            className="flex-1 bg-transparent text-white placeholder:text-slate-500 text-sm tracking-wide py-3 pr-2 outline-none font-mono"
+            className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-500 text-sm tracking-wide py-3 pr-2 outline-none font-medium"
           />
           <AnimatePresence>
             {query && (
@@ -162,7 +162,7 @@ export default function LocationSearch() {
                 className="pr-4 text-slate-500 hover:text-white transition-colors"
               >
                 {viewMode === 'LOCAL' ? (
-                  <Globe size={16} className="text-aurora-green" />
+                  <Globe size={16} className="text-cyan-400" />
                 ) : (
                   <X size={16} />
                 )}
@@ -180,7 +180,7 @@ export default function LocationSearch() {
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-full left-0 right-0 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl shadow-black/60"
+            className="absolute top-full left-0 right-0 bg-[#080B11]/90 backdrop-blur-3xl border border-white/5 rounded-2xl overflow-hidden shadow-2xl shadow-black/60"
           >
             {suggestions.map((s, i) => (
               <motion.button
@@ -189,18 +189,18 @@ export default function LocationSearch() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
                 onClick={() => handleSelect(s)}
-                className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-aurora-green/10 transition-colors group border-b border-white/5 last:border-0"
+                className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-cyan-400/10 transition-colors group border-b border-white/5 last:border-0"
               >
-                <MapPin size={14} className="text-aurora-green mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
+                <MapPin size={14} className="text-cyan-400 mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
                 <div className="min-w-0">
-                  <p className="text-white text-sm font-medium truncate group-hover:text-aurora-green transition-colors">
+                  <p className="text-slate-100 text-sm font-semibold truncate group-hover:text-cyan-400 transition-colors">
                     {s.display_name.split(',')[0]}
                   </p>
                   <p className="text-slate-500 text-xs truncate mt-0.5">
                     {s.display_name.split(',').slice(1, 3).join(',')}
                   </p>
                 </div>
-                <Zap size={12} className="text-aurora-green/50 ml-auto shrink-0 mt-1 group-hover:text-aurora-green transition-colors" />
+                <Zap size={12} className="text-cyan-400/50 ml-auto shrink-0 mt-1 group-hover:text-cyan-400 transition-colors" />
               </motion.button>
             ))}
           </motion.div>

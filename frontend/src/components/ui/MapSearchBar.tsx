@@ -81,14 +81,14 @@ export default function MapSearchBar({ onClose }: MapSearchBarProps) {
       className="relative w-72 md:w-80"
     >
       {/* Input */}
-      <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md border border-aurora-green/40 rounded-full pl-4 pr-2 py-2 shadow-[0_0_20px_rgba(0,220,130,0.15)]">
+      <div className="flex items-center gap-2 bg-[#080B11]/80 backdrop-blur-2xl border border-cyan-400/30 rounded-full pl-4 pr-2 py-2 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
         <div className="text-slate-400 shrink-0">
           {isSearching ? (
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
-              <Zap size={14} className="text-aurora-green" />
+              <Zap size={14} className="text-cyan-400" />
             </motion.div>
           ) : (
-            <Search size={14} className="text-aurora-green" />
+            <Search size={14} className="text-cyan-400" />
           )}
         </div>
         <input
@@ -100,7 +100,7 @@ export default function MapSearchBar({ onClose }: MapSearchBarProps) {
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           placeholder="Search another location..."
-          className="flex-1 bg-transparent text-white placeholder:text-slate-500 text-xs tracking-wide outline-none font-mono"
+          className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-500 text-xs tracking-wide outline-none font-medium"
         />
         <button
           onClick={onClose}
@@ -118,20 +118,20 @@ export default function MapSearchBar({ onClose }: MapSearchBarProps) {
             animate={{ opacity: 1, y: 4 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-1 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-50"
+            className="absolute top-full left-0 right-0 mt-1 bg-[#080B11]/90 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl z-50"
           >
             {suggestions.map((s, i) => (
               <button
                 key={i}
                 onClick={() => handleSelect(s)}
-                className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-aurora-green/10 transition-colors group border-b border-white/5 last:border-0"
+                className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-cyan-400/10 transition-colors group border-b border-white/5 last:border-0"
               >
-                <MapPin size={13} className="text-aurora-green mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
+                <MapPin size={13} className="text-cyan-400 mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
                 <div className="min-w-0">
-                  <p className="text-white text-xs font-mono font-medium truncate group-hover:text-aurora-green transition-colors">
+                  <p className="text-slate-100 text-xs font-semibold truncate group-hover:text-cyan-400 transition-colors">
                     {s.display_name.split(',')[0]}
                   </p>
-                  <p className="text-slate-500 text-[10px] truncate mt-0.5">
+                  <p className="text-slate-400 text-[10px] truncate mt-0.5">
                     {s.display_name.split(',').slice(1, 3).join(',')}
                   </p>
                 </div>

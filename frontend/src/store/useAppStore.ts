@@ -31,6 +31,10 @@ interface AppState {
 
   // UI State
   isProMode: boolean;
+  scenicMode: boolean; // true when navigating via a Hotspot card
+  scenicName: string | null;
+  scenicRegion: string | null;
+  scenicLore: string[]; // documentary-style lore facts for the ScenicLoreSidebar
 
   // Auth State
   user: User | null;
@@ -41,6 +45,10 @@ interface AppState {
   setTimeScrubber: (hours: number) => void;
   setTransitioning: (val: boolean) => void;
   setProMode: (val: boolean) => void;
+  setScenicMode: (val: boolean) => void;
+  setScenicName: (val: string | null) => void;
+  setScenicRegion: (val: string | null) => void;
+  setScenicLore: (lore: string[]) => void;
   setUser: (user: User | null) => void;
 }
 
@@ -53,6 +61,10 @@ export const useAppStore = create<AppState>((set) => ({
   timeScrubber: 0,
   isTransitioning: false,
   isProMode: false,
+  scenicMode: false,
+  scenicName: null,
+  scenicRegion: null,
+  scenicLore: [],
   user: null,
 
   // Transition to LOCAL mode for a given location
@@ -76,6 +88,10 @@ export const useAppStore = create<AppState>((set) => ({
         viewMode: 'GLOBAL',
         targetLocation: null,
         isTransitioning: false,
+        scenicMode: false, // always reset scenic mode when returning to global
+        scenicName: null,
+        scenicRegion: null,
+        scenicLore: [],
       });
     }, 100);
   },
@@ -84,5 +100,9 @@ export const useAppStore = create<AppState>((set) => ({
   setTimeScrubber: (hours: number) => set({ timeScrubber: hours }),
   setTransitioning: (val: boolean) => set({ isTransitioning: val }),
   setProMode: (val: boolean) => set({ isProMode: val }),
+  setScenicMode: (val: boolean) => set({ scenicMode: val }),
+  setScenicName: (val: string | null) => set({ scenicName: val }),
+  setScenicRegion: (val: string | null) => set({ scenicRegion: val }),
+  setScenicLore: (lore: string[]) => set({ scenicLore: lore }),
   setUser: (user: User | null) => set({ user }),
 }));

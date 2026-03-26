@@ -17,7 +17,7 @@ const connectionString = `${process.env.DATABASE_URL}`;
 
 // Initialize the Neon pool and Prisma adapter
 const pool = new Pool({ connectionString });
-const adapter = new PrismaNeon(pool);
+const adapter = new PrismaNeon(pool as any);
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 

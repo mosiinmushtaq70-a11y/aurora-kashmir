@@ -1,0 +1,39 @@
+---
+description: Follow repo .gsd spec/state workflow (GSD-like)
+alwaysApply: true
+---
+
+# GSD-like workflow for this repo
+
+This repo uses `.gsd/` as the source of truth for spec-driven development. When the user asks to implement or change anything, follow this workflow.
+
+## Always load context first
+
+- Read `.gsd/SPEC.md`, `.gsd/STATE.md`, `.gsd/ROADMAP.md`, `.gsd/ARCHITECTURE.md`, `.gsd/STACK.md` before planning or coding.
+- If the task is narrow and clearly localized, you may skim only the relevant `.gsd/*` docs, but you must still consult at least `SPEC.md` and `STATE.md`.
+
+## Plan before coding (small slices)
+
+- Restate the goal in terms of the spec/phase and current state.
+- Propose a small, atomic plan (1–4 steps) that can be verified quickly.
+- Prefer minimal, incremental changes that keep the app working.
+
+## Verification expectations
+
+- Include a concrete test/verification plan for each change (dev server check, API call, or targeted lint/typecheck).
+- If you edit code, run lints/diagnostics on the edited files (or the smallest possible scope).
+
+## Update `.gsd` after work
+
+- After completing a meaningful chunk of work, update `.gsd/STATE.md`:
+  - What changed, what’s now true, what remains, and any blockers.
+- Add a short entry to `.gsd/JOURNAL.md` for the session (objective → accomplished → verification → handoff notes).
+
+## Pause / commit prompting
+
+- When you reach a stable checkpoint (feature complete, tests pass, or before risky refactors), proactively suggest: “pause and commit”.
+- Do not create git commits unless the user explicitly asks.
+
+## Consistency checks
+
+- If `.gsd/STATE.md` and `.gsd/ROADMAP.md` disagree about the current phase/objective, call it out and propose the smallest doc fix to realign them.

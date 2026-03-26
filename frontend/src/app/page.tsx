@@ -11,6 +11,7 @@ import TacticalOmnibar from '@/components/ui/TacticalOmnibar';
 import GeomagneticHeatmap from '@/components/ui/GeomagneticHeatmap';
 import CommandTerminal from '@/components/ui/CommandTerminal';
 import { useAppStore } from '@/store/useAppStore';
+import { MapPin, ChevronRight } from 'lucide-react';
 
 // Modular Dashboard Components
 import KpCard from '@/components/dashboard/KpCard';
@@ -19,6 +20,116 @@ import MagneticFieldCard from '@/components/dashboard/MagneticFieldCard';
 import KashmirVisionCard from '@/components/dashboard/KashmirVisionCard';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+
+// ─── Hotspot Data ───────────────────────────────────────────────────────────────────
+
+const HOTSPOTS = [
+  { 
+    id: 'kirkjufell', name: 'Kirkjufell', region: 'Iceland', lat: 64.9228, lng: -23.3071, image: '/images/kirkjufell.jpg',
+    lore: [
+      "The Arrowhead: A 463m stratovolcano shaped by millions of years of glacial erosion. Its isolation on a northern peninsula provides perfectly unobstructed, dark skies.",
+      "Cinematic Legend: Woven deep into Icelandic folklore and featured heavily in global pop culture, it remains the most iconic and photographed peak in the country."
+    ]
+  },
+  { 
+    id: 'tromso', name: 'Tromsø', region: 'Norway', lat: 69.6492, lng: 18.9553, image: '/images/tromso.jpg',
+    lore: [
+      "The Auroral Oval: Positioned exactly 350km north of the Arctic Circle, the city sits directly beneath the peak geomagnetic band for maximum auroral intensity.",
+      "Gateway to the Arctic: Since the 19th century, this port has served as the final outpost for legendary polar explorers launching treacherous expeditions into the deep ice."
+    ]
+  },
+  { 
+    id: 'abisko', name: 'Abisko', region: 'Sweden', lat: 68.3495, lng: 18.8152, image: '/images/abisko.jpg',
+    lore: [
+      "The Blue Hole: The surrounding Abisko Alps create a world-famous microclimate that blocks incoming moisture, resulting in a permanent patch of clear sky even during severe storms.",
+      "Sámi Heritage: For thousands of years, the indigenous Sámi people have lived under these lights, historically interpreting the auroras as the physical energies of their ancestors."
+    ]
+  },
+  { 
+    id: 'fairbanks', name: 'Fairbanks', region: 'Alaska', lat: 64.8378, lng: -147.7164, image: '/images/fairbanks.jpg',
+    lore: [
+      "Continental Freeze: Located deep in the Alaskan interior, the brutal -30°C winter nights strip all moisture from the air, providing the driest, clearest atmospheres on Earth.",
+      "The Gold Rush: Founded by prospectors in 1901, early miners relied on the immense, haunting light of the aurora borealis to navigate the frozen taiga in the dead of night."
+    ]
+  },
+  { 
+    id: 'yellowknife', name: 'Yellowknife', region: 'Canada', lat: 62.4540, lng: -114.3718, image: '/images/yellowknife.jpg',
+    lore: [
+      "The Flat Earth: Situated directly on the Canadian Shield, Yellowknife features zero light pollution and completely flat horizons, allowing the aurora to fill 100% of the visible sky.",
+      "Diamond Capital: Built on some of the oldest exposed rock on the planet (2.8 billion years old), this isolated mining city is the ultimate deep-freeze observatory."
+    ]
+  }
+];
+
+function HotspotCarousel() {
+  const { zoomToLocation, setScenicMode, setScenicName, setScenicRegion, setScenicLore } = useAppStore();
+
+  const handleHotspotClick = (spot: typeof HOTSPOTS[number]) => {
+    setScenicName(spot.name);
+    setScenicRegion(spot.region);
+    setScenicLore(spot.lore ?? []);
+    setScenicMode(true);
+    zoomToLocation({ lat: spot.lat, lng: spot.lng, name: `${spot.name}, ${spot.region}`, zoom: 11 });
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto pointer-events-auto">
+      {/* Section Label */}
+      <div className="flex items-center gap-3 mb-4 px-1">
+        <div className="flex-1 h-px bg-linear-to-r from-transparent via-slate-500/20 to-transparent" />
+        <span className="text-xs font-semibold tracking-[0.2em] text-cyan-400/80 uppercase flex items-center gap-1.5">
+          <MapPin size={10} className="text-cyan-400" />
+          Quick Travel — Featured Hotspots
+        </span>
+        <div className="flex-1 h-px bg-linear-to-r from-transparent via-slate-500/20 to-transparent" />
+      </div>
+
+      {/* Scroll Row */}
+      <div className="overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-3 min-w-max px-1">
+          {HOTSPOTS.map((spot, i) => (
+            <motion.button
+              key={spot.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 * i, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              onClick={() => handleHotspotClick(spot)}
+              className="group relative w-44 h-28 rounded-4xl overflow-hidden bg-slate-900/20 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-500 hover:-translate-y-2 hover:bg-slate-900/30 shrink-0 focus:outline-none"
+            >
+              {/* Background Image */}
+              <img
+                src={spot.image}
+                alt={spot.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              {/* Dark overlay - Premium Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent transition-all duration-500 group-hover:via-slate-900/40" />
+              {/* Hover glow ring */}
+              <div className="absolute inset-0 rounded-4xl ring-1 ring-inset ring-transparent group-hover:ring-white/20 transition-all duration-500" />
+
+              {/* Content */}
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <p className="text-slate-100 font-semibold text-sm leading-tight">{spot.name}</p>
+                <div className="flex items-center justify-between mt-0.5">
+                  <p className="text-cyan-400/80 text-[10px] font-semibold uppercase tracking-widest">{spot.region}</p>
+                  <ChevronRight size={12} className="text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+
+              {/* Scenic mode badge on hover */}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="bg-cyan-400/20 border border-cyan-400/40 text-cyan-400 rounded-full px-1.5 py-0.5 text-[8px] font-semibold tracking-widest uppercase backdrop-blur-sm">
+                  Scenic
+                </span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 interface ForecastData {
   aurora_score: number;
@@ -208,7 +319,7 @@ export default function Home() {
       <div className="relative z-20 w-full flex flex-col pointer-events-none">
         
         {/* ── Hero Centerpiece ── */}
-        <main className={`flex flex-col items-center gap-10 px-8 pointer-events-none transition-all duration-700 ease-in-out ${viewMode === 'GLOBAL' ? 'justify-center min-h-[90vh] pt-32 pb-20' : 'justify-start min-h-0 pt-28 pb-0'}`}>
+        <main className={`flex flex-col items-center gap-16 px-8 pointer-events-none transition-all duration-700 ease-in-out ${viewMode === 'GLOBAL' ? 'justify-center min-h-[90vh] py-24 md:py-32' : 'justify-start min-h-0 pt-28 pb-0'}`}>
           <AnimatePresence mode="wait">
             {viewMode === 'GLOBAL' && (
               <motion.div 
@@ -217,15 +328,15 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
-                className="text-center space-y-3"
+                className="text-center space-y-8"
               >
-                <p className="text-xs md:text-sm text-slate-400 tracking-widest uppercase mb-2">
+                <p className="text-xs md:text-sm text-cyan-400/80 tracking-widest font-semibold uppercase mb-2">
                   ML-DRIVEN NORTHERN LIGHTS FORECASTING
                 </p>
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight font-sans text-transparent bg-clip-text bg-linear-to-b from-white to-slate-400 leading-[1.05]"
-                    style={{ textShadow: '0 0 60px rgba(0,220,130,0.2)' }}>
+                <h1 className="text-5xl md:text-7xl font-semibold tracking-tight font-sans text-transparent bg-clip-text bg-linear-to-b from-white to-slate-400 leading-[1.05]"
+                    style={{ textShadow: '0 0 60px rgba(34,211,238,0.2)' }}>
                   TRACK THE AURORA<br />
-                  <span className="text-[#4af626]">ANYWHERE</span>
+                  <span className="text-cyan-400">ANYWHERE</span>
                 </h1>
               </motion.div>
             )}
@@ -257,26 +368,29 @@ export default function Home() {
               >
                 {/* ── Plain-English Feature Row ── */}
                 <div className="mt-8 flex flex-col items-center">
-                  <p className="text-slate-300 md:text-lg font-light text-center max-w-2xl mb-8">
+                  <p className="text-slate-300 md:text-lg font-light leading-relaxed text-center max-w-2xl mb-8">
                     Plan the ultimate aurora hunting adventure. We analyze decades of solar data and real-time weather conditions to pinpoint exactly when and where the Northern Lights will appear, complete with expert camera settings for your location.
                   </p>
                   
                   {/* Feature Badges */}
-                  <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm md:text-base text-slate-400 font-medium">
+                  <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm md:text-base text-slate-300 font-light">
                     <div className="flex items-center gap-2">
-                      <span className="text-[#4af626]">✦</span> Precision ML Forecast
+                      <span className="text-cyan-400">✦</span> Precision ML Forecast
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[#4af626]">✦</span> Atmospheric Visibility
+                      <span className="text-cyan-400">✦</span> Atmospheric Visibility
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[#4af626]">✦</span> AI Photography Chatbot
+                      <span className="text-cyan-400">✦</span> AI Photography Chatbot
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[#4af626]">✦</span> Automated Email Alerts
+                      <span className="text-cyan-400">✦</span> Automated Email Alerts
                     </div>
                   </div>
                 </div>
+
+                {/* ── Hotspot Carousel ── */}
+                <HotspotCarousel />
 
                 {/* ── CSS Animated Orrery ── */}
                 <div className="-mt-4 flex flex-col items-center gap-6 mb-4 relative z-10">
@@ -298,7 +412,7 @@ export default function Home() {
                   {/* Status Pill */}
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-sm shadow-lg">
                     <div className="bg-amber-500 rounded-full w-2 h-2 animate-pulse shadow-[0_0_8px_#F59E0B]" />
-                    <span className="font-mono text-[10px] tracking-[0.2em] text-slate-300 uppercase font-medium">
+                    <span className="text-[10px] tracking-[0.2em] text-slate-300 uppercase font-semibold">
                       HELIOPHYSIC TELEMETRY ACTIVE
                     </span>
                   </div>
@@ -321,14 +435,14 @@ export default function Home() {
               {/* ── Telemetry Bento Grid ── */}
               <section className="px-4 md:px-16 pb-24 space-y-16 pointer-events-auto">
                 <div className="flex flex-col items-center gap-6 mb-12">
-                  <div className="w-px h-16 bg-linear-to-b from-transparent to-aurora-primary/40" />
-                  <h2 className="font-orbitron text-xl md:text-2xl tracking-[0.2em] text-white text-center">
+                  <div className="w-px h-16 bg-linear-to-b from-transparent to-cyan-400/40" />
+                  <h2 className="font-semibold text-xl md:text-2xl tracking-tight text-slate-100 text-center">
                     L1 TELEMETRY DOWNLINK
                   </h2>
                 </div>
 
                 {loading ? (
-                  <div className="text-center font-mono text-[10px] text-aurora-primary tracking-[0.2em] opacity-60">
+                  <div className="text-center text-[10px] text-cyan-400 tracking-[0.2em] font-semibold opacity-60 uppercase">
                     SYNCHRONIZING WITH DEEP SPACE GATEWAY...
                   </div>
                 ) : (
@@ -353,8 +467,8 @@ export default function Home() {
               <CommandTerminal />
 
               {/* ── Footer ── */}
-              <footer className="py-12 border-t border-white/10 text-center">
-                 <p className="text-slate-400 font-mono text-[10px] tracking-[0.4em] uppercase">
+              <footer className="py-12 border-t border-white/5 text-center">
+                 <p className="text-slate-400 text-[10px] font-semibold tracking-[0.4em] uppercase">
                     AURORALENS · GLOBAL INTELLIGENCE NETWORK · {new Date().getFullYear()}
                  </p>
               </footer>
