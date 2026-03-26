@@ -1,4 +1,47 @@
+## Session: 2026-03-26 23:57 IST
+
+### Objective
+Phase 7: Implement immersive SearchOverlay with framer-motion + Nominatim geocoding, fix LocationHUD_Mobile desktop responsive layout. Also resolve a ChunkLoadError regression that made the app render a blank white page.
+
+### Accomplished
+- **`useAppStore.ts`**: Added `setTargetLocation()` — pure coord setter for the search→navigate flow.
+- **`SearchOverlay.tsx` (full rewrite)**:
+  - AnimatePresence backdrop + spring panel entrance (stiffness: 300, damping: 25)
+  - `useDebounce` hook (500ms), Nominatim geocoding (open, no key)
+  - Loading skeleton, error state, empty prompt, no-results state — all handled
+  - Staggered result animations; coordinate badge reveals on hover
+  - Zero hardcoded locations. Zero `openDossier()` calls.
+  - Selection: `setTargetLocation → setViewMode('MAP_HUD') → closeSearch()`
+- **`LocationHUD_Mobile.tsx`** responsive fix:
+  - Desktop: `md:flex-row md:justify-between`, panels float left/right as `md:w-[350px]`
+  - Mobile: `mt-[40vh] h-[60vh]` stacking preserved — CSS-only, no JS calculations
+  - Inner wrapper uses `md:contents` to dissolve into flex parent (lint-clean)
+- **LandingPage_Mobile.tsx**: Tailwind lint cleanup (`h-[1px]`→`h-px`, `h-[100%]`→`h-full`, etc.)
+- **ChunkLoadError hotfix**:
+  - Root cause: 5 stale `'LOCAL'` ViewMode references in `LocationMap.tsx`, `LocationSearch.tsx`, `TacticalOmnibar.tsx` caused TS type errors → Turbopack refused to compile the server chunk
+  - Fixed all 5 references to `'MAP_HUD'`
+  - Cleared `.next` cache → restarted → `✓ Ready in 16.2s`
+
+### Verification
+- [x] TypeScript clean — `tsc --noEmit` passes with 0 errors
+- [x] Dev server: `✓ Ready in 16.2s` on `localhost:3001`
+- [x] ChunkLoadError resolved (white page gone)
+- [ ] Full user flow smoke test (Landing → Search → location select → MAP_HUD)
+- [ ] Mobile SearchOverlay visual check (spring animation, stagger)
+
+### Paused Because
+User requested `/pause` after ChunkLoadError was resolved and dev server confirmed clean.
+
+### Handoff Notes
+- **Port**: Dev server is on `localhost:3001` (not 3000 — old process still holding 3000)
+- **Uncommitted**: ChunkLoadError hotfix files (`LocationMap.tsx`, `LocationSearch.tsx`, `TacticalOmnibar.tsx`) need a dedicated commit
+- **Phase 8 priority**: Discuss with user — options are (A) live telemetry wiring, (B) LocationMap HUD desktop layout, (C) Dossier tabs
+- **First action on resume**: Run `/resume`, then commit hotfix files + smoke-test the search flow
+
+---
+
 ## Session: 2026-03-26 22:25 IST
+
 
 ### Objective
 Finalize Phase 4 Integration by implementing the "Global Modal Portal" architecture and mounting all premium UI overlays.
@@ -22,6 +65,33 @@ Session goals achieved and user requested `/pause` context dump before vertical 
 - Structural integration of Phase 4 is 100% complete.
 - The system is now chemically ready for Phase 5 (Live Data Binding).
 - Next session should focus on Vercel deployment and connecting real solar telemetry to the new HUDs.
+
+---
+
+## Session: 2026-03-26 22:12 IST
+
+### Objective
+Complete Phase 3–5 of the Stitch UI integration: wire all 10 extracted components to Zustand, build the global modal portal, and connect live FastAPI telemetry.
+
+### Accomplished
+- **Phase 3 (COMPLETE)**: useAppStore extended, AIAssistantOverlay_Clean wired (react-markdown, context seeding, /api/chat), LocationHUD_Mobile wired (forecast cards → timeScrubber, map layer toggle), all 3 Dossier views wired (Back, Copilot brief, Observe, Resources → Pro toast)
+- **Phase 4 (COMPLETE)**: SearchOverlay (new), ToastNotifier (new), TargetAlertModal (wired), page.tsx modal portal (AI Copilot, Dossier Router, Target Alert, Search, Toast — all AnimatePresence animated)
+- **Phase 5 (PARTIAL)**: LiveTelemetryData slice added to store, useLiveTelemetry hook created, LocationHUD liveData wiring started (cancelled mid-session)
+
+### Verification
+- [x] useAppStore TypeScript types verified (no compile errors)
+- [x] All Dossier views preserved Zero Destruction (no Stitch class modifications)
+- [ ] LocationHUD_Mobile liveData wiring (partial — needs completion)
+- [ ] page.tsx LiveTelemetryProvider mount (not done)
+- [ ] Dev server smoke test
+
+### Paused Because
+User issued `/pause` mid Phase 5 execution.
+
+### Handoff Notes
+- Two tool calls were cancelled: `LocationHUD_Mobile` liveData wiring + `page.tsx` LiveTelemetryProvider mount
+- First action on resume: verify LocationHUD current state, then complete Phase 5 in 3 surgical edits
+- All new/modified files (14 total) are uncommitted — commit after Phase 5 completes
 
 ---
 

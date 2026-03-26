@@ -192,7 +192,7 @@ export default function TacticalOmnibar() {
     e.stopPropagation();
     setQuery('');
     setSuggestions([]);
-    if (viewMode === 'LOCAL') returnToGlobal();
+    if (viewMode === 'MAP_HUD') returnToGlobal();
   };
 
   return (
@@ -229,7 +229,7 @@ export default function TacticalOmnibar() {
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
               <Zap style={{ width: 22, height: 22, color: '#22d3ee' }} />
             </motion.div>
-          ) : viewMode === 'LOCAL' ? (
+          ) : viewMode === 'MAP_HUD' ? (
             <Globe onClick={handleClear} style={{ width: 22, height: 22, color: '#22d3ee', cursor: 'pointer' }} />
           ) : (
             <Search style={{ width: 22, height: 22, color: focused ? '#22d3ee' : 'rgba(255,255,255,0.3)' }} />

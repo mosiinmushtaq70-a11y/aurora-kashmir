@@ -119,7 +119,7 @@ export default function LocationSearch() {
   const handleClear = () => {
     setQuery('');
     setSuggestions([]);
-    if (viewMode === 'LOCAL') returnToGlobal();
+    if (viewMode === 'MAP_HUD') returnToGlobal();
   };
 
   return (
@@ -161,7 +161,7 @@ export default function LocationSearch() {
                 onClick={handleClear}
                 className="pr-4 text-slate-500 hover:text-white transition-colors"
               >
-                {viewMode === 'LOCAL' ? (
+                {viewMode === 'MAP_HUD' ? (
                   <Globe size={16} className="text-cyan-400" />
                 ) : (
                   <X size={16} />
