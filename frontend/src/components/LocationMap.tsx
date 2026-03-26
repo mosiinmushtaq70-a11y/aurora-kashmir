@@ -997,7 +997,7 @@ export default function LocationMap() {
     };
   }, [scenicMode, mapReady]);
 
-  const isVisible = viewMode === 'LOCAL';
+  const isVisible = viewMode === 'MAP_HUD';
 
   return (
     <>
