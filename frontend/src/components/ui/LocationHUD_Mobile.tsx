@@ -127,7 +127,7 @@ const LocationHUD_Mobile: React.FC = () => {
           The top 40vh (map peek zone) is fully transparent.
           replaces the old full-screen background photo to let the live map show. */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute bottom-0 left-0 right-0 h-[65vh] bg-gradient-to-t from-[#10131a]/90 via-[#10131a]/50 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-[65vh] bg-linear-to-t from-[#10131a]/90 via-[#10131a]/50 to-transparent"></div>
         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#44e2cd]/5 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#e4c4ff]/3 rounded-full blur-[150px]"></div>
       </div>
@@ -173,11 +173,21 @@ const LocationHUD_Mobile: React.FC = () => {
       </header>
 
       {/* Main Content Areas */}
-      <main className="absolute inset-0 z-10 flex flex-col pointer-events-none p-4 pb-0">
-        <div className="mt-[40vh] h-[60vh] w-full overflow-y-auto flex flex-col gap-4 pointer-events-none stitch-hide-scrollbar">
+      {/*
+        Responsive layout:
+         Mobile (default): mt-[40vh] pushes panels below the map peek zone.
+         Desktop (md:): absolute inset-0, flex-row, panels float left+right.
+         CRITICAL: NO mt-[40vh] on md: — map is always Layer 0 (z-0), HUD is z-10.
+      */}
+      <main className="absolute inset-0 z-10 pointer-events-none
+        flex flex-col p-4 pb-0
+        md:flex md:flex-row md:justify-between md:p-8 md:items-start">
+        <div className="
+          mt-[40vh] h-[60vh] w-full overflow-y-auto flex flex-col gap-4 pointer-events-none stitch-hide-scrollbar
+          md:contents">
 
           {/* Left/Top Panel: Site Intel */}
-          <section className="flex flex-col gap-4 w-full flex-shrink-0 pointer-events-auto">
+          <section className="flex flex-col gap-4 w-full flex-shrink-0 pointer-events-auto md:w-[350px] lg:w-[400px]">
             <div className="stitch-glass-panel p-6 rounded-xl flex flex-col gap-6">
               <div>
                 <span className="text-[10px] uppercase tracking-[0.3em] text-[#44e2cd] font-bold block">Site Intelligence</span>
@@ -235,7 +245,7 @@ const LocationHUD_Mobile: React.FC = () => {
           </section>
 
           {/* Right/Bottom Panel: Telemetry */}
-          <section className="flex flex-col gap-4 w-full flex-shrink-0 pointer-events-auto pb-24">
+          <section className="flex flex-col gap-4 w-full flex-shrink-0 pointer-events-auto pb-24 md:pb-0 md:w-[350px] lg:w-[400px]">
             <div className="stitch-glass-panel p-6 rounded-xl flex flex-col gap-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#c3f5ff]/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
               <div className="flex justify-between items-start">

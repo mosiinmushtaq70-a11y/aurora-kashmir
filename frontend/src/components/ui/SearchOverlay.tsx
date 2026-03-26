@@ -1,30 +1,82 @@
 'use client';
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
+import type { TargetLocation } from '@/store/useAppStore';
 
 /**
- * --- SearchOverlay ---
- * Phase 4: New component, built to match the Celestial Lens design language.
- * ─ Wired to useAppStore: isSearchOpen / closeSearch / zoomToLocation / openDossier
- * ─ Searches against our existing location list (HOTSPOTS + free-text geocode)
- * ─ Escape key closes, backdrop click closes
+ * --- SearchOverlay (Phase 7 Rebuild) ---
+ *
+ * MISSION 1 — Immersive Entrance Physics:
+ *   ─ Backdrop: fixed full-screen blur fade-in via AnimatePresence
+ *   ─ Panel: spring scale+y entrance (stiffness 300, damping 25)
+ *
+ * MISSION 2 — API Wiring & Strict Routing:
+ *   ─ useDebounce (500ms) → Nominatim geocoding (open, no key)
+ *   ─ isLoading spinner, error fallback handled in UI
+ *   ─ Zero hardcoded locations. Zero openDossier() calls.
+ *   ─ Selection: setTargetLocation → setViewMode('MAP_HUD') → closeSearch()
+ *
+ * Zero Destruction: all Celestial Lens glassmorphic aesthetics preserved.
  */
 
-const KNOWN_SPOTS = [
-  { id: 'kirkjufell', name: 'Kirkjufell',   region: 'Iceland',  lat: 64.9228,  lng: -23.3071 },
-  { id: 'tromso',     name: 'Tromsø',        region: 'Norway',   lat: 69.6492,  lng: 18.9553  },
-  { id: 'abisko',     name: 'Abisko',        region: 'Sweden',   lat: 68.3495,  lng: 18.8152  },
-  { id: 'fairbanks',  name: 'Fairbanks',     region: 'Alaska',   lat: 64.8378,  lng: -147.7164},
-  { id: 'yellowknife',name: 'Yellowknife',   region: 'Canada',   lat: 62.4540,  lng: -114.3718},
-];
+// ─── useDebounce Hook ─────────────────────────────────────────────────────────
+
+function useDebounce<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState<T>(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(id);
+  }, [value, delayMs]);
+  return debounced;
+}
+
+// ─── Nominatim Result Type ─────────────────────────────────────────────────
+
+interface NominatimResult {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type: string;
+  class: string;
+  address?: {
+    country?: string;
+    state?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+  };
+}
+
+// ─── Helper: derive a short label from Nominatim address ──────────────────────
+
+function buildLocationName(result: NominatimResult): string {
+  const parts = result.display_name.split(', ');
+  // Take first 2–3 meaningful parts
+  return parts.slice(0, 3).join(', ');
+}
+
+function buildRegionLabel(result: NominatimResult): string {
+  const a = result.address;
+  if (!a) return result.type;
+  return (a.state || a.country || result.class || 'Region');
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const SearchOverlay: React.FC = () => {
-  const { closeSearch, zoomToLocation, openDossier, pushToast, liveData } = useAppStore();
+  const { closeSearch, setTargetLocation, setViewMode } = useAppStore();
 
-  const [query, setQuery]     = useState('');
-  const [results, setResults] = useState(KNOWN_SPOTS);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<NominatimResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const debouncedQuery = useDebounce(query, 500);
 
   // Auto-focus input on mount
   useEffect(() => {
@@ -38,148 +90,358 @@ const SearchOverlay: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [closeSearch]);
 
-  // Filter known spots — fuzzy match on name + region
-  const handleSearch = useCallback((value: string) => {
-    setQuery(value);
-    const q = value.toLowerCase().trim();
-    if (!q) { setResults(KNOWN_SPOTS); return; }
-    setResults(
-      KNOWN_SPOTS.filter(
-        s => s.name.toLowerCase().includes(q) || s.region.toLowerCase().includes(q)
-      )
-    );
+  // Geocoding fetch — fires on debounced query change
+  useEffect(() => {
+    const q = debouncedQuery.trim();
+    if (!q || q.length < 2) {
+      setResults([]);
+      setFetchError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoading(true);
+    setFetchError(null);
+
+    const url = new URL('https://nominatim.openstreetmap.org/search');
+    url.searchParams.set('q', q);
+    url.searchParams.set('format', 'json');
+    url.searchParams.set('addressdetails', '1');
+    url.searchParams.set('limit', '7');
+
+    fetch(url.toString(), {
+      headers: {
+        'Accept-Language': 'en',
+        // Required by Nominatim ToS (app identifier)
+        'User-Agent': 'AuroraLens/1.0 (aurora-lens.app)',
+      },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`Geocode HTTP ${r.status}`);
+        return r.json() as Promise<NominatimResult[]>;
+      })
+      .then((data) => {
+        if (!cancelled) {
+          setResults(data);
+          if (data.length === 0) setFetchError(null); // empty is valid — show empty state
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setFetchError('Satellite uplink error. Check your connection.');
+          setResults([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [debouncedQuery]);
+
+  // Selection handler — exact sequence from MISSION 2.3
+  const handleSelect = useCallback((result: NominatimResult) => {
+    const location: TargetLocation = {
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+      name: buildLocationName(result),
+      zoom: 11,
+    };
+    // Step a: update global coordinates
+    setTargetLocation(location);
+    // Step b: switch to map view
+    setViewMode('MAP_HUD');
+    // Step c: close overlay
+    closeSearch();
+  }, [setTargetLocation, setViewMode, closeSearch]);
+
+  const handleClear = useCallback(() => {
+    setQuery('');
+    setResults([]);
+    setFetchError(null);
+    inputRef.current?.focus();
   }, []);
 
-  // Navigate to spot — opens Dossier if available, else just zooms
-  const handleSelectSpot = useCallback((spot: typeof KNOWN_SPOTS[number]) => {
-    // Open the Dossier for known spots that have a dedicated view
-    if (['kirkjufell', 'tromso', 'fairbanks'].includes(spot.id)) {
-      openDossier({
-        id:          spot.id,
-        name:        spot.name,
-        region:      spot.region,
-        lat:         spot.lat,
-        lng:         spot.lng,
-        // Pass live telemetry if available — falls back to 0 on first load
-        auroraScore: liveData?.auroraScore  ?? 0,
-        cloudCover:  liveData?.cloudCover   ?? 0,
-        temperature: liveData?.temperature  ?? null,
-        lore:        [],
-      });
-    } else {
-      zoomToLocation({ lat: spot.lat, lng: spot.lng, name: `${spot.name}, ${spot.region}`, zoom: 11 });
-    }
-    closeSearch();
-  }, [openDossier, zoomToLocation, closeSearch, liveData]);
+  // Icon for result type
+  const getResultIcon = (result: NominatimResult): string => {
+    const cls = result.class;
+    if (cls === 'natural' || cls === 'peak') return 'landscape';
+    if (cls === 'place' || cls === 'city') return 'location_city';
+    if (cls === 'boundary' || cls === 'admin') return 'map';
+    if (cls === 'amenity' || cls === 'tourism') return 'place';
+    if (cls === 'waterway' || cls === 'water') return 'water';
+    return 'location_on';
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-start justify-center pt-24 p-4 bg-[#080B11]/70 backdrop-blur-lg font-['Inter',_sans-serif]"
-      onClick={closeSearch}
-    >
-      {/* Search panel — stop propagation */}
-      <div
-        className="w-full max-w-xl flex flex-col gap-2"
-        onClick={(e) => e.stopPropagation()}
+    <AnimatePresence>
+      {/* ── Backdrop ─────────────────────────────────────────────────────────── */}
+      <motion.div
+        key="search-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-[200] bg-[#080B11]/80 backdrop-blur-md"
+        onClick={closeSearch}
+      />
+
+      {/* ── Search Panel ─────────────────────────────────────────────────────── */}
+      <motion.div
+        key="search-panel"
+        initial={{ opacity: 0, scale: 0.95, y: -20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -20 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="fixed inset-0 z-[201] flex items-start justify-center pt-24 px-4 pointer-events-none"
+        style={{ fontFamily: 'Inter, sans-serif' }}
       >
-        {/* ── Input ─────────────────────────────────────── */}
-        <div className="flex items-center gap-3 bg-[#080B11]/90 border border-white/10 rounded-2xl px-6 py-4 backdrop-blur-3xl shadow-[0_0_60px_rgba(0,229,255,0.08)]">
-          <span
-            className="material-symbols-outlined text-[#00e5ff] flex-shrink-0"
-            style={{ fontFamily: 'Material Symbols Outlined', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+        <div
+          className="w-full max-w-xl flex flex-col gap-2 pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+
+          {/* ── INPUT BAR ──────────────────────────────────────────────────── */}
+          <div
+            className={`
+              flex items-center gap-3 rounded-2xl px-6 py-4 transition-all duration-300
+              bg-[#080B11]/90 border backdrop-blur-3xl shadow-[0_0_60px_rgba(0,229,255,0.08)]
+              ${isFocused
+                ? 'border-[#00e5ff]/40 ring-2 ring-[#00e5ff]/20 shadow-[0_0_30px_rgba(0,229,255,0.2)]'
+                : 'border-white/10'
+              }
+            `}
           >
-            search
-          </span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search aurora hotspots…"
-            className="flex-1 bg-transparent text-[#e0e2eb] placeholder:text-[#bac9cc]/40 outline-none text-base font-light"
-          />
-          {query && (
-            <button
-              onClick={() => handleSearch('')}
-              className="text-[#bac9cc] hover:text-white transition-colors"
-            >
+            {/* Scan icon / spinner */}
+            {isLoading ? (
+              <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-[#00e5ff]/30 border-t-[#00e5ff] animate-spin" />
+            ) : (
               <span
-                className="material-symbols-outlined text-sm"
-                style={{ fontFamily: 'Material Symbols Outlined', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                className="material-symbols-outlined text-[#00e5ff] flex-shrink-0 text-xl"
+                style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
               >
-                close
+                search
               </span>
-            </button>
-          )}
-          <span className="text-[10px] uppercase tracking-widest text-[#bac9cc]/40 border border-white/10 px-2 py-1 rounded font-semibold">
-            ESC
-          </span>
-        </div>
+            )}
 
-        {/* ── Results ────────────────────────────────────── */}
-        <div className="bg-[#080B11]/90 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-          {results.length === 0 ? (
-            <div className="px-6 py-10 text-center">
-              <p className="text-[#bac9cc] text-sm font-light">No hotspots match "<span className="text-[#c3f5ff]">{query}</span>"</p>
-              <p className="text-[#bac9cc]/40 text-xs mt-2 uppercase tracking-widest">Try a region name</p>
-            </div>
-          ) : (
-            <ul>
-              {results.map((spot, idx) => {
-                const hasDossier = ['kirkjufell', 'tromso', 'fairbanks'].includes(spot.id);
-                return (
-                  <li key={spot.id}>
-                    <button
-                      onClick={() => handleSelectSpot(spot)}
-                      className="w-full flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-colors group text-left border-b border-white/5 last:border-0"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-[#00e5ff]/30 transition-colors">
-                        <span
-                          className="material-symbols-outlined text-[#bac9cc] group-hover:text-[#00e5ff] transition-colors text-lg"
-                          style={{ fontFamily: 'Material Symbols Outlined', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
-                        >
-                          {hasDossier ? 'auto_awesome' : 'location_on'}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-white font-semibold font-['Manrope',_sans-serif] text-sm group-hover:text-[#c3f5ff] transition-colors">
-                          {spot.name}
-                        </p>
-                        <p className="text-[#bac9cc] text-[10px] uppercase tracking-widest">{spot.region}</p>
-                      </div>
-                      {hasDossier && (
-                        <span className="text-[8px] uppercase tracking-widest text-[#00e5ff] border border-[#00e5ff]/30 rounded-full px-2 py-0.5 bg-[#00e5ff]/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          Dossier
-                        </span>
-                      )}
-                      <span
-                        className="material-symbols-outlined text-[#bac9cc]/40 group-hover:text-[#c3f5ff] transition-colors text-base"
-                        style={{ fontFamily: 'Material Symbols Outlined', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
-                      >
-                        arrow_forward
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder="Search any location on Earth…"
+              className="flex-1 bg-transparent text-[#e0e2eb] placeholder:text-[#bac9cc]/40 outline-none text-base font-light"
+            />
 
-          {/* ── Footer hint */}
-          <div className="px-6 py-3 border-t border-white/5 flex items-center gap-3">
-            <span
-              className="material-symbols-outlined text-[#bac9cc]/40 text-sm"
-              style={{ fontFamily: 'Material Symbols Outlined', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
-            >
-              bolt
-            </span>
-            <span className="text-[9px] uppercase tracking-widest text-[#bac9cc]/40">
-              Hotspots with a Dossier include Site Intelligence, Visual Archives &amp; AI Briefings
+            {/* Scanning indicator when typing but not yet debounced */}
+            {query && !isLoading && query !== debouncedQuery && (
+              <span className="text-[9px] uppercase tracking-widest text-[#00e5ff]/50 animate-pulse flex-shrink-0">
+                Scanning…
+              </span>
+            )}
+
+            {/* Clear */}
+            {query && (
+              <button
+                onClick={handleClear}
+                className="text-[#bac9cc] hover:text-white transition-colors flex-shrink-0"
+              >
+                <span
+                  className="material-symbols-outlined text-sm"
+                  style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                >
+                  close
+                </span>
+              </button>
+            )}
+
+            <span className="text-[10px] uppercase tracking-widest text-[#bac9cc]/30 border border-white/10 px-2 py-1 rounded font-semibold flex-shrink-0">
+              ESC
             </span>
           </div>
+
+          {/* ── RESULTS / STATES ───────────────────────────────────────────── */}
+          <AnimatePresence mode="wait">
+
+            {/* Empty query — show prompt */}
+            {!query && (
+              <motion.div
+                key="prompt"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2 }}
+                className="bg-[#080B11]/90 border border-white/10 rounded-2xl px-6 py-8 text-center backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+              >
+                <span
+                  className="material-symbols-outlined text-4xl text-[#00e5ff]/20 block mb-3"
+                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 400" }}
+                >
+                  satellite_alt
+                </span>
+                <p className="text-[#bac9cc]/60 text-sm font-light">
+                  Enter any city, peak, lake, or coordinates
+                </p>
+                <p className="text-[#bac9cc]/30 text-xs mt-2 uppercase tracking-widest">
+                  e.g. "Tromsø, Norway" or "64.9° N, 23.3° W"
+                </p>
+              </motion.div>
+            )}
+
+            {/* Error state */}
+            {query && !isLoading && fetchError && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2 }}
+                className="bg-[#080B11]/90 border border-red-500/20 rounded-2xl px-6 py-8 text-center backdrop-blur-3xl"
+              >
+                <span
+                  className="material-symbols-outlined text-3xl text-red-400/60 block mb-3"
+                  style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
+                >
+                  signal_disconnected
+                </span>
+                <p className="text-red-400/80 text-sm">{fetchError}</p>
+              </motion.div>
+            )}
+
+            {/* Loading skeleton */}
+            {isLoading && (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-[#080B11]/90 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+              >
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 px-6 py-4 border-b border-white/5 last:border-0"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white/5 animate-pulse flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-white/5 rounded-full animate-pulse w-2/3" />
+                      <div className="h-2 bg-white/5 rounded-full animate-pulse w-1/3" />
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+
+            {/* No results */}
+            {query && !isLoading && !fetchError && debouncedQuery === query && results.length === 0 && (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2 }}
+                className="bg-[#080B11]/90 border border-white/10 rounded-2xl px-6 py-10 text-center backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+              >
+                <p className="text-[#bac9cc] text-sm font-light">
+                  No results for <span className="text-[#c3f5ff]">"{query}"</span>
+                </p>
+                <p className="text-[#bac9cc]/30 text-xs mt-2 uppercase tracking-widest">
+                  Try a country, region, or mountain name
+                </p>
+              </motion.div>
+            )}
+
+            {/* Results list */}
+            {!isLoading && results.length > 0 && (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.25 }}
+                className="bg-[#080B11]/90 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+              >
+                <ul>
+                  {results.map((result, idx) => {
+                    const regionLabel = buildRegionLabel(result);
+                    const icon = getResultIcon(result);
+                    const name = buildLocationName(result);
+
+                    return (
+                      <motion.li
+                        key={result.place_id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.04, duration: 0.2 }}
+                      >
+                        <button
+                          onClick={() => handleSelect(result)}
+                          className="w-full flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all duration-200 group text-left border-b border-white/5 last:border-0"
+                        >
+                          {/* Type icon badge */}
+                          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-[#00e5ff]/30 group-hover:bg-[#00e5ff]/5 transition-all">
+                            <span
+                              className="material-symbols-outlined text-[#bac9cc] group-hover:text-[#00e5ff] transition-colors text-lg"
+                              style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                            >
+                              {icon}
+                            </span>
+                          </div>
+
+                          {/* Text */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-semibold text-sm group-hover:text-[#c3f5ff] transition-colors truncate"
+                               style={{ fontFamily: 'Manrope, sans-serif' }}>
+                              {name}
+                            </p>
+                            <p className="text-[#bac9cc] text-[10px] uppercase tracking-widest truncate">
+                              {regionLabel}
+                            </p>
+                          </div>
+
+                          {/* Coordinate badge — reveals on hover */}
+                          <div className="hidden sm:flex flex-col items-end opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                            <span className="text-[9px] text-[#00e5ff]/60 font-mono">
+                              {parseFloat(result.lat).toFixed(3)}°
+                            </span>
+                            <span className="text-[9px] text-[#00e5ff]/40 font-mono">
+                              {parseFloat(result.lon).toFixed(3)}°
+                            </span>
+                          </div>
+
+                          {/* Arrow */}
+                          <span
+                            className="material-symbols-outlined text-[#bac9cc]/30 group-hover:text-[#c3f5ff] transition-colors text-base flex-shrink-0"
+                            style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                          >
+                            arrow_forward
+                          </span>
+                        </button>
+                      </motion.li>
+                    );
+                  })}
+                </ul>
+
+                {/* Footer — power line */}
+                <div className="px-6 py-3 border-t border-white/5 flex items-center gap-3">
+                  <span
+                    className="material-symbols-outlined text-[#bac9cc]/30 text-sm"
+                    style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                  >
+                    satellite_alt
+                  </span>
+                  <span className="text-[9px] uppercase tracking-widest text-[#bac9cc]/30">
+                    Powered by global telemetry grid · {results.length} targets acquired
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

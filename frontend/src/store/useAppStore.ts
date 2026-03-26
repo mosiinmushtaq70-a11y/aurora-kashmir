@@ -186,6 +186,10 @@ interface AppState {
 
   // Phase 3: Parked Historic Data
   setHistoricTelemetry: (data: Record<string, unknown>[]) => void;
+
+  // Phase 7: Direct target coordinate setter (used by SearchOverlay —
+  // sets location without touching viewMode, unlike zoomToLocation which also navigates)
+  setTargetLocation: (location: TargetLocation | null) => void;
 }
 
 // ─── Zustand Store ────────────────────────────────────────────────────────────
@@ -327,5 +331,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Phase 5: Live Telemetry ──────────────────────────────────────────────
   setLiveData: (data: LiveTelemetryData) => {
     set({ liveData: data });
+  },
+
+  // ── Phase 7: Direct target setter (SearchOverlay flow) ──────────────────
+  // Sets coordinates on the store WITHOUT changing viewMode.
+  // SearchOverlay calls: setTargetLocation → setViewMode('MAP_HUD') → closeSearch()
+  setTargetLocation: (location: TargetLocation | null) => {
+    set({ targetLocation: location });
   },
 }));
