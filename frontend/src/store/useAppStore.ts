@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 
-// ─── Type Definitions ───────────────────────────────────────────────────────
+// ─── Type Definitions ────────────────────────────────────────────────────────
 
 export type ViewMode = 'GLOBAL' | 'LOCAL';
+export type MapLayer = 'VECTOR' | 'SATELLITE';
 
 export interface TargetLocation {
   lat: number;
@@ -18,28 +19,132 @@ export interface User {
   image?: string | null;
 }
 
-// ─── Store Interface ─────────────────────────────────────────────────────────
+/**
+ * Context payload passed to the AI Copilot when opened from
+ * a particular location. Drives the initial greeting message
+ * and injects live telemetry into the system prompt.
+ */
+export interface AICopilotContext {
+  locationName: string;
+  auroraScore: number;
+  temperature: number | null;
+  /** Optional pre-populated message (e.g. from "View Full Brief" button) */
+  initialBrief?: string;
+}
+
+/**
+ * The active Dossier target — used to feed live data into any of the
+ * three DossierView_*.tsx components.
+ */
+export interface DossierTarget {
+  id: string;           // e.g. 'kirkjufell' | 'tromso' | 'fairbanks'
+  name: string;
+  region: string;
+  lat: number;
+  lng: number;
+  auroraScore: number;
+  cloudCover: number;
+  temperature: number | null;
+  lore?: string[];
+}
+
+/**
+ * Live telemetry payload — written by useLiveTelemetry, read by HUD + Dossiers.
+ * Replaces all static placeholder values in wired components.
+ */
+export interface LiveTelemetryData {
+  auroraScore: number;
+  cloudCover: number;
+  temperature: number;
+  precipitation: number;
+  /** Kp-index (derived: score/100 * 9) */
+  kp: number;
+  /** Geo-magnetic level string from the backend (e.g. 'MODERATE', 'HIGH') */
+  level: string;
+  /** Raw solar wind telemetry from NOAA */
+  bz: number;
+  bt: number;
+  solarSpeed: number;
+  density: number;
+  lastUpdated: string;
+  /** Whether data is being fetched */
+  loading: boolean;
+  /** Whether the last fetch failed */
+  error: boolean;
+}
+
+/**
+ * Toast notification payload for "Pro Tier" unwired UI elements.
+ */
+export interface ToastPayload {
+  id: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+}
+
+// ─── Phase 3 Forecast Hour Presets ──────────────────────────────────────────
+// Used by LocationHUD_Mobile forecast cards to jump to specific offsets.
+export const FORECAST_HOUR_PRESETS = [0, 6, 12, 24, 48] as const;
+export type ForecastHourPreset = typeof FORECAST_HOUR_PRESETS[number];
+
+// ─── Store Interface ──────────────────────────────────────────────────────────
 
 interface AppState {
-  // View State
+  // ── Existing: View State ──────────────────────────────────────────────────
   viewMode: ViewMode;
   targetLocation: TargetLocation | null;
-  timeScrubber: number; // 0-72 (hours into the future)
+  /** Time offset in hours (0 = now, 6/12/24/48 = future forecasts).
+   *  Driven by HUD forecast card clicks (no legacy slider). */
+  timeScrubber: number;
 
-  // Derived Loading State
+  // ── Existing: Derived Loading State ──────────────────────────────────────
   isTransitioning: boolean;
 
-  // UI State
+  // ── Existing: UI / Scenic Mode ────────────────────────────────────────────
   isProMode: boolean;
-  scenicMode: boolean; // true when navigating via a Hotspot card
+  scenicMode: boolean;
   scenicName: string | null;
   scenicRegion: string | null;
-  scenicLore: string[]; // documentary-style lore facts for the ScenicLoreSidebar
+  scenicLore: string[];
 
-  // Auth State
+  // ── Existing: Auth State ──────────────────────────────────────────────────
   user: User | null;
 
-  // Actions
+  // ── Phase 3: Modal Orchestration ─────────────────────────────────────────
+  /** Primary AI Co-Pilot Chat (AIAssistantOverlay_Clean.tsx) */
+  isAICopilotOpen: boolean;
+  /** Context injected into the copilot on open */
+  aiCopilotContext: AICopilotContext | null;
+
+  /** Target Alert Modal (TargetAlertModal.tsx) */
+  isTargetAlertOpen: boolean;
+
+  /** Search Overlay (SearchOverlay.tsx) */
+  isSearchOpen: boolean;
+
+  /** Active Dossier — feeds all DossierView_*.tsx components */
+  activeDossier: DossierTarget | null;
+  isDossierOpen: boolean;
+
+  // ── Phase 3: Map Layer Toggle ─────────────────────────────────────────────
+  /** Toggled from the subtle button injected into LocationHUD_Mobile */
+  mapLayer: MapLayer;
+
+  // ── Phase 3: Toast System (Pro-tier unwired UI fallback) ─────────────────
+  toasts: ToastPayload[];
+
+  // ── Phase 3: Deep Telemetry (Parked)
+  /** Historical chart data is held in-state but NOT displayed until the
+   *  "Deep Telemetry" modal is built in a future sprint. */
+  historicTelemetry: Record<string, unknown>[] | null;
+
+  // ── Phase 5: Live Telemetry Data ─────────────────────────────────────────
+  /** Written by useLiveTelemetry hook, read by HUD + Dossier components. */
+  liveData: LiveTelemetryData | null;
+
+  // ─── Actions ──────────────────────────────────────────────────────────────
+
+  // Existing
   zoomToLocation: (location: TargetLocation) => void;
   returnToGlobal: () => void;
   setTimeScrubber: (hours: number) => void;
@@ -50,12 +155,41 @@ interface AppState {
   setScenicRegion: (val: string | null) => void;
   setScenicLore: (lore: string[]) => void;
   setUser: (user: User | null) => void;
+
+  // Phase 3: AI Copilot
+  openAICopilot: (context: AICopilotContext) => void;
+  closeAICopilot: () => void;
+
+  // Phase 3: Target Alert Modal
+  openTargetAlert: () => void;
+  closeTargetAlert: () => void;
+
+  // Phase 3: Search Overlay
+  openSearch: () => void;
+  closeSearch: () => void;
+
+  // Phase 3: Dossier
+  openDossier: (target: DossierTarget) => void;
+  closeDossier: () => void;
+
+  // Phase 3: Map Layer
+  toggleMapLayer: () => void;
+
+  // Phase 3: Toast
+  pushToast: (message: string, type?: ToastPayload['type']) => void;
+  dismissToast: (id: string) => void;
+
+  // Phase 5: Live Telemetry
+  setLiveData: (data: LiveTelemetryData) => void;
+
+  // Phase 3: Parked Historic Data
+  setHistoricTelemetry: (data: Record<string, unknown>[]) => void;
 }
 
-// ─── Zustand Store ───────────────────────────────────────────────────────────
+// ─── Zustand Store ────────────────────────────────────────────────────────────
 
-export const useAppStore = create<AppState>((set) => ({
-  // Initial State
+export const useAppStore = create<AppState>((set, get) => ({
+  // ── Initial State ────────────────────────────────────────────────────────
   viewMode: 'GLOBAL',
   targetLocation: null,
   timeScrubber: 0,
@@ -67,10 +201,24 @@ export const useAppStore = create<AppState>((set) => ({
   scenicLore: [],
   user: null,
 
-  // Transition to LOCAL mode for a given location
+  // Phase 3 initial
+  isAICopilotOpen: false,
+  aiCopilotContext: null,
+  isTargetAlertOpen: false,
+  isSearchOpen: false,
+  activeDossier: null,
+  isDossierOpen: false,
+  mapLayer: 'VECTOR',
+  toasts: [],
+  historicTelemetry: null,
+
+  // Phase 5 initial
+  liveData: null,
+
+  // ── Existing Actions (Preserved exactly) ────────────────────────────────
+
   zoomToLocation: (location: TargetLocation) => {
     set({ isTransitioning: true });
-    // Brief delay allows the exit animation to begin before state change finalizes
     setTimeout(() => {
       set({
         viewMode: 'LOCAL',
@@ -80,7 +228,6 @@ export const useAppStore = create<AppState>((set) => ({
     }, 100);
   },
 
-  // Return to global 3D globe view
   returnToGlobal: () => {
     set({ isTransitioning: true });
     setTimeout(() => {
@@ -88,7 +235,7 @@ export const useAppStore = create<AppState>((set) => ({
         viewMode: 'GLOBAL',
         targetLocation: null,
         isTransitioning: false,
-        scenicMode: false, // always reset scenic mode when returning to global
+        scenicMode: false,
         scenicName: null,
         scenicRegion: null,
         scenicLore: [],
@@ -96,7 +243,6 @@ export const useAppStore = create<AppState>((set) => ({
     }, 100);
   },
 
-  // Update the time scrubber (0 = now, 72 = 72hrs ahead)
   setTimeScrubber: (hours: number) => set({ timeScrubber: hours }),
   setTransitioning: (val: boolean) => set({ isTransitioning: val }),
   setProMode: (val: boolean) => set({ isProMode: val }),
@@ -105,4 +251,77 @@ export const useAppStore = create<AppState>((set) => ({
   setScenicRegion: (val: string | null) => set({ scenicRegion: val }),
   setScenicLore: (lore: string[]) => set({ scenicLore: lore }),
   setUser: (user: User | null) => set({ user }),
+
+  // ── Phase 3: AI Copilot ──────────────────────────────────────────────────
+
+  /**
+   * Open the primary AI Copilot (AIAssistantOverlay_Clean.tsx).
+   * Pass an optional `initialBrief` string to pre-seed the chat with the
+   * truncated tactical brief from the Insight card ("View Full Brief" flow).
+   */
+  openAICopilot: (context: AICopilotContext) => {
+    set({ isAICopilotOpen: true, aiCopilotContext: context });
+  },
+
+  closeAICopilot: () => {
+    set({ isAICopilotOpen: false, aiCopilotContext: null });
+  },
+
+  // ── Phase 3: Target Alert Modal ──────────────────────────────────────────
+
+  openTargetAlert: () => set({ isTargetAlertOpen: true }),
+  closeTargetAlert: () => set({ isTargetAlertOpen: false }),
+
+  // ── Phase 3: Search Overlay ──────────────────────────────────────────────
+
+  openSearch: () => set({ isSearchOpen: true }),
+  closeSearch: () => set({ isSearchOpen: false }),
+
+  // ── Phase 3: Dossier ─────────────────────────────────────────────────────
+
+  openDossier: (target: DossierTarget) => {
+    set({ activeDossier: target, isDossierOpen: true });
+  },
+
+  closeDossier: () => {
+    set({ isDossierOpen: false, activeDossier: null });
+  },
+
+  // ── Phase 3: Map Layer Toggle ────────────────────────────────────────────
+
+  toggleMapLayer: () => {
+    const current = get().mapLayer;
+    set({ mapLayer: current === 'VECTOR' ? 'SATELLITE' : 'VECTOR' });
+  },
+
+  // ── Phase 3: Toast System ────────────────────────────────────────────────
+
+  pushToast: (message: string, type: ToastPayload['type'] = 'info') => {
+    const id = `toast_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const toast: ToastPayload = { id, message, type };
+    set((state) => ({ toasts: [...state.toasts, toast] }));
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => {
+      set((state) => ({
+        toasts: state.toasts.filter((t) => t.id !== id),
+      }));
+    }, 4000);
+  },
+
+  dismissToast: (id: string) => {
+    set((state) => ({
+      toasts: state.toasts.filter((t) => t.id !== id),
+    }));
+  },
+
+  // ── Phase 3: Parked Historic Telemetry ──────────────────────────────────
+  // Logic is safe in state. Will surface in "Deep Telemetry" modal (future sprint).
+  setHistoricTelemetry: (data: Record<string, unknown>[]) => {
+    set({ historicTelemetry: data });
+  },
+
+  // ── Phase 5: Live Telemetry ──────────────────────────────────────────────
+  setLiveData: (data: LiveTelemetryData) => {
+    set({ liveData: data });
+  },
 }));
