@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 // ─── Type Definitions ────────────────────────────────────────────────────────
 
-export type ViewMode = 'GLOBAL' | 'LOCAL';
+export type ViewMode = 'LANDING' | 'MAP_HUD';
 export type MapLayer = 'VECTOR' | 'SATELLITE';
 
 export interface TargetLocation {
@@ -147,6 +147,8 @@ interface AppState {
   // Existing
   zoomToLocation: (location: TargetLocation) => void;
   returnToGlobal: () => void;
+  /** Phase 6: Direct view mode navigation (e.g. Landing → Dashboard) */
+  setViewMode: (mode: ViewMode) => void;
   setTimeScrubber: (hours: number) => void;
   setTransitioning: (val: boolean) => void;
   setProMode: (val: boolean) => void;
@@ -190,7 +192,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
   // ── Initial State ────────────────────────────────────────────────────────
-  viewMode: 'GLOBAL',
+  viewMode: 'LANDING',
   targetLocation: null,
   timeScrubber: 0,
   isTransitioning: false,
@@ -217,11 +219,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // ── Existing Actions (Preserved exactly) ────────────────────────────────
 
+  setViewMode: (mode: ViewMode) => set({ viewMode: mode }),
+
   zoomToLocation: (location: TargetLocation) => {
     set({ isTransitioning: true });
     setTimeout(() => {
       set({
-        viewMode: 'LOCAL',
+        viewMode: 'MAP_HUD',
         targetLocation: location,
         isTransitioning: false,
       });
@@ -232,7 +236,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ isTransitioning: true });
     setTimeout(() => {
       set({
-        viewMode: 'GLOBAL',
+        viewMode: 'LANDING',
         targetLocation: null,
         isTransitioning: false,
         scenicMode: false,

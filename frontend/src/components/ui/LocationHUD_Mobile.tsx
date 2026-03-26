@@ -48,6 +48,7 @@ const LocationHUD_Mobile: React.FC = () => {
     openTargetAlert,
     openSearch,
     returnToGlobal,
+    setViewMode,
     toggleMapLayer,
     mapLayer,
     pushToast,
@@ -89,7 +90,7 @@ const LocationHUD_Mobile: React.FC = () => {
 
   // ─── JSX (Zero Destruction — all original Stitch structure preserved) ──
   return (
-    <div className="relative min-h-screen bg-[#10131a] text-[#e0e2eb] font-['Inter',_sans-serif] selection:bg-[#c3f5ff]/30 overflow-x-hidden">
+    <div className="relative min-h-screen text-[#e0e2eb] font-['Inter',_sans-serif] selection:bg-[#c3f5ff]/30 overflow-x-hidden">
       {/* 
         NOTE: Styles ported directly from Stitch source.
         'glass-panel', 'aurora-gradient', and custom scrollbars included.
@@ -122,16 +123,13 @@ const LocationHUD_Mobile: React.FC = () => {
         }
       `}</style>
 
-      {/* Background Atmosphere */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#10131a]/20 to-[#10131a] z-10"></div>
-        <img
-          className="w-full h-full object-cover opacity-60 grayscale brightness-[0.4] contrast-125"
-          alt="Atmospheric landscape"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2j6GrWbsdVRrffiPG0UwTD2AWeSGsTyzKHJzuX9_Bm0fOEdWzo-rM-J6E4rJv2zCWWccYs72YO0e2LIB9GFZtLmHxBHVVBEjbDkSRPu52sVgetEgTxXJVoC_59APFj1RP1rMNbDoo_BMKuZQ_y9SE77NBoUoj9pdXVRAmu0f5VPfQ9Yv4Uq22Yuj4g-X9g2vJMbhLLU_wNPI0ggrBg8VnwQmFzWldUED6mR3rkgUk-nfQZWXo2xsq0e8HCx_Uo_bYtOCZ6zbujfA"
-        />
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#44e2cd]/10 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#e4c4ff]/5 rounded-full blur-[150px]"></div>
+      {/* Subtle atmospheric vignette — only covers the lower HUD panels area.
+          The top 40vh (map peek zone) is fully transparent.
+          replaces the old full-screen background photo to let the live map show. */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 h-[65vh] bg-gradient-to-t from-[#10131a]/90 via-[#10131a]/50 to-transparent"></div>
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-[#44e2cd]/5 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#e4c4ff]/3 rounded-full blur-[150px]"></div>
       </div>
 
       {/* ── MAP LAYER TOGGLE (Injected per Gap Resolution #3) ─────────────────
@@ -155,9 +153,9 @@ const LocationHUD_Mobile: React.FC = () => {
       {/* Header HUD */}
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-4 h-24 pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
-          {/* Back button → returnToGlobal */}
+          {/* Back button → returns to the Stitch Landing Page */}
           <button
-            onClick={returnToGlobal}
+            onClick={() => setViewMode('LANDING')}
             className="stitch-glass-panel px-4 py-3 rounded-full flex items-center gap-3 group transition-all active:scale-95"
           >
             <span className="material-symbols-outlined text-[#c3f5ff] group-hover:-translate-x-1 transition-transform">arrow_back</span>
