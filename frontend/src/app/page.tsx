@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import TexturedGlobe from '@/components/TexturedGlobe';
 import LocationMap from '@/components/LocationMap';
 
 import MissionHeader from '@/components/ui/MissionHeader';
@@ -12,6 +10,18 @@ import GeomagneticHeatmap from '@/components/ui/GeomagneticHeatmap';
 import CommandTerminal from '@/components/ui/CommandTerminal';
 import { useAppStore } from '@/store/useAppStore';
 import { MapPin, ChevronRight } from 'lucide-react';
+
+// ── Phase 4: Modal Layer Imports ──────────────────────────────────────────────
+import AIAssistantOverlay_Clean    from '@/components/ui/AIAssistantOverlay_Clean';
+import DossierView_Tromso_Polished from '@/components/ui/DossierView_Tromso_Polished';
+import DossierView_Fairbanks_Refined from '@/components/ui/DossierView_Fairbanks_Refined';
+import DossierView_Kirkjufell      from '@/components/ui/DossierView_Kirkjufell';
+import TargetAlertModal            from '@/components/ui/TargetAlertModal';
+import SearchOverlay               from '@/components/ui/SearchOverlay';
+import ToastNotifier               from '@/components/ui/ToastNotifier';
+
+// ── Phase 5: Live Telemetry ───────────────────────────────────────────────
+import { LiveTelemetryProvider }   from '@/hooks/useLiveTelemetry';
 
 // Modular Dashboard Components
 import KpCard from '@/components/dashboard/KpCard';
@@ -153,7 +163,15 @@ export default function Home() {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { viewMode } = useAppStore();
+  const {
+    viewMode,
+    isAICopilotOpen,
+    isDossierOpen,
+    activeDossier,
+    isTargetAlertOpen,
+    isSearchOpen,
+    liveData,
+  } = useAppStore();
 
   const API_BASE_URL = 'http://localhost:8000';
 
@@ -477,6 +495,87 @@ export default function Home() {
         </AnimatePresence>
 
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          PHASE 4 — GLOBAL MODAL PORTAL
+          All overlays are mounted here, at the root level, so they
+          render above every layout layer (z-index: 100+).
+          Zero Destruction: the existing layout above is untouched.
+      ═══════════════════════════════════════════════════════════════════ */}
+
+      {/* ── Phase 5: Live Telemetry Data Bridge ────────────────────────────
+           No UI. Polls /api/weather/forecast/global, writes into store.liveData.
+           LocationHUD, Dossiers, and AI Copilot all read from that slice.  */}
+      <LiveTelemetryProvider />
+
+      {/* ── 1. AI Co-Pilot Chat (z-100) ────────────────────────────────── */}
+      <AnimatePresence>
+        {isAICopilotOpen && (
+          <motion.div
+            key="ai-copilot"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <AIAssistantOverlay_Clean />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── 2. Destination Dossier Router (z-100) ──────────────────────── */}
+      {/* Renders the correct Dossier component based on activeDossier.id   */}
+      <AnimatePresence>
+        {isDossierOpen && activeDossier && (
+          <motion.div
+            key={`dossier-${activeDossier.id}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0  }}
+            exit={{    opacity: 0, y: 20  }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-[100] overflow-y-auto"
+          >
+            {activeDossier.id === 'tromso'     && <DossierView_Tromso_Polished />}
+            {activeDossier.id === 'fairbanks'  && <DossierView_Fairbanks_Refined />}
+            {activeDossier.id === 'kirkjufell' && <DossierView_Kirkjufell />}
+            {/* Unknown dossier IDs fall through gracefully — closeDossier() will dismiss it */}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── 3. Target Alert Modal (z-150) ──────────────────────────────── */}
+      <AnimatePresence>
+        {isTargetAlertOpen && (
+          <motion.div
+            key="target-alert"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1    }}
+            exit={{    opacity: 0, scale: 0.97  }}
+            transition={{ duration: 0.2 }}
+          >
+            <TargetAlertModal />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── 4. Search Overlay (z-200) ───────────────────────────────────── */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div
+            key="search-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{    opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <SearchOverlay />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── 5. Toast Notifier (z-9999 — always on top) ─────────────────── */}
+      <ToastNotifier />
+
     </div>
   );
 }
