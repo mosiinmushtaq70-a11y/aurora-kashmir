@@ -5,7 +5,10 @@ import { useAppStore } from '@/store/useAppStore';
 import { Clock } from 'lucide-react';
 
 export default function TimelineScrubber() {
-  const { timeScrubber, setTimeScrubber } = useAppStore();
+  const { timeScrubber, setTimeScrubber, scenicMode } = useAppStore();
+
+  // Hide the timeline in cinematic mode — it's an analytical tool, not scenic
+  if (scenicMode) return null;
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value, 10);
@@ -46,7 +49,7 @@ export default function TimelineScrubber() {
           
           {/* Active Track */}
           <div 
-            className="absolute inset-y-0 left-0 bg-linear-to-r from-[#00d4ff]/40 to-aurora-green/40 md:from-[#00d4ff] md:to-aurora-green rounded-full shadow-[0_0_15px_rgba(0,220,130,0.2)] md:shadow-[0_0_15px_rgba(0,220,130,0.5)]"
+            className="absolute inset-y-0 left-0 bg-linear-to-r from-[#00d4ff]/40 to-cyan-400/40 md:from-[#00d4ff] md:to-cyan-400 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.2)] md:shadow-[0_0_15px_rgba(34,211,238,0.5)]"
             style={{ width: `${(timeScrubber / 72) * 100}%` }}
           />
 
@@ -69,8 +72,8 @@ export default function TimelineScrubber() {
                 className="absolute top-0 flex flex-col items-center -translate-x-1/2"
                 style={{ left: calculateTickPosition(hour) }}
               >
-                <div className={`w-px h-2 ${timeScrubber >= hour ? 'bg-aurora-green' : 'bg-white/20'}`} />
-                <span style={{ fontSize: '9px', lineHeight: '1' }} className={`font-mono mt-1 whitespace-nowrap ${timeScrubber >= hour ? 'text-white font-bold' : 'text-slate-500'}`}>
+                <div className={`w-px h-2 ${timeScrubber >= hour ? 'bg-cyan-400' : 'bg-white/20'}`} />
+                <span style={{ fontSize: '9px', lineHeight: '1' }} className={`font-semibold tracking-[0.2em] uppercase mt-1 whitespace-nowrap ${timeScrubber >= hour ? 'text-white' : 'text-slate-500'}`}>
                   {getDayLabel(hour)}
                 </span>
               </div>
@@ -87,8 +90,8 @@ export default function TimelineScrubber() {
           height: 24px;
           border-radius: 50%;
           background: #ffffff;
-          border: 3px solid #00dc82;
-          box-shadow: 0 0 20px rgba(0, 220, 130, 0.8);
+          border: 3px solid #22d3ee;
+          box-shadow: 0 0 20px rgba(34, 211, 238, 0.8);
           cursor: grab;
           transition: transform 0.1s, box-shadow 0.2s;
           margin-top: 0px; /* Center thumb in track */
@@ -99,21 +102,22 @@ export default function TimelineScrubber() {
         .slider-thumb::-webkit-slider-thumb:active {
           cursor: grabbing;
           transform: scale(1.1);
-          box-shadow: 0 0 30px rgba(0, 220, 130, 1);
+          box-shadow: 0 0 30px rgba(34, 211, 238, 1);
         }
         .slider-thumb::-moz-range-thumb {
           width: 24px;
           height: 24px;
           border-radius: 50%;
           background: #ffffff;
-          border: 3px solid #00dc82;
-          box-shadow: 0 0 20px rgba(0, 220, 130, 0.8);
+          border: 3px solid #22d3ee;
+          box-shadow: 0 0 20px rgba(34, 211, 238, 0.8);
           cursor: grab;
           transition: transform 0.1s;
         }
         .slider-thumb::-moz-range-thumb:active {
           cursor: grabbing;
           transform: scale(1.1);
+          box-shadow: 0 0 30px rgba(34, 211, 238, 1);
         }
       `}} />
     </motion.div>

@@ -19,7 +19,7 @@ export function Navigation() {
       {/* Floating hamburger toggle — always visible */}
       <motion.button
         onClick={() => setIsOpen((o) => !o)}
-        className="fixed top-5 left-5 z-50 w-11 h-11 rounded-xl glass-panel border border-white/10 flex items-center justify-center text-slate-300 hover:text-aurora-green hover:border-aurora-green/40 transition-colors duration-200 shadow-lg"
+        className="fixed top-5 left-5 z-50 w-11 h-11 rounded-xl glass-panel border border-white/10 flex items-center justify-center text-slate-300 hover:text-cyan-400 hover:border-cyan-400/40 transition-colors duration-200 shadow-lg"
         whileTap={{ scale: 0.92 }}
         aria-label="Toggle navigation"
       >
@@ -76,8 +76,8 @@ export function Navigation() {
           >
             {/* Brand */}
               <div className="flex items-center gap-2">
-                <Zap size={18} className="text-aurora-green" />
-                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-aurora-green to-blue-400">
+                <Zap size={18} className="text-cyan-400" />
+                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-cyan-400 to-blue-400">
                   AuroraLens
                 </h1>
               </div>
@@ -93,20 +93,20 @@ export function Navigation() {
                       whileTap={{ scale: 0.97 }}
                       className={`relative flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors ${
                         isActive
-                          ? 'bg-aurora-green/10 text-aurora-green border border-aurora-green/20'
+                          ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/20'
                           : 'text-slate-400 hover:text-white'
                       }`}
                     >
                       {isActive && (
                         <motion.div
                           layoutId="active-indicator"
-                          className="absolute left-0 w-1 h-8 bg-aurora-green rounded-r-full"
+                          className="absolute left-0 w-1 h-8 bg-cyan-400 rounded-r-full"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                         />
                       )}
-                      <item.icon size={20} className={isActive ? 'text-aurora-green' : 'opacity-70'} />
+                      <item.icon size={20} className={isActive ? 'text-cyan-400' : 'opacity-70'} />
                       <span className="font-medium text-sm">{item.name}</span>
                     </motion.div>
                   </Link>

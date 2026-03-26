@@ -196,16 +196,16 @@ export default function TacticalOmnibar() {
   };
 
   return (
-    <div className="relative w-[90vw] md:w-[720px] lg:w-[900px] max-w-[90vw] pointer-events-auto">
+    <div className="relative w-full max-w-4xl mx-auto h-16 md:h-20 pointer-events-auto">
       {/* Outer glow bloom */}
       <div
         style={{
           position: 'absolute',
-          inset: -2,
-          borderRadius: 16,
+          inset: -4,
+          borderRadius: 9999,
           background: 'transparent',
           boxShadow: focused || (suggestions.length > 0 && query)
-            ? '0 0 40px rgba(0,220,130,0.15), 0 0 80px rgba(0,220,130,0.08)'
+            ? '0 0 60px rgba(34,211,238,0.15), 0 0 120px rgba(34,211,238,0.08)'
             : '0 0 0 transparent',
           transition: 'box-shadow 400ms ease',
           pointerEvents: 'none',
@@ -215,34 +215,24 @@ export default function TacticalOmnibar() {
 
       {/* Input wrapper */}
       <div
+        className="relative flex items-center gap-4 px-8 h-full rounded-full bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl transition-all duration-300 z-10"
         style={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          padding: '1.1rem 1.5rem',
-          borderRadius: 14,
-          background: focused ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.035)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: `1px solid ${focused ? 'rgba(0,220,130,0.4)' : 'rgba(255,255,255,0.1)'}`,
+          border: focused ? '1px solid rgba(34,211,238,0.4)' : '1px solid rgba(255,255,255,0.1)',
           boxShadow: focused
-            ? '0 0 20px rgba(0,220,130,0.15), inset 0 1px 0 rgba(0,220,130,0.08), 0 1px 40px rgba(0,0,0,0.5)'
-            : 'inset 0 1px 0 rgba(255,255,255,0.04)',
-          transition: 'all 300ms ease-in-out',
-          zIndex: 10,
+            ? '0 0 30px rgba(34,211,238,0.1), inset 0 1px 0 rgba(255,255,255,0.02)'
+            : 'none',
         }}
       >
         {/* State Icon / Search Icon */}
         <div style={{ width: 20, height: 20, flexShrink: 0 }}>
           {isSearching ? (
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
-              <Zap style={{ width: 18, height: 18, color: '#00DC82' }} />
+              <Zap style={{ width: 22, height: 22, color: '#22d3ee' }} />
             </motion.div>
           ) : viewMode === 'LOCAL' ? (
-            <Globe onClick={handleClear} style={{ width: 18, height: 18, color: '#00DC82', cursor: 'pointer' }} />
+            <Globe onClick={handleClear} style={{ width: 22, height: 22, color: '#22d3ee', cursor: 'pointer' }} />
           ) : (
-            <Search style={{ width: 18, height: 18, color: focused ? '#00DC82' : 'rgba(255,255,255,0.3)' }} />
+            <Search style={{ width: 22, height: 22, color: focused ? '#22d3ee' : 'rgba(255,255,255,0.3)' }} />
           )}
         </div>
 
@@ -253,19 +243,19 @@ export default function TacticalOmnibar() {
           onChange={handleInputChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 200)}
-          placeholder={focused ? "> Search city or coordinates..." : placeholderText}
+          placeholder={focused ? "Search city or coordinates..." : placeholderText}
           style={{
             flex: 1,
             background: 'transparent',
             outline: 'none',
             border: 'none',
-            fontFamily: (!focused && !query) ? 'JetBrains Mono, monospace' : 'IBM Plex Sans, sans-serif',
-            fontSize: (!focused && !query) ? '0.735rem' : '1.05rem', // 70% of 1.05rem
+            fontFamily: (!focused && !query) ? 'inherit' : 'inherit',
+            fontSize: '1.125rem', // text-lg
             color: 'rgba(255,255,255,0.9)',
-            letterSpacing: (!focused && !query) ? '0.1em' : '0.015em',
-            caretColor: '#00DC82',
+            letterSpacing: '0.015em',
+            caretColor: '#22d3ee',
           }}
-          className={`placeholder:text-white/40 placeholder:transition-all ${(!focused && !query) ? 'uppercase' : ''}`}
+          className={`placeholder:text-white/20 placeholder:transition-all ${(!focused && !query) ? 'uppercase tracking-[0.2em] text-[10px] font-semibold' : 'text-lg'}`}
           autoComplete="off"
           spellCheck={false}
         />
@@ -279,13 +269,13 @@ export default function TacticalOmnibar() {
           )}
           <div className="h-4 w-px bg-white/10 mx-1" />
           <kbd style={{
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.6rem',
+            fontFamily: 'inherit',
+            fontSize: '0.7rem',
             color: 'rgba(255,255,255,0.3)',
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 4,
-            padding: '2px 5px',
+            borderRadius: 6,
+            padding: '4px 8px',
           }}>⌘K</kbd>
         </div>
       </div>
@@ -337,10 +327,10 @@ export default function TacticalOmnibar() {
                   <MapPin size={14} className="text-white/20 group-hover:text-aurora-primary transition-colors" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: 'IBM Plex Sans, sans-serif', fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <p style={{ fontFamily: 'inherit', fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.display_name.split(',')[0]}
                   </p>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <p style={{ fontFamily: 'inherit', fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.display_name.split(',').slice(1, 4).join(',')}
                   </p>
                 </div>
@@ -361,7 +351,7 @@ export default function TacticalOmnibar() {
             left: '15%',
             right: '15%',
             height: 2,
-            background: 'linear-gradient(90deg, transparent, #00DC82, transparent)',
+            background: 'linear-gradient(90deg, transparent, #22d3ee, transparent)',
             borderRadius: 1,
             zIndex: 5,
           }}

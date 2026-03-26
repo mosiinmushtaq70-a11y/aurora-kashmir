@@ -1,72 +1,61 @@
 # GSD State File — AuroraKashmir Project
 
 ## Current Position
-- **Phase**: Phase 4 — Production Polish & Deployment (Final UI/UX Refinements)
-- **Task**: Pause and Commit
-- **Status**: Paused at 2026-03-24 23:05 IST
+- **Phase**: Phase 4 — Production Polish & Deployment (Global Modal Integration)
+- **Task**: Finalizing Phase 4 Integration
+- **Status**: Paused at 2026-03-26 22:20 IST
 
 ---
 
 ## Last Session Summary
-Focused on a comprehensive UI/UX overhaul for the landing page and mobile experience. Pivoted messaging to "ML-DRIVEN", unified search aesthetics, implemented a pure CSS Orrery, and refactored the telemetry dashboard for mobile glanceability. Also fixed critical font loading issues over network tunnels.
+Finalized the Phase 4 architectural goal: the "Global Modal Portal". Mounted all key overlays at the root level of the application dashboard, ensuring non-destructive UI integration and high-z-index layering for the AI Copilot, Dossier Router, Target Alert, Search Overlay, and Toast Notifier.
 
 ### Accomplishments
-- [x] **UI Messaging Pivot**: Transitioned to "ML-DRIVEN" and "Atmospheric Visibility" terminology across hero and badges.
-- [x] **Search UI Unification**: Synced landing page `TacticalOmnibar` with premium `MapSearchBar` focus/glow aesthetics.
-- [x] **CSS Orrery**: Built a pure Tailwind CSS animated top-down orbital model (Sun, Earth, Moon).
-- [x] **Mobile Telemetry Refactor**: Implemented a 2x2 grid layout and hid complex charts/labels for 375px breakpoints.
-- [x] **Font Injection**: Refactored `layout.tsx` to use `next/font/google` for robust rendering over tunnels/proxies.
-- [x] **Sightseeing Integration**: Replaced mock data with real-world OpenStreetMap Overpass POI queries.
-- [x] **Site Intelligence Update**: Reverted tactical brief brevity to original 2-sentence depth and renamed header for fluency.
+- [x] **Global Modal Mounting**: Integrated all Phase 4 overlays into `frontend/src/app/page.tsx` using `framer-motion` for portal transitions.
+- [x] **Store Logic Update**: Expanded `useAppStore.ts` with atomic visibility flags and active dossier routing state.
+- [x] **Location HUD (Mobile)**: Built a specialized mobile-first HUD for latitude/longitude and solar activity glanceability.
+- [x] **Search UI Refinement**: Synced `SearchOverlay` with the premium editorial aesthetic (glassmorphism + cyan glow).
+- [x] **Live Telemetry Hookups**: Wired `LiveTelemetryProvider` into the root to prepare for real-time data binding in Phase 5.
 
 ---
 
 ## In-Progress Work
-- Telemetry mobile refactor and font loading fixes are complete and ready for deployment.
+- Phase 4 integration is complete. The system is structurally ready for Phase 5 (Live Data Binding).
 
 ### Modified Files
-- `frontend/src/app/api/sightseeing/route.ts`
-- `frontend/src/app/api/tactical-brief/route.ts`
-- `frontend/src/app/globals.css`
-- `frontend/src/app/layout.tsx`
-- `frontend/src/app/page.tsx`
-- `frontend/src/components/LocationMap.tsx`
-- `frontend/src/components/dashboard/KashmirVisionCard.tsx`
-- `frontend/src/components/dashboard/KpCard.tsx`
-- `frontend/src/components/dashboard/MagneticFieldCard.tsx`
-- `frontend/src/components/dashboard/SolarWindCard.tsx`
-- `frontend/src/components/ui/GeomagneticHeatmap.tsx`
-- `frontend/src/components/ui/MissionHeader.tsx`
-- `frontend/src/components/ui/TacticalOmnibar.tsx`
+- `frontend/src/app/page.tsx` (Mounted portal layers)
+- `frontend/src/store/useAppStore.ts` (State orchestration)
+- `frontend/src/components/ui/LocationHUD_Mobile.tsx` (New component)
+- `frontend/src/components/ui/SearchOverlay.tsx` (Styling refinements)
 
 ### Tests Status
-- **Frontend**: Manually verified on desktop and simulated mobile; pending physical device verification after deployment.
-- **Backend**: STABLE and Running.
+- **Desktop UI**: Verified modal entry/exit animations.
+- **Mobile UI**: Simulated modal responsiveness in DevTools.
+- **State Management**: Verified store-to-UI reactivity for all toggleable layers.
 
 ---
 
 ## Blockers
-- **Tunnel Asset Limitations**: Local tunnels (Pinggy/Ngrok) occasionally block font/static asset downloads on specific physical hardware due to strict mobile CORS.
+- **Physical Device Assets**: Final font/asset verification pending Vercel deployment (local tunnel CORS limitation).
 
 ---
 
 ## Context Dump
 
 ### Decisions Made
-- **Brevity Revert**: Decided that 2-sentence briefs provided significantly better "intel" value than the 1-sentence constraint.
-- **Icon Visibility**: Hid secondary telemetry icons on mobile to reduce visual noise in the 2x2 grid.
-- **Next.js Font Loading**: Switched from `<link>` tags to `next/font/google` to ensure font files are bundled locally.
+- **Root Mounting**: Chose to mount all modals directly in `page.tsx` (Layer 4) to maintain absolute control over z-index stacking relative to the WebGL map and Bento grid.
+- **Dossier Routing**: Implemented a conditional router inside the portal to switch between `Tromso`, `Fairbanks`, and `Kirkjufell` variants based on user selection.
+- **Zero Destruction**: Ensured that mounting Phase 4 layers did not require any layout shifts or logic changes in the existing Phase 3 "Celestial Lens" dashboard.
 
 ### Approaches Tried
-- **Linear SVG Downlink**: Initially implemented a SUN-L1-EARTH linear model, but replaced it with a more hypnotic top-down Orrery per architectural directive.
-- **Negative Margin Tuning**: Tuned the Orrery's vertical position using `-mt-4` to sit flush under hero features.
+- **Layout Wrap**: Considered a `layout.tsx` wrapper for portals, but opted for `page.tsx` to keep the store context tightly coupled with the main dashboard lifecycle.
 
 ### Current Hypothesis
-- Deploying to Vercel will resolve all remaining font rendering issues on the physical Redmi device by serving assets from a trusted Enterprise CDN.
+- Phase 5 (Live Telemetry) will significantly densify the UI "intelligence" without requiring further structural changes, as the hooks are already mounted.
 
 ---
 
 ## Next Steps
-1. **Physical Device Verification**: Verify font rendering on hardware after Vercel deployment.
-2. **Vercel Deployment**: Finalize environment variables and trigger production build.
-3. **Marker Clustering**: Implement clustering in `LocationMap.tsx` for high-density areas.
+1. **Vercel Deployment**: Push Phase 4 to production for physical device testing.
+2. **Phase 5 Data Binding**: Connect `liveData` slice from the store to cards and HUDs.
+3. **Marker Clustering**: Implement Mapbox-style clustering in `LocationMap.tsx` for high-density POI regions.
