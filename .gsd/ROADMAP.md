@@ -35,8 +35,16 @@ updated: 2026-03-16T15:30:00Z
 **Objective:** Implement "Pro Mode" telemetry, compact environmental data, and FAB map controls.
 
 ### Phase 4: Persistence & Backend Scaling
-**Status:** 🔄 In Progress
+**Status:** ✅ Complete
 **Objective:** Integrate Authentication, PostgreSQL database for saved locations, and automated background alert workers.
+
+### Phase 11: Landing Page & Dossier Scaffolding
+**Status:** ✅ Complete
+**Objective:** Finalize Landing Page and unify Dossier architecture into a single template.
+
+### Phase 12: Dossier Intelligence & Heatmap Filtering
+**Status:** 🔄 In Progress
+**Objective:** Implement Aurora Forecast Panel, Photography Window, and Pro Map Locked Preview with filtering logic.
 
 ---
 

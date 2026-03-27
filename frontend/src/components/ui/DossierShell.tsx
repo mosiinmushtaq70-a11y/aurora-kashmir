@@ -3,12 +3,81 @@
 import React, { ReactNode, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
+import AuroraForecastPanel from './dossier/AuroraForecastPanel';
 
 interface DossierShellProps {
   heroImage: string;
   subtitle: string;
   children: ReactNode;
 }
+
+const LiveDataBar = () => {
+  const { liveData, activeDossier } = useAppStore();
+  
+  const displayData = {
+    score: liveData?.auroraScore ?? activeDossier?.auroraScore ?? 0,
+    cloud: liveData?.cloudCover ?? activeDossier?.cloudCover ?? 0,
+    temp: liveData?.temperature ?? activeDossier?.temperature ?? 0,
+    kp: liveData?.kp ?? 0,
+    level: liveData?.level ?? 'STABLE',
+    loading: liveData?.loading ?? true
+  };
+
+  const getStatusColor = (level: string) => {
+    switch (level?.toUpperCase()) {
+      case 'STORM': return 'text-red-400 bg-red-400/10 border-red-400/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]';
+      case 'HIGH': return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
+      case 'MODERATE': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+      default: return 'text-[#00e5ff] bg-[#00e5ff]/10 border-[#00e5ff]/20';
+    }
+  };
+
+  const StatItem = ({ label, value, unit, icon }: { label: string, value: string | number, unit?: string, icon: string }) => (
+    <div className="flex flex-col gap-1 px-6 py-4 md:py-6 first:pl-0 last:pr-0 border-white/5 md:border-r last:border-r-0">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="material-symbols-outlined text-[14px] text-[#00e5ff] opacity-60">{icon}</span>
+        <span className="font-['Manrope'] font-bold tracking-[0.2em] uppercase text-[9px] text-[#bac9cc] opacity-50">
+          {label}
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className={`font-['Inter'] font-light text-2xl md:text-3xl text-white ${displayData.loading ? 'animate-pulse' : ''}`}>
+          {value}
+        </span>
+        {unit && <span className="font-['Inter'] font-light text-xs text-[#bac9cc] opacity-40 uppercase">{unit}</span>}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full max-w-5xl mx-auto -mt-32 md:-mt-24 mb-32 z-20 px-4 md:px-0">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.8 }}
+        viewport={{ once: true }}
+        className="stitch-glass-panel rounded-2xl md:rounded-4xl p-2 md:p-4 backdrop-blur-3xl overflow-hidden"
+      >
+        <div className="grid grid-cols-2 md:grid-cols-4 items-center">
+          <StatItem label="Intel Score" value={displayData.score} unit="/ 100" icon="analytics" />
+          <StatItem label="Atmospherics" value={displayData.cloud} unit="% Cloud" icon="cloud" />
+          <StatItem label="Thermal" value={displayData.temp} unit="°C" icon="thermostat" />
+          <div className="flex flex-col gap-2 px-6 py-4 md:py-6 border-white/5 col-span-1">
+             <div className="flex items-center gap-2 mb-1">
+              <span className="material-symbols-outlined text-[14px] text-[#00e5ff] opacity-60">radar</span>
+              <span className="font-['Manrope'] font-bold tracking-[0.2em] uppercase text-[9px] text-[#bac9cc] opacity-50">
+                Status
+              </span>
+            </div>
+            <div className={`inline-flex items-center self-start px-3 py-1 rounded-full border text-[10px] font-['Manrope'] font-bold tracking-widest uppercase ${getStatusColor(displayData.level)}`}>
+              {displayData.level} (KP-{Math.round(displayData.kp)})
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 const DossierShell: React.FC<DossierShellProps> = ({ 
   heroImage, 
@@ -98,7 +167,7 @@ const DossierShell: React.FC<DossierShellProps> = ({
       {/* Mega Content Flow */}
       <main className="relative z-10 flex flex-col items-center">
         {/* 1. Cinematic Entry (Hero Title) */}
-        <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24">
+        <section className="min-h-[85vh] flex flex-col items-center justify-center text-center px-6 pt-24">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -112,11 +181,16 @@ const DossierShell: React.FC<DossierShellProps> = ({
             <h1 className="font-['Manrope'] font-extrabold text-white text-7xl md:text-[12rem] leading-none tracking-tighter drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] mega-glow-text mb-8">
               {activeDossier?.name}
             </h1>
-            <div className="w-px h-32 bg-gradient-to-b from-[#00e5ff] to-transparent opacity-40"></div>
+            <div className="w-px h-24 bg-gradient-to-b from-[#00e5ff] to-transparent opacity-40"></div>
           </motion.div>
         </section>
 
-        {/* 2. Content Sections (Children) */}
+        <LiveDataBar />
+
+        {/* 2. Tactical Forecast (Phase 2) */}
+        <AuroraForecastPanel />
+
+        {/* 3. Content Sections (Children) */}
         <div className="w-full max-w-7xl px-6 md:px-12 pb-60 space-y-40">
           {children}
         </div>
@@ -125,7 +199,7 @@ const DossierShell: React.FC<DossierShellProps> = ({
       {/* Global Scroll Progress Bar */}
       <motion.div 
         className="fixed top-0 left-0 right-0 h-0.5 bg-[#00e5ff] z-[100] origin-left"
-        style={{ scaleX: useScroll().scrollProgress }}
+        style={{ scaleX: useScroll().scrollYProgress }}
       />
     </div>
   );

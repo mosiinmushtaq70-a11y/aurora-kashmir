@@ -46,6 +46,7 @@ export interface DossierTarget {
   auroraScore: number;
   cloudCover: number;
   temperature: number | null;
+  heroImage?: string;
   lore?: string[];
 }
 
@@ -298,7 +299,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Phase 3: Dossier ─────────────────────────────────────────────────────
 
   openDossier: (target: DossierTarget) => {
-    set({ activeDossier: target, isDossierOpen: true });
+    set({ 
+      activeDossier: target, 
+      isDossierOpen: true,
+      targetLocation: { lat: target.lat, lng: target.lng, name: target.name }
+    });
   },
 
   closeDossier: () => {
