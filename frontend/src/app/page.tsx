@@ -11,9 +11,7 @@ import LocationHUD_Mobile        from '@/components/ui/LocationHUD_Mobile';
 
 // ── Phase 4: Global Modal Portal ─────────────────────────────────────────────
 import AIAssistantOverlay_Clean  from '@/components/ui/AIAssistantOverlay_Clean';
-import DossierView_Tromso_Polished   from '@/components/ui/DossierView_Tromso_Polished';
-import DossierView_Fairbanks_Refined from '@/components/ui/DossierView_Fairbanks_Refined';
-import DossierView_Kirkjufell        from '@/components/ui/DossierView_Kirkjufell';
+import DestinationDossier from '@/components/ui/DestinationDossier';
 import TargetAlertModal          from '@/components/ui/TargetAlertModal';
 import SearchOverlay             from '@/components/ui/SearchOverlay';
 import ToastNotifier             from '@/components/ui/ToastNotifier';
@@ -133,11 +131,9 @@ export default function Home() {
             animate={{ opacity: 1, y: 0  }}
             exit={{    opacity: 0, y: 20  }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[100] overflow-y-auto"
+            className="fixed inset-0 z-100 overflow-y-auto"
           >
-            {activeDossier.id === 'tromso'     && <DossierView_Tromso_Polished />}
-            {activeDossier.id === 'fairbanks'  && <DossierView_Fairbanks_Refined />}
-            {activeDossier.id === 'kirkjufell' && <DossierView_Kirkjufell />}
+            <DestinationDossier />
           </motion.div>
         )}
       </AnimatePresence>

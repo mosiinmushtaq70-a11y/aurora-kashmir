@@ -164,6 +164,62 @@ async def get_forecast(lat: float, lon: float, hour_offset: int = 0):
             "temperature": 0
         }
 
+@app.get("/api/weather/forecast/series")
+async def get_forecast_series(lat: float, lon: float):
+    """
+    Returns a 48-hour tactical forecast series in 3-hourly increments.
+    Calculates aurora probability for each time-step based on NOAA 3-day Kp outlook.
+    """
+    try:
+        series = []
+        now = datetime.utcnow()
+        from src.space_weather import get_kp_forecast
+
+        # 1. Fetch 3-day Kp forecast (3-hourly resolution)
+        df_kp = get_kp_forecast()
+        
+        # 2. Handle missing data with safe fallback series
+        if df_kp is None or df_kp.empty:
+            for h in range(0, 51, 3):
+                series.append({
+                    "timestamp": (now + timedelta(hours=h)).isoformat(),
+                    "kp": 2.0,
+                    "aurora_score": 15,
+                    "level": "MINIMAL",
+                    "cloud_cover": 0,
+                    "temperature": 0
+                })
+            return {"series": series, "status": "fallback"}
+
+        # 3. Filter for relevant 48-hour window
+        target_end = now + timedelta(hours=48)
+        # Include slightly before 'now' to ensure the line starts correctly
+        mask = (df_kp['time_tag'] >= now - timedelta(hours=3)) & (df_kp['time_tag'] <= target_end)
+        df_kp = df_kp.loc[mask].sort_values('time_tag')
+
+        # 4. Map each forecast point through the AI Engine
+        for _, row in df_kp.iterrows():
+            kp_val = float(row['kp'])
+            # Heuristic enhancement for series: Bz is typically negative during predicted high Kp
+            bz = -2.5 if kp_val >= 4 else (0.5 if kp_val < 2 else 0.0)
+            bt = 5.0 + (kp_val * 0.5)
+            
+            res = calculate_aurora_probability(kp=kp_val, bz=bz, bt=bt, lat=lat, lon=lon)
+            
+            series.append({
+                "timestamp": row['time_tag'].isoformat(),
+                "kp": kp_val,
+                "aurora_score": res["score"],
+                "level": res["level"],
+                "cloud_cover": 0,
+                "temperature": 0
+            })
+            
+        return {"series": series, "status": "live"}
+    except Exception as e:
+        print(f"[Series Error] {e}")
+        return {"series": [], "error": str(e)}
+
 @app.get("/api/sightseeing/spots")
 async def get_spots(lat: float, lon: float):
     # Sort spots by how close they are to your map's center
