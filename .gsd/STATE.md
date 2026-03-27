@@ -1,9 +1,9 @@
 # GSD State File — AuroraKashmir Project
 
 ## Current Position
-- **Phase**: Phase 7 — Immersive Search Overlay + Responsive HUD Layout
-- **Task**: COMPLETE — ChunkLoadError hotfix applied; dev server running clean
-- **Status**: Paused at 2026-03-26 23:57 IST
+- **Phase**: Phase 7 — Immersive Search Overlay + Site Intelligence Integration
+- **Task**: COMPLETE — Site Intelligence extracted and HUD overlap resolved
+- **Status**: Active (resumed 2026-03-27T11:10:00+05:30)
 
 ---
 
@@ -41,7 +41,7 @@ This session executed two major deliverables: **Phase 7** (SearchOverlay rewrite
   - `LocationSearch.tsx:122,164` — `handleClear` guard + Globe icon conditional
   - `TacticalOmnibar.tsx:195,232` — `handleClear` guard + Globe icon conditional
 - **Cache**: `.next` directory cleared → `npm run dev` restarted → `✓ Ready in 16.2s` (clean)
-- **Dev server**: Running on `http://localhost:3001` (3000 was still occupied)
+- **Dev server**: Running on `http://localhost:3000` (port 3000 cleared)
 
 ---
 
@@ -105,3 +105,58 @@ This session executed two major deliverables: **Phase 7** (SearchOverlay rewrite
    - A) Wire `useLiveTelemetry` live polling into the HUD (telemetry cards show real data)
    - B) LocationMap.tsx responsive HUD refactor — convert `isVisible` logic to desktop side-panel layout
    - C) Dossier tab system (Phase 7 roadmap item — historical data in tabs)
+
+---
+
+## Resume Recovery Note (2026-03-27)
+
+- User-reported symptom: plain white page + perpetual loading after clicking node/globe icon.
+- Root cause #1: stale `node.exe` dev processes held ports and `.next/dev/lock`, causing unstable restarts.
+- Root cause #2 (blocking): syntax regression in `frontend/src/components/ui/LocationHUD_Mobile.tsx` (`className` string was unintentionally split across lines, producing "Unterminated string constant").
+- Recovery actions:
+  - Terminated stale node processes on `3000/3001`.
+  - Restarted dev server in webpack mode for stability (`next dev --webpack`).
+  - Patched broken JSX className strings in `LocationHUD_Mobile.tsx`.
+- Verification:
+  - Frontend `GET /` now returns `200` (no white-screen compile crash).
+  - Backend telemetry endpoint `GET /api/weather/forecast/global?...` returns `200`.
+
+---
+
+## UI De-conflict Update (2026-03-27)
+
+- User-reported issue: selecting a location showed two overlapping HUD systems (legacy + new).
+- Root cause: `LocationMap.tsx` still rendered the legacy local HUD panels and controls while `page.tsx` simultaneously rendered `LocationHUD_Mobile`.
+- Action taken:
+  - `LocationMap.tsx` runtime rendering was switched to **map-only** mode.
+  - Legacy sidebars/controls were removed from runtime render path.
+  - New HUD remains the single UI authority via `LocationHUD_Mobile` in `page.tsx`.
+- Preservation:
+  - Legacy HUD code remains in codebase for later extraction.
+  - Feature inventory recorded in `.gsd/LEGACY_HUD_INVENTORY.md`.
+- Verification:
+  - Frontend home route responds `200` after refactor.
+
+---
+
+## Final Refinements Summary (2026-03-27)
+
+### Deliverables: Site Intelligence & HUD Fix (COMPLETE ✅)
+- **`SiteIntelligenceCard.tsx`** [NEW]:
+  - Surgically extracted from legacy `LocationMap.tsx`.
+  - Self-contained tactical brief fetching logic (`/api/tactical-brief`).
+  - Animated, aurora-reactive design (glassmorphic border glow).
+- **`LocationHUD_Mobile.tsx`** [REFINED]:
+  - **Header Overlap Fix**: Added `md:pt-24` to the left-side section.
+  - **Component Integration**: Replaced placeholder with the dynamic `SiteIntelligenceCard`.
+  - **Desktop Spacing**: Cards now start safely below the fixed 100px navigation header.
+
+### Files Modified:
+- `frontend/src/components/ui/SiteIntelligenceCard.tsx` (New)
+- `frontend/src/components/ui/LocationHUD_Mobile.tsx` (Modified)
+- `.gsd/SESSION_CONTEXT.md` (New - Source of Truth)
+
+### Next Steps:
+1. **SMOKE TEST**: User to verify the AI tactical brief fetches correctly and the layout is clear of the Back button.
+2. **CLEANUP**: Remove any remaining legacy HUD comments if no longer needed.
+3. **FEATURE**: Discuss Phase 8 (Live Telemetry Polling).

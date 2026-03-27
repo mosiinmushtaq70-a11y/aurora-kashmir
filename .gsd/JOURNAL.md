@@ -1,3 +1,73 @@
+## Session: 2026-03-27 (Site Intelligence Card & HUD Layout)
+
+### Objective
+Extract "Site Intelligence" description/score from legacy components into a standalone HUD card and fix navigation header overlap.
+
+### Accomplished
+- **`SiteIntelligenceCard.tsx`** [NEW]: Created a standalone component that handles its own AI brief fetching logic from `/api/tactical-brief`.
+- **HUD Integration**: Mounted the new card in `LocationHUD_Mobile.tsx`, replacing the previous static placeholder.
+- **Layout Fix**: Added `md:pt-24` to the left-side section in `LocationHUD_Mobile.tsx` to push components below the fixed 100px header on desktop.
+- **Context Persistence**: Created `.gsd/SESSION_CONTEXT.md` to serve as a high-efficiency source of truth for the next session.
+
+### Verification
+- [x] UI logic for Site Intelligence card implemented and wired to store `liveData`.
+- [x] Padding fix applied for desktop viewports.
+- [ ] User manual smoke test for AI brief fetching and layout clearance.
+
+### Paused Because
+Session goals achieved and user requested `[/pause]`.
+
+### Handoff Notes
+- The "AI Insights" grid was intentionally excluded from extraction per user request.
+- The system is now on port 3000 (frontend) and 8000 (backend).
+- Next session should start with a manual check of the AI brief text appearing in the HUD after selecting a location.
+
+---
+
+## Session: 2026-03-27 (Resume Recovery)
+
+### Objective
+Quickly diagnose and fix user-reported white-screen + endless loading after resuming the previous session.
+
+### Accomplished
+- Identified stale `node.exe` processes occupying `3000/3001` and causing `.next/dev/lock` conflicts.
+- Isolated real frontend blocker from live server logs:
+  - `LocationHUD_Mobile.tsx` parse failure — **Unterminated string constant** in `className`.
+- Fixed JSX syntax in `frontend/src/components/ui/LocationHUD_Mobile.tsx` by converting broken multi-line string literals to valid single-line `className` attributes.
+- Restarted frontend cleanly in webpack mode (`next dev --webpack`) to avoid Turbopack panic instability observed during triage.
+
+### Verification
+- [x] Frontend homepage responds: `GET http://localhost:3000` → `200`
+- [x] Backend forecast endpoint responds: `GET /api/weather/forecast/global?...` → `200`
+- [x] Lints for edited file are clean (`LocationHUD_Mobile.tsx`)
+
+### Handoff Notes
+- Primary white-screen issue is resolved.
+- If desired, next hardening step is to make webpack the default dev script or set Next config to avoid Turbopack/root-lockfile instability.
+
+---
+
+## Session: 2026-03-27 (HUD De-conflict)
+
+### Objective
+Remove legacy/duplicate map HUD overlays so only the new `LocationHUD_Mobile` UI appears, while preserving old HUD assets for later selective reuse.
+
+### Accomplished
+- Refactored `frontend/src/components/LocationMap.tsx` runtime output to **map-only** rendering.
+- Removed legacy HUD panel/control rendering from active path (top controls, legacy sidebars, timeline).
+- Kept legacy HUD logic/components in code for reuse later instead of deleting.
+- Added `.gsd/LEGACY_HUD_INVENTORY.md` to document reusable old HUD feature groups.
+
+### Verification
+- [x] Frontend route responds (`GET /` → `200`) after de-conflict change.
+- [x] Edited file lint diagnostics remain clean.
+- [x] New HUD remains mounted from `page.tsx` as the single UI layer.
+
+### Handoff Notes
+- If you want to migrate specific legacy widgets into the new HUD, use `.gsd/LEGACY_HUD_INVENTORY.md` as extraction checklist.
+
+---
+
 ## Session: 2026-03-26 23:57 IST
 
 ### Objective

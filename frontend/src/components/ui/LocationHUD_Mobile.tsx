@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import type { ForecastHourPreset } from '@/store/useAppStore';
+import SiteIntelligenceCard from './SiteIntelligenceCard';
 
 /**
  * --- LocationHUD_Mobile Component ---
@@ -179,23 +180,21 @@ const LocationHUD_Mobile: React.FC = () => {
          Desktop (md:): absolute inset-0, flex-row, panels float left+right.
          CRITICAL: NO mt-[40vh] on md: — map is always Layer 0 (z-0), HUD is z-10.
       */}
-      <main className="absolute inset-0 z-10 pointer-events-none
-        flex flex-col p-4 pb-0
-        md:flex md:flex-row md:justify-between md:p-8 md:items-start">
-        <div className="
-          mt-[40vh] h-[60vh] w-full overflow-y-auto flex flex-col gap-4 pointer-events-none stitch-hide-scrollbar
-          md:contents">
+      <main
+        className="absolute inset-0 z-10 pointer-events-none flex flex-col p-4 pb-0 md:flex md:flex-row md:justify-between md:p-8 md:items-start"
+      >
+        <div
+          className="mt-[40vh] h-[60vh] w-full overflow-y-auto flex flex-col gap-4 pointer-events-none stitch-hide-scrollbar md:contents"
+        >
 
-          {/* Left/Top Panel: Site Intel */}
-          <section className="flex flex-col gap-4 w-full flex-shrink-0 pointer-events-auto md:w-[350px] lg:w-[400px]">
-            <div className="stitch-glass-panel p-6 rounded-xl flex flex-col gap-6">
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.3em] text-[#44e2cd] font-bold block">Site Intelligence</span>
-                <h2 className="font-['Manrope',_sans-serif] text-2xl font-semibold tracking-tight text-white leading-tight">
-                  {targetLocation?.name ?? 'Srinagar District'}
-                </h2>
-              </div>
-            </div>
+          {/* Left/Top Panel: Site Intel & AI Intelligence */}
+          <section className="flex flex-col gap-4 w-full flex-shrink-0 pointer-events-auto md:w-[350px] lg:w-[400px] md:pt-24">
+            <SiteIntelligenceCard 
+              score={liveData?.auroraScore ?? 62}
+              locationName={targetLocation?.name ?? 'Srinagar District'}
+              cloudCover={liveData?.cloudCover}
+              temperature={liveData?.temperature}
+            />
 
             {/* AI Copilot Button → wired to openAICopilot */}
             <button

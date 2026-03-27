@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "secondary-fixed-dim": "#3cddc7",
+            "primary-fixed": "#9cf0ff",
+            "surface-variant": "#32353c",
+            "surface": "#10131a",
+            "error": "#ffb4ab",
+            "surface-container-high": "#272a31",
+            "inverse-primary": "#006875",
+            "surface-tint": "#00daf3",
+            "primary": "#c3f5ff",
+            "secondary-container": "#03c6b2",
+            "primary-container": "#00e5ff",
+            "surface-container-highest": "#32353c",
+            "on-error-container": "#ffdad6",
+            "surface-dim": "#10131a",
+            "secondary": "#44e2cd",
+            "on-secondary": "#003731",
+            "outline": "#849396",
+            "on-surface": "#e0e2eb",
+            "on-primary": "#00363d",
+            "tertiary-fixed": "#f0dbff",
+            "primary-fixed-dim": "#00daf3",
+            "error-container": "#93000a",
+            "tertiary-fixed-dim": "#ddb7ff",
+            "surface-container-lowest": "#0b0e14",
+            "on-surface-variant": "#bac9cc",
+            "on-error": "#690005",
+            "on-background": "#e0e2eb",
+            "on-tertiary": "#490080",
+            "on-primary-fixed-variant": "#004f58",
+            "on-tertiary-fixed-variant": "#6900b3",
+            "tertiary": "#f7e7ff",
+            "surface-bright": "#363940",
+            "background": "#10131a",
+            "on-primary-fixed": "#001f24",
+            "inverse-on-surface": "#2d3037",
+            "surface-container": "#1d2026",
+            "on-tertiary-fixed": "#2c0051",
+            "on-secondary-container": "#004d44",
+            "outline-variant": "#3b494c",
+            "secondary-fixed": "#62fae3",
+            "tertiary-container": "#e4c4ff",
+            "on-tertiary-container": "#7e22cc",
+            "on-secondary-fixed": "#00201c",
+            "surface-container-low": "#191c22",
+            "on-secondary-fixed-variant": "#005047",
+            "on-primary-container": "#00626e",
+            "inverse-surface": "#e0e2eb"
+          },
+          fontFamily: {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-panel {
+      background: rgba(8, 11, 17, 0.7);
+      backdrop-filter: blur(64px);
+    }
+    @keyframes pulse-cyan {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+    .pulse-dot {
+      animation: pulse-cyan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  
+    .hide-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
+    html, body {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
+  </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary/30 min-h-screen">
+<!-- Background Atmosphere -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-secondary/10 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-on-tertiary-container/10 blur-[150px] rounded-full"></div>
+</div>
+<!-- Main Overlay Container -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
+<div class="relative w-full max-w-6xl max-h-[921px] h-full glass-panel border border-white/10 rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-10 h-24 shrink-0 border-b border-white/5">
+<div class="flex items-center gap-4">
+<div class="relative flex items-center justify-center w-3 h-3">
+<div class="absolute inset-0 bg-primary-container rounded-full pulse-dot"></div>
+<div class="w-1.5 h-1.5 bg-primary-container rounded-full shadow-[0_0_10px_#00E5FF]"></div>
+</div>
+<div>
+<p class="text-[10px] font-label tracking-widest text-on-surface-variant uppercase mt-0.5">Live Atmospherics Synchronized</p>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/5 transition-all duration-300">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</header>
+<!-- Chat Canvas -->
+<main class="flex-1 overflow-y-auto px-10 py-12 flex flex-col gap-12 scroll-smooth hide-scrollbar">
+<!-- User Message -->
+<div class="flex flex-col items-end max-w-[80%] self-end">
+<div class="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-t-3xl rounded-bl-3xl shadow-xl">
+<p class="text-on-surface leading-relaxed text-[15px] font-light italic">
+              "I'm shooting the Arctic Gateway tonight. Suggest optimal exposure for a fast-moving corona."
+            </p>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex flex-col items-start max-w-[85%]">
+<div class="flex gap-6">
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-secondary-container to-primary flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(3,198,178,0.3)]">
+<span class="material-symbols-outlined text-on-primary text-lg" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="space-y-8">
+<div class="space-y-4 max-w-2xl">
+<p class="text-on-surface text-lg font-light leading-relaxed">
+                  I am analyzing Tromsø's current vector. The solar wind speed is high. To freeze the fast-moving pillars, use a faster shutter speed.
+                </p>
+<p class="text-on-surface-variant text-[15px] font-light leading-relaxed">
+                  The atmospheric ionization is peaking. To capture the distinct vertical structure without motion blur, we need to balance the sensor gain against duration.
+                </p>
+</div>
+<!-- AI Data Card -->
+<div class="bg-surface-container-lowest/40 backdrop-blur-xl border border-white/5 rounded-xl p-8 max-w-lg shadow-2xl">
+<div class="flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined text-secondary text-sm">tune</span>
+<span class="text-[10px] font-label tracking-[0.2em] text-on-surface-variant uppercase">Optimized Parameters</span>
+</div>
+<div class="grid grid-cols-3 gap-6">
+<div class="space-y-1">
+<p class="text-[10px] font-label text-on-surface-variant uppercase tracking-wider">ISO</p>
+<p class="text-2xl font-headline font-bold text-primary">3200</p>
+</div>
+<div class="space-y-1 border-x border-white/10 px-6">
+<p class="text-[10px] font-label text-on-surface-variant uppercase tracking-wider">Aperture</p>
+<p class="text-2xl font-headline font-bold text-primary">f/2.8</p>
+</div>
+<div class="space-y-1 pl-4">
+<p class="text-[10px] font-label text-on-surface-variant uppercase tracking-wider">Shutter</p>
+<p class="text-2xl font-headline font-bold text-secondary">2s <span class="text-sm font-light text-on-surface-variant">to</span> 4s</p>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-white/5">
+<div class="flex items-center justify-between">
+<span class="text-[11px] text-on-surface-variant/80 italic">Recommended for sensor saturation @ -14°C</span>
+<button class="flex items-center gap-2 text-primary text-[10px] font-label uppercase tracking-widest hover:text-white transition-colors">
+                      Sync to Camera <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<span class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mt-4 ml-14">Aetheris Intelligence — 0.4ms response</span>
+</div>
+</main>
+<!-- Command Line Area -->
+<footer class="px-10 py-10 shrink-0">
+<!-- Suggestion Pills (Hidden when chatting, but visible as empty state indicators) -->
+<div class="flex gap-3 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-label text-on-surface-variant uppercase tracking-wider whitespace-nowrap hover:bg-white/10 transition-all">Camera Settings</button>
+<button class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-label text-on-surface-variant uppercase tracking-wider whitespace-nowrap hover:bg-white/10 transition-all">Composition Tips</button>
+<button class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-label text-on-surface-variant uppercase tracking-wider whitespace-nowrap hover:bg-white/10 transition-all">Atmospheric Analysis</button>
+</div>
+<!-- Input Bar -->
+<div class="relative group">
+<div class="absolute inset-0 bg-primary/5 blur-xl group-focus-within:bg-primary/10 transition-all rounded-full"></div>
+<div class="relative flex items-center bg-surface-container-lowest/80 border border-white/10 focus-within:border-primary/30 rounded-full h-16 px-8 transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant mr-4">shutter_speed</span>
+<input class="bg-transparent border-none focus:ring-0 flex-1 text-on-surface placeholder:text-on-surface-variant/40 text-[15px] font-light" placeholder="Ask for camera settings, composition tips, or atmospheric analysis..." type="text"/>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-gradient-to-r from-secondary to-secondary-container flex items-center justify-center text-on-secondary shadow-[0_0_15px_rgba(68,226,205,0.4)] hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'wght' 600;">arrow_upward</span>
+</button>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</div>
+<!-- Side Navigation Anchor (Hidden for focus mode context) -->
+<!-- We follow the "Semantic Shell Mandate" and suppress standard nav to prioritize the focused AI Task -->
+</body></html>
