@@ -1,79 +1,43 @@
-# GSD State File — AuroraKashmir Project
-
 ## Current Position
-
-- **Phase**: 12 — Dossier Intelligence & Heatmap Filtering
-- **Task**: Planning complete
-- **Status**: Ready for execution (resumed 2026-03-27 16:42 IST)
-
----
+- **Phase**: 12 — Dossier Intelligence & Hero Cinematic Polish
+- **Task**: Hero UI Refinement & Typography Overhaul Complete
+- **Status**: Paused at 2026-03-27 18:18 UTC
 
 ## Last Session Summary
-
-This session focused on the "Dossier DOM Restructure Purge" objective. We successfully unified the fractured dossier architecture into a single, high-fidelity component and purged all legacy location-specific views.
-
-### Architectural Deliverables [DONE ✅]
-
-- **`DestinationDossier.tsx`** [NEW]: Implemented the mandated 6-layer DOM hierarchy (Level 0: Canvas context, Level 1: Hero Imagery, Level 2: Real-time Telemetry, Level 3: Tactical Intelligence, Level 4: Community/Social, Level 5: Interactive CTAs).
-- **Core Orchestration**:
-  - `DossierShell.tsx`: Simplified to mount the unified `DestinationDossier`.
-  - `useAppStore.ts`: Standardized dossier routing logic.
-  - `DossierLogistics.tsx`: Refined for gear grid consistency.
-
-### Legacy Purge [DONE ✅]
-
-- Deleted deprecated views: `DossierView_Kirkjufell.tsx`, `DossierView_Tromso_Polished.tsx`, `DossierView_Fairbanks_Refined.tsx`.
-- Removed all location-specific logic branches from the shell, enabling a data-driven approach.
-
----
+Focused on modernizing the hero experience and typography hierarchy. Replaced the generic KP indicator with a cinematic, physics-driven `AuroraDial` and executed a surgical typography overhaul across the landing page.
 
 ## In-Progress Work
-
 - **Modified (Uncommitted)**:
-  - `frontend/src/app/page.tsx`
-  - `frontend/src/components/ui/DossierShell.tsx`
-  - `frontend/src/components/ui/tabs/DossierLogistics.tsx`
-  - `frontend/src/store/useAppStore.ts`
-  - `backend/main.py`
-
-- **Untracked**:
-  - `frontend/src/components/ui/DestinationDossier.tsx`
-  - `frontend/src/components/ui/dossier/` (New structural primitives)
+  - `frontend/src/app/layout.tsx`: Font pipeline integration.
+  - `frontend/src/app/globals.css`: Theme variable fixes and scrollbar utility.
+  - `frontend/src/app/page.tsx`: Landing page container refinements.
+  - `frontend/src/components/ui/LandingPage_Mobile.tsx`: Comprehensive typography and layout sweep.
+  - `frontend/src/components/ui/AuroraDial.tsx`: Responsive scaling & physics implementation.
 
 ## Tests Status
-
-- **TypeScript**: Clean.
-- **Visuals**: Primary Kirkjufell view verified; Tromso/Fairbanks pending automated visual sweep.
-
----
+- **TypeScript**: Fixed pre-existing `node.kp` error in `LandingPage_Mobile.tsx`.
+- **Visuals**: `AuroraDial` verified on desktop; mobile scaling (72%) implemented to prevent overflow.
 
 ## Blockers
-
-- **None.** Architecture is clean and reactive.
-
----
+- **None.** Font rendering issue resolved by fixing circular CSS variable references.
 
 ## Context Dump
 
 ### Decisions Made
-
-- **Single Source of Truth**: Transitioned from multi-view inheritance to a single unified Dossier component that hydrates based on store state.
-- **6-Layer DOM Strategy**: Adopted the strict structural skeleton requested in the brief for maximum brand consistency.
-- **Zero-External Charting**: All data visualizations (forecast bars, KP meters) are built using pure Tailwind CSS div-scaling to ensure zero performance overhead.
+- **Cinematic Physics**: Opted for `framer-motion` + `useAnimationFrame` in `AuroraDial` to create non-linear, unpredictable "celestial" motion rather than simple CSS rotations.
+- **Font Naming Strategy**: Used `--font-heading` and `--font-copy` to map `Manrope` and `Inter` respectively, avoiding naming collisions with the `next/font` generated variables.
+- **Responsive Scaling**: Used CSS `transform: scale()` for `AuroraDial` on mobile to preserve the complex SVG/HTML node relationships perfectly while fitting narrow screens.
 
 ### Approaches Tried
-
-- Attempted to keep legacy views as fallback → Rejected in favor of "Pure Purge" to ensure no stale logic persists.
+- **Direct pt-16/pt-20 Tailwind classes**: Initially used for top padding, but refined with arbitrary values (`pt-[76px]`) to meet very specific user alignment requirements.
+- **Tailwind 3.x Gradients**: Migrated to Tailwind 4.x `bg-linear-to-*` syntax to resolve lint warnings.
 
 ### Files of Interest
-
-- `frontend/src/components/ui/DestinationDossier.tsx`: The new architectural heart of the dossier system.
-- `frontend/src/store/useAppStore.ts`: Controls the data hydration for the unified view.
-
----
+- `frontend/src/components/ui/AuroraDial.tsx`: Core cinematic visualization.
+- `frontend/src/app/globals.css`: Global theme registry for the new typography stack.
+- `frontend/src/components/ui/LandingPage_Mobile.tsx`: Main composition and layout orchestration.
 
 ## Next Steps
-
-1. **Dossier Hydration Check**: Verify that switching locations in the Map/HUD correctly hydrates the `DestinationDossier`.
-2. **Visual Sweep**: Ensure the 6-layer hierarchy maintains premium glassmorphic aesthetics across all sections.
-3. **Phase 12 Preview**: Discuss the next epic (Map Heatmap Filtering or Pro Subscription Flow).
+1. **Global Font Sweep**: Audit other components (HUD, Dossier) to ensure they adopt the `font-heading` / `font-copy` variables where appropriate.
+2. **Phase 12 Verification**: Finalize the "Dossier Intelligence" hydration checks for all target locations.
+3. **Performance Check**: Ensure `AuroraDial`'s animation loop remains efficient during long sessions.
