@@ -4,6 +4,7 @@ import { create } from 'zustand';
 
 export type ViewMode = 'LANDING' | 'MAP_HUD';
 export type MapLayer = 'VECTOR' | 'SATELLITE';
+export type DossierTab = 'environmental' | 'tactical' | 'archives' | 'logistics';
 
 export interface TargetLocation {
   lat: number;
@@ -142,6 +143,9 @@ interface AppState {
   /** Written by useLiveTelemetry hook, read by HUD + Dossier components. */
   liveData: LiveTelemetryData | null;
 
+  // ── Phase 9: Dossier Tab Navigation ───────────────────────────────────────
+  dossierTab: DossierTab;
+
   // ─── Actions ──────────────────────────────────────────────────────────────
 
   // Existing
@@ -184,6 +188,9 @@ interface AppState {
   // Phase 5: Live Telemetry
   setLiveData: (data: LiveTelemetryData) => void;
 
+  // Phase 9: Dossier Tab Navigation
+  setDossierTab: (tab: DossierTab) => void;
+
   // Phase 3: Parked Historic Data
   setHistoricTelemetry: (data: Record<string, unknown>[]) => void;
 
@@ -220,6 +227,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Phase 5 initial
   liveData: null,
+
+  // Phase 9 initial
+  dossierTab: 'environmental',
 
   // ── Existing Actions (Preserved exactly) ────────────────────────────────
 
@@ -331,6 +341,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Phase 5: Live Telemetry ──────────────────────────────────────────────
   setLiveData: (data: LiveTelemetryData) => {
     set({ liveData: data });
+  },
+
+  // ── Phase 9: Dossier Tab Navigation ───────────────────────────────────────
+  setDossierTab: (tab: DossierTab) => {
+    set({ dossierTab: tab });
   },
 
   // ── Phase 7: Direct target setter (SearchOverlay flow) ──────────────────

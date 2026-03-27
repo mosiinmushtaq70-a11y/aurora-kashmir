@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import type { ForecastHourPreset } from '@/store/useAppStore';
 import SiteIntelligenceCard from './SiteIntelligenceCard';
@@ -58,10 +58,37 @@ const LocationHUD_Mobile: React.FC = () => {
 
   // ── Local UI state (preserved from Stitch extraction) ──────────────────
   const [proTelemetryOpen, setProTelemetryOpen] = useState(false);
+  const [viewingSpots, setViewingSpots] = useState<any[]>([]);
+  const [isSpotsLoading, setIsSpotsLoading] = useState(false);
 
   const toggleTelemetry = useCallback(() => {
     setProTelemetryOpen(prev => !prev);
   }, []);
+
+  // ── Dynamic Viewing Spots Fetch ─────────────────────────────────────────
+  useEffect(() => {
+    if (!targetLocation) return;
+    
+    let isMounted = true;
+    setIsSpotsLoading(true);
+
+    const fetchSpots = async () => {
+      try {
+        const res = await fetch(`/api/sightseeing?lat=${targetLocation.lat}&lon=${targetLocation.lng}`);
+        if (!res.ok) throw new Error('Failed to fetch spots');
+        const data = await res.json();
+        if (isMounted) setViewingSpots(data);
+      } catch (err) {
+        console.error("Error fetching viewing spots:", err);
+        // Fallback or empty state handled by UI
+      } finally {
+        if (isMounted) setIsSpotsLoading(false);
+      }
+    };
+
+    fetchSpots();
+    return () => { isMounted = false; };
+  }, [targetLocation]);
 
   // ── Handlers ────────────────────────────────────────────────────────────
 
@@ -211,34 +238,40 @@ const LocationHUD_Mobile: React.FC = () => {
             </button>
 
             {/* Prime Viewing Spots */}
-            <div className="stitch-glass-panel p-6 rounded-xl flex flex-col gap-6">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[#bac9cc] font-bold">Prime Viewing Spots</span>
+            <div className={`stitch-glass-panel p-6 rounded-xl flex flex-col gap-6 transition-all ${isSpotsLoading ? 'opacity-50' : 'opacity-100'}`}>
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-[#bac9cc] font-bold">Prime Viewing Spots</span>
+                {isSpotsLoading && <div className="w-4 h-4 border-2 border-[#44e2cd]/30 border-t-[#44e2cd] rounded-full animate-spin"></div>}
+              </div>
               <div className="space-y-6">
-                {[
-                  { name: 'Dal Lake',  loc: 'North-West Quadrant', dist: '2.4 km', dir: 'north_west' },
-                  { name: 'Gulmarg',   loc: 'High Altitude Basin',  dist: '51.0 km', dir: 'west' },
-                  { name: 'Sonamarg', loc: 'Glacier Plateau',       dist: '82.3 km', dir: 'north_east' },
-                ].map((spot, idx) => (
-                  <div key={idx} className="flex justify-between items-center group cursor-pointer">
-                    <div className="flex-1">
-                      <p className="text-white font-['Manrope',_sans-serif] font-semibold text-sm group-hover:text-[#c3f5ff] transition-colors">{spot.name}</p>
-                      <p className="text-[10px] tracking-widest text-[#bac9cc] uppercase">{spot.loc}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-[#c3f5ff] font-['Manrope',_sans-serif] font-bold text-sm">{spot.dist}</p>
-                        <span className="material-symbols-outlined text-sm text-[#bac9cc]">{spot.dir}</span>
+                {viewingSpots.length > 0 ? (
+                  viewingSpots.map((spot, idx) => (
+                    <div key={idx} className="flex justify-between items-center group cursor-pointer" onClick={handleSpotDirections}>
+                      <div className="flex-1">
+                        <p className="text-white font-['Manrope',_sans-serif] font-semibold text-sm group-hover:text-[#c3f5ff] transition-colors line-clamp-1">{spot.name}</p>
+                        <p className="text-[10px] tracking-widest text-[#bac9cc] uppercase">{spot.rating || 'Calculated Spot'}</p>
                       </div>
-                      {/* Directions → Pro-tier toast */}
-                      <button
-                        onClick={handleSpotDirections}
-                        className="p-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-[#bac9cc] hover:text-cyan-400 hover:border-cyan-400/30 transition-all flex items-center justify-center"
-                      >
-                        <span className="material-symbols-outlined text-lg">directions</span>
-                      </button>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-[#c3f5ff] font-['Manrope',_sans-serif] font-bold text-sm">{spot.distance}</p>
+                          <span className="material-symbols-outlined text-sm text-[#bac9cc]">{spot.stars >= 4 ? 'star' : 'location_on'}</span>
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleSpotDirections(); }}
+                          className="p-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-[#bac9cc] hover:text-cyan-400 hover:border-cyan-400/30 transition-all flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-lg">directions</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  !isSpotsLoading && (
+                    <p className="text-[10px] text-[#bac9cc]/40 italic uppercase tracking-widest text-center py-4">
+                      Scanned region empty. Increase range?
+                    </p>
+                  )
+                )}
               </div>
             </div>
           </section>
@@ -257,14 +290,16 @@ const LocationHUD_Mobile: React.FC = () => {
                     {targetLocation ? `${targetLocation.lng.toFixed(4)}° E` : '74.7973° E'}
                   </h3>
                 </div>
-                <span className="material-symbols-outlined text-[#c3f5ff] animate-pulse">target</span>
+                <span className={`material-symbols-outlined ${liveData?.error ? 'text-red-500' : 'text-[#c3f5ff]'} animate-pulse`}>
+                  {liveData?.error ? 'error' : 'target'}
+                </span>
               </div>
               {/* Get Alerts → opens TargetAlertModal */}
               <button
                 onClick={handleGetAlerts}
                 className="bg-[#00e5ff] text-[#001f24] text-[10px] uppercase tracking-widest font-extrabold py-4 rounded-full w-full hover:brightness-110 active:scale-[0.98] transition-all"
               >
-                Get Alerts at High Probability
+                {liveData?.loading ? 'Syncing...' : 'Get Alerts at High Probability'}
               </button>
             </div>
 

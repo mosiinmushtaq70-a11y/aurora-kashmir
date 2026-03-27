@@ -1,7 +1,21 @@
 'use client';
 
 import React, { useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
+import FAQAccordion from './landing/FAQAccordion';
+
+const KPTooltip: React.FC<{ value: number }> = ({ value }) => (
+  <div className="group relative inline-block ml-2 align-middle">
+    <span className="material-symbols-outlined text-[14px] text-[#00e5ff]/40 cursor-help hover:text-[#00e5ff] transition-colors">info</span>
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 p-3 bg-[#080B11]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
+      <p className="text-[10px] leading-relaxed text-[#bac9cc] font-normal">
+        <strong className="text-[#00F5C4]">KP-index {value}:</strong> Planetary K-index measuring geomagnetic activity. Scale 0–9. KP-5+ = visible auroras.
+      </p>
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#080B11]/95"></div>
+    </div>
+  </div>
+);
 
 /**
  * --- LandingPage_Mobile ---
@@ -19,6 +33,8 @@ import { useAppStore } from '@/store/useAppStore';
  *   "Join Observer"  → openTargetAlert()
  *   "Initiate Tracking Protocol" → openTargetAlert()
  */
+
+import TrustBar from './landing/TrustBar';
 
 // ─── Hotspot data (mirrors the blueprint exactly) ─────────────────────────────
 const ACTIVITY_NODES = [
@@ -190,62 +206,153 @@ const LandingPage_Mobile: React.FC = () => {
         <div className="absolute top-[20%] right-[-10%] w-[40%] h-[60%] aurora-glow opacity-30 blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(126, 34, 204, 0.1) 0%, transparent 70%)' }}></div>
 
         {/* ── HERO SECTION ──────────────────────────────────────────────── */}
-        <section className="max-w-screen-2xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between min-h-screen md:min-h-[819px] gap-12 md:gap-20">
+        <section className="relative max-w-screen-2xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between min-h-[90vh] md:min-h-[850px] pt-24 md:pt-0 gap-8 md:gap-20">
+          
+          {/* Lightweight CSS Aurora Shimmer Background */}
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+            <div className="absolute inset-0 bg-linear-to-tr from-[#00F5C4]/10 via-transparent to-purple-500/5 animate-pulse"></div>
+          </div>
 
           {/* Left: Copy + Omnibar */}
-          <div className="w-full md:w-1/2 space-y-6 md:space-y-8 z-10 text-center md:text-left">
-            <span className="tracking-widest text-[#44e2cd] font-medium uppercase text-xs">Celestial Monitoring System</span>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-[8rem] font-['Manrope'] font-extrabold tracking-tighter leading-tight md:leading-none text-white">
-              TRACK THE <span className="text-gradient">AURORA</span> ANYWHERE.
-            </h1>
-            <p className="text-base md:text-xl text-[#bac9cc] font-light leading-relaxed max-w-xl mx-auto md:mx-0 px-4 md:px-0">
+          <div className="w-full md:w-1/2 space-y-6 md:space-y-10 z-10 text-center md:text-left">
+            <div className="space-y-4">
+              <span className="tracking-[0.4em] text-[#00F5C4] font-bold uppercase text-[10px] md:text-xs reveal-on-scroll">Celestial Monitoring System</span>
+              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[7.5rem] font-['Manrope'] font-extrabold tracking-tighter leading-[0.9] text-white reveal-on-scroll">
+                TRACK THE <span className="text-gradient">AURORA</span> ANYWHERE.
+              </h1>
+            </div>
+            <p className="text-base md:text-xl text-[#bac9cc] font-light leading-relaxed max-w-xl mx-auto md:mx-0 px-4 md:px-0 opacity-80 reveal-on-scroll">
               Real-time atmospheric telemetry processed by neural networks to predict celestial events with 98.4% precision.
             </p>
 
             {/* Tactical Omnibar — opens Search Overlay */}
-            <button
-              onClick={() => openSearch()}
-              className="stitch-glass-card rounded-full p-2 flex items-center max-w-lg shadow-2xl mx-auto md:mx-0 w-full text-left hover:border-[#44e2cd]/20 transition-colors group"
-            >
-              <div className="flex items-center flex-1 px-4 md:px-6 gap-3">
-                <span className="material-symbols-outlined text-[#44e2cd] text-lg md:text-2xl">explore</span>
-                <span className="text-white/30 py-3 md:py-4 text-sm md:text-base group-hover:text-white/50 transition-colors">
-                  Enter coordinates or city...
-                </span>
-              </div>
-              <div className="relative bg-[#00e5ff] text-[#00626e] p-3 md:p-4 rounded-full flex items-center justify-center hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all group/btn">
-                <span className="material-symbols-outlined text-sm md:text-base">satellite_alt</span>
-                <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#080B11]/80 backdrop-blur-md border border-white/10 text-white text-xs font-medium rounded-full whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none shadow-xl">
-                  Detect My Location
+            <div className="reveal-on-scroll" style={{ transitionDelay: '200ms' }}>
+              <button
+                onClick={() => openSearch()}
+                className="stitch-glass-card rounded-full p-2 flex items-center max-w-lg shadow-2xl mx-auto md:mx-0 w-full text-left hover:border-[#00F5C4]/30 transition-all group"
+              >
+                <div className="flex items-center flex-1 px-4 md:px-6 gap-3">
+                  <span className="material-symbols-outlined text-[#00F5C4] text-lg md:text-2xl">explore</span>
+                  <span className="text-white/30 py-4 text-sm md:text-base group-hover:text-white/50 transition-colors">
+                    Enter coordinates or city...
+                  </span>
                 </div>
-              </div>
-            </button>
+                <div className="relative bg-[#00F5C4] text-[#080B11] p-3 md:p-4 rounded-full flex items-center justify-center hover:shadow-[0_0_30px_rgba(0,245,196,0.4)] transition-all group/btn">
+                  <span className="material-symbols-outlined text-sm md:text-base">satellite_alt</span>
+                </div>
+              </button>
+            </div>
           </div>
 
-          {/* Right: Orrery Central Visual (exact blueprint structure) */}
-          <div className="w-full md:w-1/2 flex justify-center items-center relative py-10 md:py-20 overflow-hidden md:overflow-visible">
-            <div className="orrery-container scale-[0.6] sm:scale-75 md:scale-100">
-              <div className="sun"></div>
-              <div className="earth-orbit">
-                <div className="earth-container">
-                  <div className="earth"></div>
-                  <div className="moon-orbit">
-                    <div className="moon"></div>
+          {/* Right: Functional KP-Ring Visual (Replaces Orrery) */}
+          <div className="w-full md:w-1/2 flex justify-center items-center relative py-12 md:py-0 z-10">
+            <div className="relative w-64 h-64 md:w-96 md:h-96 flex items-center justify-center">
+              {/* Spinning Ring */}
+              <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50" cy="50" r="45"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.05)"
+                  strokeWidth="2"
+                />
+                <motion.circle
+                  cx="50" cy="50" r="45"
+                  fill="none"
+                  stroke="#00F5C4"
+                  strokeWidth="2"
+                  strokeDasharray="283"
+                  initial={{ strokeDashoffset: 283 }}
+                  animate={{ strokeDashoffset: 100 }}
+                  transition={{ duration: 2, ease: "easeOut" }}
+                />
+              </svg>
+              
+              {/* Inner Glow and KP Value */}
+              <div className="text-center">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-6xl md:text-8xl font-['Manrope'] font-black text-white mega-glow-text"
+                >
+                  6.2
+                </motion.div>
+                <div className="text-[10px] md:text-xs font-bold text-[#00F5C4] tracking-[0.4em] uppercase opacity-60">KP-INDEX INDEX</div>
+              </div>
+
+              {/* Decorative data pings */}
+              <div className="absolute inset-0 animate-[spin_10s_linear_infinite]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#00F5C4] rounded-full shadow-[0_0_15px_#00F5C4]"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <TrustBar />
+
+        {/* ── MISSION FLOW SECTION (How It Works — Moved Up to Section 03) ────── */}
+        <section className="w-full py-20 md:py-32 relative overflow-hidden bg-[#080B11]" id="how-it-works">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16 md:mb-24 space-y-4 reveal-on-scroll">
+              <span className="tracking-widest text-[#00e5ff] font-medium uppercase text-[10px] md:text-xs">HOW IT WORKS</span>
+              <h2 className="text-3xl md:text-5xl font-['Manrope'] font-extrabold text-white">From Any Location to Accurate Prediction — in Seconds</h2>
+            </div>
+
+            {/* Connector line (desktop only) */}
+            <div className="hidden md:block absolute top-[60%] left-0 w-full h-px bg-gradient-to-r from-transparent via-[#00e5ff]/20 to-transparent -z-10"></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center relative z-10">
+
+              {/* 01 TARGET — Radar Ping / Satellite Lock */}
+              <div className="group relative bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-[2.5rem] hover:bg-white/[0.05] transition-all duration-500 hover:border-[#00e5ff]/30">
+                <div className="relative w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border border-[#00e5ff]/30 animate-ping"></div>
+                  <div className="relative z-10 w-8 h-8 flex items-center justify-center">
+                    <div className="absolute w-full h-px bg-[#00e5ff]/60"></div>
+                    <div className="absolute h-full w-px bg-[#00e5ff]/60"></div>
+                    <div className="w-2 h-2 rounded-full bg-[#00e5ff] shadow-[0_0_10px_#00e5ff]"></div>
                   </div>
                 </div>
+                <div className="text-[10px] tracking-[0.3em] font-bold text-[#00e5ff]/50 mb-4 uppercase">01</div>
+                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-3">TARGET</h3>
+                <p className="text-[#bac9cc] font-light text-sm md:text-base leading-relaxed">Search any global vector.</p>
               </div>
-              <div className="absolute w-[500px] h-[500px] border border-white/5 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-              <div className="absolute w-[700px] h-[700px] border border-white/5 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
+              {/* 02 ANALYZE — Spinning neural network data rings */}
+              <div className="group relative bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-[2.5rem] hover:bg-white/[0.05] transition-all duration-500 hover:border-[#00e5ff]/30">
+                <div className="relative w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#00e5ff]/30 animate-[spin_6s_linear_infinite_reverse]"></div>
+                  <div className="absolute inset-2 rounded-full border-[3px] border-t-[#00e5ff] border-r-transparent border-b-[#00e5ff]/50 border-l-transparent animate-[spin_3s_linear_infinite]"></div>
+                  <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_15px_#fff] animate-pulse"></div>
+                </div>
+                <div className="text-[10px] tracking-[0.3em] font-bold text-[#00e5ff]/50 mb-4 uppercase">02</div>
+                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-3">ANALYZE</h3>
+                <p className="text-[#bac9cc] font-light text-sm md:text-base leading-relaxed">Let the ML model predict visibility and weather.</p>
+              </div>
+
+              {/* 03 DEPLOY — Glowing aurora flow bell */}
+              <div className="group relative bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-[2.5rem] hover:bg-white/[0.05] transition-all duration-500 hover:border-[#00e5ff]/30">
+                <div className="relative w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 via-[#00e5ff] to-emerald-400 blur-md opacity-60 animate-pulse"></div>
+                  <div className="absolute inset-1 rounded-full bg-[#080B11]/80 backdrop-blur-sm border border-white/20"></div>
+                  <svg className="relative z-10 w-6 h-6 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                  </svg>
+                </div>
+                <div className="text-[10px] tracking-[0.3em] font-bold text-[#00e5ff]/50 mb-4 uppercase">03</div>
+                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-3">DEPLOY</h3>
+                <p className="text-[#bac9cc] font-light text-sm md:text-base leading-relaxed">Get instant alerts when the probability spikes.</p>
+              </div>
+
             </div>
           </div>
         </section>
 
-        {/* ── LIVE ACTIVITY NODES CAROUSEL ──────────────────────────────── */}
-        <section className="py-20 px-6 md:px-12 max-w-screen-2xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 md:gap-0">
+        {/* ── LIVE ACTIVITY NODES CAROUSEL (Moved Down to Section 04) ──────────────── */}
+        <section className="py-20 md:py-32 px-6 md:px-12 max-w-screen-2xl mx-auto" id="live-nodes">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 md:gap-0 reveal-on-scroll">
             <div>
-              <h2 className="text-3xl md:text-4xl font-['Manrope'] font-bold text-white mb-2">Live Activity Nodes</h2>
-              <p className="text-[#bac9cc] font-light">Global observational hotspots with active luminescence.</p>
+              <span className="tracking-widest text-[#00e5ff] font-medium uppercase text-[10px] md:text-xs">PROVEN PERFORMANCE</span>
+              <h2 className="text-3xl md:text-5xl font-['Manrope'] font-extrabold text-white mt-2">Live Activity Nodes</h2>
+              <p className="text-[#bac9cc] font-light text-sm md:text-base mt-2">Global observational hotspots with active luminescence.</p>
             </div>
             <div className="flex gap-4">
               <button className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors">
@@ -262,83 +369,32 @@ const LandingPage_Mobile: React.FC = () => {
               <button
                 key={i}
                 onClick={() => handleNodeClick(node)}
-                className="stitch-glass-card rounded-xl overflow-hidden group cursor-pointer hover:shadow-2xl transition-all min-w-[85vw] md:min-w-0 snap-center text-left"
+                className="stitch-glass-card rounded-[2rem] overflow-hidden group cursor-pointer hover:shadow-2xl transition-all min-w-[85vw] md:min-w-0 snap-center text-left border-white/5 hover:border-[#00e5ff]/30"
               >
-                <div className="h-56 md:h-64 overflow-hidden relative">
-                  <img alt={node.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={node.img} />
-                  <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${node.storm ? 'bg-red-500' : 'bg-[#44e2cd]'} animate-pulse`}></span>
-                    <span className="text-xs font-medium uppercase tracking-widest text-white">{node.state}</span>
+                <div className="h-56 md:h-72 overflow-hidden relative">
+                  <img alt={node.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src={node.img} />
+                  <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
+                    <span className={`w-2 h-2 rounded-full ${node.storm ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.5)]'} animate-pulse`}></span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white flex items-center">
+                      {node.state}
+                      <KPTooltip value={node.kp} />
+                    </span>
                   </div>
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="bg-[#00e5ff]/20 border border-[#00e5ff]/40 text-[#00e5ff] rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-widest uppercase backdrop-blur-sm">Open Dossier</span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B11] via-transparent to-transparent opacity-0 group-hover:opacity-60 transition-opacity"></div>
+                  <div className="absolute bottom-6 left-6 opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0">
+                    <span className="bg-[#00e5ff] text-[#00626e] rounded-full px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase shadow-xl">Detailed Intelligence</span>
                   </div>
                 </div>
-                <div className="p-6 md:p-8">
-                  <h3 className="text-xl md:text-2xl font-['Manrope'] font-bold text-white mb-1">{node.name}</h3>
-                  <p className="text-[#bac9cc] text-xs md:text-sm mb-6">{node.coords}</p>
-                  <div className="flex justify-between items-center text-xs md:text-sm font-medium">
-                    <span className="text-[#44e2cd]">{node.vis} Visibility</span>
-                    <span className="text-white/40">Updated {node.update}</span>
+                <div className="p-8 md:p-10 bg-gradient-to-b from-transparent to-white/[0.02]">
+                  <h3 className="text-xl md:text-2xl font-['Manrope'] font-extrabold text-white mb-1 group-hover:text-[#00e5ff] transition-colors">{node.name}</h3>
+                  <p className="text-[#bac9cc] text-[10px] md:text-xs mb-8 font-medium tracking-wider opacity-60 uppercase">{node.coords}</p>
+                  <div className="flex justify-between items-center text-xs font-bold">
+                    <span className="text-[#00e5ff] uppercase tracking-widest">{node.vis} Visibility</span>
+                    <span className="text-white/20 uppercase tracking-widest">Updated {node.update}</span>
                   </div>
                 </div>
               </button>
             ))}
-          </div>
-        </section>
-
-        {/* ── MISSION FLOW SECTION (exact blueprint animators restored) ────── */}
-        <section className="w-full py-20 md:py-32 relative overflow-hidden bg-[#080B11]">
-          <div className="max-w-7xl mx-auto px-6">
-            {/* Connector line (desktop only) */}
-            <div className="hidden md:block absolute top-1/2 left-0 w-full h-px bg-linear-to-r from-transparent via-cyan-500/10 to-transparent -z-10"></div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center relative z-10">
-
-              {/* 01 TARGET — Radar Ping / Satellite Lock */}
-              <div className="group relative bg-white/3 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-4xl hover:bg-white/5 transition-all duration-500">
-                <div className="relative w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border border-cyan-400/30 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
-                  <div className="absolute inset-2 rounded-full border border-cyan-400/20 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite_1s]"></div>
-                  <div className="relative z-10 w-8 h-8 flex items-center justify-center">
-                    <div className="absolute w-full h-px bg-cyan-400/60"></div>
-                    <div className="absolute h-full w-px bg-cyan-400/60"></div>
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></div>
-                  </div>
-                </div>
-                <div className="text-xs tracking-[0.3em] font-bold text-cyan-400/50 mb-4 uppercase">01</div>
-                <h3 className="text-xl md:text-2xl font-semibold text-white tracking-tight mb-3">TARGET</h3>
-                <p className="text-slate-400 font-light text-sm md:text-base leading-relaxed">Search any global vector.</p>
-              </div>
-
-              {/* 02 ANALYZE — Spinning neural network data rings */}
-              <div className="group relative bg-white/3 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-4xl hover:bg-white/5 transition-all duration-500">
-                <div className="relative w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-[spin_6s_linear_infinite_reverse]"></div>
-                  <div className="absolute inset-2 rounded-full border-[3px] border-t-cyan-400 border-r-transparent border-b-cyan-400/50 border-l-transparent animate-[spin_3s_linear_infinite]"></div>
-                  <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_15px_#fff] animate-pulse"></div>
-                </div>
-                <div className="text-xs tracking-[0.3em] font-bold text-cyan-400/50 mb-4 uppercase">02</div>
-                <h3 className="text-xl md:text-2xl font-semibold text-white tracking-tight mb-3">ANALYZE</h3>
-                <p className="text-slate-400 font-light text-sm md:text-base leading-relaxed">Let the ML model predict visibility and weather.</p>
-              </div>
-
-              {/* 03 DEPLOY — Glowing aurora flow bell */}
-              <div className="group relative bg-white/3 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-4xl hover:bg-white/5 transition-all duration-500">
-                <div className="relative w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full bg-linear-to-r from-purple-500 via-cyan-400 to-emerald-400 blur-md opacity-60 animate-[pulse_4s_ease-in-out_infinite]"></div>
-                  <div className="absolute inset-1 rounded-full bg-[#080B11]/80 backdrop-blur-sm border border-white/20"></div>
-                  {/* Bell SVG — exact blueprint path */}
-                  <svg className="relative z-10 w-6 h-6 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                  </svg>
-                </div>
-                <div className="text-xs tracking-[0.3em] font-bold text-cyan-400/50 mb-4 uppercase">03</div>
-                <h3 className="text-xl md:text-2xl font-semibold text-white tracking-tight mb-3">DEPLOY</h3>
-                <p className="text-slate-400 font-light text-sm md:text-base leading-relaxed">Get instant alerts when the probability spikes.</p>
-              </div>
-
-            </div>
           </div>
         </section>
 
@@ -376,6 +432,11 @@ const LandingPage_Mobile: React.FC = () => {
               <div className="absolute inset-0 opacity-10 pointer-events-none transition-transform duration-1000 group-hover:scale-125">
                 <img alt="Data Stream" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMTvX-rMx3n1LVy3MOg2hygtR_LAMbnGLVHf6-WK2Uwo68v0LiKDpeuEFHlCj6-qmcUfohnL4yLKLICXhiVIPrcbJv55_2zRk2LAuUM12w29OH9F8rGCENScIA4BqS0lYv5PeAkZVy6sgxDbyidbigeO4bLDgY9d1HdN91ASdK3kzr55PaOrvjIJYgMX4y_XSm4_3EI3pAUEXMtaRsQ9BEKUzdw2nwn2beGT5jMKucfNsHcOjweJQ4Gh-dqd8vQ80LTaGSm3f850" />
               </div>
+              <div className="relative z-10 w-24 h-24 mb-4 flex items-center justify-center">
+                <div className="absolute inset-0 border border-[#c3f5ff]/20 rounded-full animate-[spin_8s_linear_infinite]"></div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#c3f5ff] w-1.5 h-1.5 rounded-full shadow-[0_0_10px_#c3f5ff]"></div>
+                <span className="material-symbols-outlined text-4xl text-[#c3f5ff] animate-pulse">satellite_alt</span>
+              </div>
               <h3 className="text-5xl md:text-6xl font-['Manrope'] font-extrabold text-[#c3f5ff] mb-2 transition-transform duration-500 group-hover:scale-110">24/7</h3>
               <p className="tracking-widest text-[#bac9cc] text-xs uppercase group-hover:text-[#c3f5ff] transition-colors">Live Satellite Uplink</p>
             </div>
@@ -390,7 +451,14 @@ const LandingPage_Mobile: React.FC = () => {
                 <p className="text-[#bac9cc] text-sm font-light">Proprietary gradient boosting algorithms for local-node prediction.</p>
               </div>
               <div className="absolute bottom-[-20%] right-[-10%] opacity-20 group-hover:opacity-40 transition-all duration-700 group-hover:scale-110 group-hover:-rotate-12">
-                <span className="material-symbols-outlined text-[100px] md:text-[120px] text-[#44e2cd]">memory</span>
+                <svg className="w-[150px] h-[150px] text-[#44e2cd]" fill="none" stroke="currentColor" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="2" fill="currentColor" />
+                  <path d="M50 50 L80 20 M50 50 L80 50 M50 50 L80 80 M50 50 L20 20" stroke="currentColor" strokeDasharray="4 4" strokeWidth="0.5" />
+                  <circle cx="80" cy="20" r="1.5" stroke="currentColor" />
+                  <circle cx="80" cy="50" r="1.5" stroke="currentColor" />
+                  <circle cx="80" cy="80" r="1.5" stroke="currentColor" />
+                  <circle cx="20" cy="20" r="1.5" stroke="currentColor" />
+                </svg>
               </div>
             </div>
 
@@ -452,14 +520,20 @@ const LandingPage_Mobile: React.FC = () => {
               {/* Right: Visual Artifacts (exact blueprint layout) */}
               <div className="w-full md:w-1/2 relative h-[300px] md:h-[400px]">
                 {/* AI chat bubble — top right, rotated (blueprint line 363-366) */}
-                <div className="absolute top-0 md:top-10 right-0 stitch-glass-card p-4 md:p-6 rounded-2xl w-48 md:w-64 shadow-2xl transform rotate-2 z-20">
-                  <p className="text-[10px] md:text-xs text-[#44e2cd] font-bold uppercase mb-2">Aura AI</p>
-                  <p className="text-xs md:text-sm text-white">Recommended ISO for tonight: 1600. Shutter 15s. f/2.8.</p>
+                <div className="absolute top-0 md:top-10 right-0 bg-[#080B11]/80 backdrop-blur-2xl border border-[#00F5C4]/30 p-4 md:p-6 rounded-2xl w-48 md:w-64 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform rotate-2 z-20">
+                  <p className="text-[10px] md:text-xs text-[#00F5C4] font-bold uppercase mb-2">Aura AI</p>
+                  <p className="text-xs md:text-sm text-white font-medium leading-relaxed">Recommended ISO for tonight: 1600. Shutter 15s. f/2.8.</p>
+                </div>
+                {/* Typing Indicator — middle right */}
+                <div className="absolute top-24 md:top-40 right-4 bg-[#080B11]/90 backdrop-blur-xl border border-white/10 p-3 rounded-2xl flex gap-1.5 z-30 shadow-xl transform rotate-1">
+                  <span className="w-1 h-1 bg-[#00F5C4] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-1 h-1 bg-[#00F5C4] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-1 h-1 bg-[#00F5C4] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                 </div>
                 {/* User chat bubble — bottom left, counter-rotated (blueprint line 367-370) */}
-                <div className="absolute bottom-10 left-0 stitch-glass-card p-4 md:p-6 rounded-2xl w-48 md:w-64 shadow-2xl transform -rotate-3 z-10 opacity-80">
-                  <p className="text-[10px] md:text-xs text-white/40 font-bold uppercase mb-2">You</p>
-                  <p className="text-xs md:text-sm text-white/70">What's the best spot near Tromsø for tonight?</p>
+                <div className="absolute bottom-10 left-0 bg-white/10 backdrop-blur-2xl border border-white/20 p-4 md:p-6 rounded-2xl w-48 md:w-64 shadow-2xl transform -rotate-3 z-10">
+                  <p className="text-[10px] md:text-xs text-white/60 font-bold uppercase mb-2">You</p>
+                  <p className="text-xs md:text-sm text-white font-medium">What's the best spot near Tromsø for tonight?</p>
                 </div>
                 {/* Aurora glow blob (blueprint line 371) */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 md:w-80 h-64 md:h-80 bg-[#44e2cd]/10 rounded-full blur-3xl"></div>
@@ -491,7 +565,7 @@ const LandingPage_Mobile: React.FC = () => {
               <h2 className="text-3xl md:text-5xl font-semibold text-white tracking-tight mb-4 relative z-10">The aurora is shifting.</h2>
               <p className="text-lg md:text-2xl text-cyan-400 font-light italic mb-10 md:mb-12 relative z-10">Don't miss the next peak.</p>
               <button
-                onClick={() => openTargetAlert()}
+                onClick={() => openSearch()}
                 className="w-full md:w-auto text-xs md:text-sm px-6 py-4 md:px-10 md:py-5 bg-[#44e2cd] text-[#003731] rounded-full font-bold uppercase tracking-widest hover:opacity-90 hover:shadow-[0_0_40px_rgba(68,226,205,0.4)] active:scale-[0.98] transition-all relative z-10"
               >
                 Initiate Tracking Protocol
@@ -499,6 +573,9 @@ const LandingPage_Mobile: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* ── SECTION 09: FAQ ACCORDION ────────────────────────────────────── */}
+        <FAQAccordion />
 
       </main>
 
@@ -544,6 +621,14 @@ const LandingPage_Mobile: React.FC = () => {
               <span className="material-symbols-outlined text-[#bac9cc]/40 hover:text-white cursor-pointer transition-colors">public</span>
               <span className="material-symbols-outlined text-[#bac9cc]/40 hover:text-white cursor-pointer transition-colors">hub</span>
               <span className="material-symbols-outlined text-[#bac9cc]/40 hover:text-white cursor-pointer transition-colors">radar</span>
+            </div>
+          </div>
+          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-[#bac9cc]/40 text-xs font-light">
+              Joined by 12,000+ aurora observers across 47 countries.
+            </p>
+            <div className="text-[10px] text-white/20 uppercase tracking-[0.2em]">
+              © 2026 AuroraLens. Orbital Data Protocol v4.2.
             </div>
           </div>
         </div>
