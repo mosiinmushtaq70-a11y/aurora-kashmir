@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kirkjufell Destination Dossier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #10131a;
+            color: #e0e2eb;
+            overflow-x: hidden;
+        }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(8, 11, 17, 0.4);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .aurora-glow {
+            background: radial-gradient(circle at center, rgba(0, 229, 255, 0.15) 0%, transparent 70%);
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed-variant": "#6900b3",
+              "secondary-fixed-dim": "#3cddc7",
+              "secondary-fixed": "#62fae3",
+              "surface-container-lowest": "#0b0e14",
+              "outline": "#849396",
+              "surface-bright": "#363940",
+              "on-primary": "#00363d",
+              "surface-container-high": "#272a31",
+              "on-tertiary-container": "#7e22cc",
+              "on-error-container": "#ffdad6",
+              "on-secondary-fixed-variant": "#005047",
+              "on-surface": "#e0e2eb",
+              "primary-container": "#00e5ff",
+              "tertiary-container": "#e4c4ff",
+              "secondary-container": "#03c6b2",
+              "on-secondary": "#003731",
+              "on-tertiary-fixed": "#2c0051",
+              "surface-variant": "#32353c",
+              "surface-container-highest": "#32353c",
+              "inverse-on-surface": "#2d3037",
+              "on-primary-fixed-variant": "#004f58",
+              "on-surface-variant": "#bac9cc",
+              "on-secondary-fixed": "#00201c",
+              "inverse-surface": "#e0e2eb",
+              "surface-tint": "#00daf3",
+              "on-primary-container": "#00626e",
+              "tertiary-fixed-dim": "#ddb7ff",
+              "primary-fixed": "#9cf0ff",
+              "primary-fixed-dim": "#00daf3",
+              "on-secondary-container": "#004d44",
+              "on-tertiary": "#490080",
+              "background": "#10131a",
+              "surface": "#10131a",
+              "tertiary-fixed": "#f0dbff",
+              "surface-dim": "#10131a",
+              "surface-container": "#1d2026",
+              "on-background": "#e0e2eb",
+              "inverse-primary": "#006875",
+              "secondary": "#44e2cd",
+              "surface-container-low": "#191c22",
+              "on-error": "#690005",
+              "tertiary": "#f7e7ff",
+              "primary": "#c3f5ff",
+              "on-primary-fixed": "#001f24",
+              "error": "#ffb4ab",
+              "outline-variant": "#3b494c",
+              "error-container": "#93000a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar Navigation Shell -->
+<nav class="bg-[#080B11]/40 backdrop-blur-2xl fixed top-0 w-full z-50 border-b border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#00E5FF] cursor-pointer active:scale-95 transition-transform" data-icon="arrow_back">arrow_back</span>
+<span class="text-lg font-bold tracking-widest uppercase text-[#00E5FF] font-headline">Kirkjufell</span>
+</div>
+<div class="flex items-center gap-6">
+<!-- Navigation Suppression: Only specific icons allowed from JSON trailing actions -->
+<span class="material-symbols-outlined text-[#bac9cc] hover:bg-white/5 transition-colors duration-300 p-2 rounded-full cursor-pointer" data-icon="location_on">location_on</span>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative h-screen w-full flex flex-col justify-end items-center pb-32 overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Cinematic wide shot of Kirkjufell mountain in Iceland with vibrant green aurora borealis dancing over its peak" class="w-full h-full object-cover scale-105" data-alt="Cinematic wide shot of Kirkjufell mountain in Iceland with vibrant green aurora borealis dancing over its peak during a clear night" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdhVAGG6MIWUfVCaC0XxIJQ5vG7uCAwirX4rQWgREm8oUOw11JcHzz-4_2E5_qafmYuXv2SLVLLdZpNlWZJ6E_0dqJoOqwgIC2tHNso1MCgUuY6WuOcfGhAenzxjF4NKMcv0vceYMmCaXp5QOKInxgQ91CQxKEn6DsGZko39UA6VAdqT-gH0s3C4yWXP0yZNuN5YDlcV4vhNfiOjRrcjZrWFerNDSfChnSAHZ0jtIddXx5Z8C961dCwUCyECZAGKuWpPBDRuo2UMs"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-black/40"></div>
+</div>
+<div class="relative z-10 text-center px-6 max-w-7xl">
+<p class="text-primary font-label tracking-[0.4em] uppercase text-sm mb-4">THE CHURCH MOUNTAIN</p>
+<h1 class="font-headline text-8xl md:text-9xl font-extrabold tracking-tighter text-on-surface leading-[0.8] mb-12">
+                Kirkjufell
+            </h1>
+</div>
+<!-- Floating Action Bar -->
+<div class="absolute bottom-12 left-1/2 -translate-x-1/2 z-20">
+<div class="glass-panel px-4 py-3 rounded-full flex items-center gap-4">
+<button class="bg-secondary text-on-secondary px-8 py-3 rounded-full font-headline font-bold text-sm tracking-widest uppercase flex items-center gap-2 hover:shadow-[0_0_20px_rgba(68,226,205,0.4)] transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+                    OBSERVE
+                </button>
+<button class="text-on-surface hover:bg-white/5 px-8 py-3 rounded-full font-headline font-bold text-sm tracking-widest uppercase flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="smart_toy">smart_toy</span>
+                    COPILOT
+                </button>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 space-y-32 py-20">
+<!-- Vitals Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="glass-panel p-10 rounded-xl space-y-2">
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest">Peak Season</span>
+<p class="text-3xl font-headline font-semibold text-primary">Sep — Mar</p>
+</div>
+<div class="glass-panel p-10 rounded-xl space-y-2">
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest">Avg Winter Temp</span>
+<p class="text-3xl font-headline font-semibold text-primary">-2°C</p>
+</div>
+<div class="glass-panel p-10 rounded-xl space-y-2">
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest">Accessibility</span>
+<p class="text-3xl font-headline font-semibold text-primary">KEF Airport</p>
+</div>
+</section>
+<!-- Main Content Area -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-20 items-start">
+<!-- Left: The Lore -->
+<div class="lg:col-span-7 space-y-12">
+<div class="space-y-6">
+<h2 class="font-headline text-5xl font-bold tracking-tight">The Lore</h2>
+<div class="h-1 w-24 bg-primary rounded-full"></div>
+</div>
+<div class="space-y-8 text-xl leading-relaxed font-light text-[#849396]">
+<p>
+                        Beyond the basalt columns and the rhythmic crash of the Atlantic lies a landmark forged in fire and sculpted by ice. Kirkjufell stands not merely as a mountain, but as a <span class="text-secondary font-medium">celestial convergence</span> point where the magnetic pulse of the North reaches its zenith.
+                    </p>
+<p>
+                        Ancient seafarers spoke of a "Church" made of stone, a sanctuary where the veil between worlds thins during the equinox. It is here that the <span class="text-secondary font-medium">solar winds</span> are whispered to be caught in the peak’s pyramidal grasp, igniting the sky in a bioluminescent symphony of emerald and violet.
+                    </p>
+</div>
+</div>
+<!-- Right: Activity & Resources -->
+<div class="lg:col-span-5 space-y-8">
+<!-- Activity Card -->
+<div class="glass-panel p-10 rounded-xl space-y-8">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest">Aurora Activity</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed-dim animate-pulse"></span>
+<span class="text-xs text-secondary uppercase font-bold tracking-tighter">Live Forecast</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<span class="text-6xl font-headline font-bold text-on-surface">82<span class="text-2xl text-on-surface-variant">/100</span></span>
+<span class="text-secondary-fixed-dim font-bold uppercase tracking-widest text-sm mb-2">High Intensity</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-secondary to-tertiary-container" style="width: 82%"></div>
+</div>
+</div>
+</div>
+<!-- Resources Card -->
+<div class="glass-panel p-10 rounded-xl space-y-6">
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest">Official Resources</span>
+<ul class="space-y-4">
+<li class="flex items-center justify-between group cursor-pointer">
+<span class="text-on-surface group-hover:text-primary transition-colors">Snæfellsnes Safety Protocol</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="open_in_new">open_in_new</span>
+</li>
+<li class="flex items-center justify-between group cursor-pointer">
+<span class="text-on-surface group-hover:text-primary transition-colors">Digital Navigation Pack</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="download">download</span>
+</li>
+<li class="flex items-center justify-between group cursor-pointer">
+<span class="text-on-surface group-hover:text-primary transition-colors">Local Weather Satellite</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="satellite_alt">satellite_alt</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Site Intelligence Section -->
+<section class="space-y-16">
+<div class="flex flex-col items-center space-y-4">
+<span class="text-primary font-label tracking-[0.5em] uppercase text-xs">Technical Analysis</span>
+<h2 class="font-headline text-6xl font-extrabold tracking-tighter">Site Intelligence</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-surface-container-low p-8 rounded-xl border border-white/5 space-y-4 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="wifi_tethering">wifi_tethering</span>
+<h3 class="font-headline font-bold uppercase tracking-widest text-sm">Magnetic Band Convergence</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">High-density magnetic flux detected at the peak apex, accelerating ion collision probability by 14%.</p>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl border border-white/5 space-y-4 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="visibility">visibility</span>
+<h3 class="font-headline font-bold uppercase tracking-widest text-sm">Deep-Field Optical Clarity</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Bortle Class 1 rating. Minimal atmospheric haze with particulate matter below 0.5 PPM during peak winter months.</p>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl border border-white/5 space-y-4 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="waves">waves</span>
+<h3 class="font-headline font-bold uppercase tracking-widest text-sm">Acoustic Resonance</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Unique topographical shielding creates a 35dB noise floor, ideal for focused sensory observation.</p>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl border border-white/5 space-y-4 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="altitude">altitude</span>
+<h3 class="font-headline font-bold uppercase tracking-widest text-sm">Elevation Gradient</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">463m vertical prominence creates a sharp thermal inversion layer, stabilizing local air currents.</p>
+</div>
+</div>
+</section>
+<!-- Visual Archives Section -->
+<section class="space-y-16">
+<div class="flex justify-between items-end">
+<div class="space-y-4">
+<span class="text-primary font-label tracking-[0.5em] uppercase text-xs">Curation</span>
+<h2 class="font-headline text-6xl font-extrabold tracking-tighter">Visual Archives</h2>
+</div>
+<p class="text-on-surface-variant max-w-xs text-right text-sm italic">"The mountain does not move; only the light changes its character."</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Large Feature -->
+<div class="lg:col-span-8 group relative overflow-hidden rounded-xl">
+<img alt="Moody reflection of Kirkjufell in a still glacial pool with purple aurora streaks" class="w-full h-[600px] object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Moody reflection of Kirkjufell mountain in a still glacial pool at night with faint purple and pink aurora streaks across the sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0GI8AeT4uXJVhWIrK1vZ0AnckzpS5wEd1pCbHUo7Q1OZ_7vg-V-FSyxwqRjDP7CmlxG53CxIUUX9m5xGz7Fxx_Kal9VRU0puEsORQEQBMPxY29YroJI4VCNG2vIuB7PGQ5WQwNKEEzj6IF9c3zBn2AAkh07iz-AueVDzBaRQyWwusgomL7JM9ZIVo6rzbOEw8xTFHig3xfRD9lr0bOqbrazWVuEDKEa4V8Rjs9asYSN1RbKM7Nx13-HovWcsoCXsPLqJfpry-HM8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-10 flex flex-col justify-end">
+<p class="text-primary font-bold uppercase tracking-widest text-xs">The Reflection Ritual</p>
+<p class="text-on-surface-variant text-sm">Captured by Elias Thorne, Feb 2024</p>
+</div>
+</div>
+<!-- Grid of Small -->
+<div class="lg:col-span-4 flex flex-col gap-8">
+<div class="group relative overflow-hidden rounded-xl h-[284px]">
+<img alt="Kirkjufellsfoss waterfall long exposure with the mountain in background" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Long exposure photograph of Kirkjufellsfoss waterfall in foreground with the iconic Kirkjufell mountain peak under a starry Icelandic sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANxWcYDusj4iPdomEVD8HlQD1GyUfu7P3EWgBhOKC9JGJuG1HBAZ3RsZygER8Z4eaeBZmBT_qRtGkCcY4fk87qrOfM90VeugucmpLl6jVUJqS_lzAFuf3dMI-ZOnhE-dci2V1j5MveaU91Ku5BTUiqUZVWzpLPieWsLOKXNGi505GHa6gcpnKwkdTQcXfHHLJEI1yTOU_DkQLl4wM3bmPpXJnvsXAQVpYMOB62S4gDdiX_I_s50S_1yZbbfH_uUg-BkRqWtgOcfug"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+<p class="text-primary font-bold uppercase tracking-widest text-xs">Cascading Symmetry</p>
+<p class="text-on-surface-variant text-xs">M. Jónsdóttir</p>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-xl h-[284px]">
+<img alt="Aerial perspective of the Snæfellsnes coastline" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Dramatic aerial drone perspective of the black sand coastline and winding roads near Kirkjufell mountain on the Snæfellsnes peninsula" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQquxUMbB_KpJCsz3t7XX8BK3l6Vpn0BzHyTDEi7UFLO0fYdzJk4t-hOBPsBoAJI55yukF1NQXt7uvs_Y7NVHvw7fJgzwA4hNQoI42XJ4tHuxkNtdXVK0I7ji6pUuKAGGh4BiCakH-d2Dwo2QWZ0D8bMZqkClQp1V5nLLPzgYkuFFdnW7kREj_1bNfQenuq7nAzDXDo9G1TQjB2hZt-eRi2t2uclGArgn1PqGHrzcvf_iGm6ooGAe4IGK68o1LCIAW8u1JQNcJJiM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+<p class="text-primary font-bold uppercase tracking-widest text-xs">Coastal Fracture</p>
+<p class="text-on-surface-variant text-xs">Atlas Drone Collective</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Space -->
+<footer class="py-20 border-t border-white/5 text-center">
+<div class="max-w-7xl mx-auto px-6 flex flex-col items-center space-y-8">
+<span class="text-lg font-bold tracking-widest uppercase text-primary font-headline">Kirkjufell</span>
+<div class="flex gap-12">
+<a class="text-on-surface-variant hover:text-primary transition-colors text-xs uppercase tracking-widest font-bold" href="#">Privacy Protocol</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-xs uppercase tracking-widest font-bold" href="#">Field Guidelines</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-xs uppercase tracking-widest font-bold" href="#">Archive Access</a>
+</div>
+<p class="text-[10px] text-outline uppercase tracking-widest">© 2024 KIRKJUFELL DESTINATION DOSSIER. PART OF THE ETHERIS NETWORK.</p>
+</div>
+</footer>
+</body></html>

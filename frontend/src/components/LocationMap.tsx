@@ -997,251 +997,100 @@ export default function LocationMap() {
     };
   }, [scenicMode, mapReady]);
 
-  const isVisible = viewMode === 'MAP_HUD';
-
   return (
-    <>
+    <div className="absolute inset-0 z-0">
+      <Map
+        ref={mapRef}
+        attributionControl={false}
+        initialViewState={{
+          longitude: 0,
+          latitude: 20,
+          zoom: 2,
+          pitch: 0,
+          bearing: 0,
+        }}
+        onLoad={(e) => {
+          setMapReady(true);
+          setTimeout(() => e.target.resize(), 100);
+          doFlyTo(e.target);
+        }}
+        onError={(e) => console.error('MapLibre Error:', e.error)}
+        mapStyle={mapStyleUrl}
+        maxPitch={85}
+        minZoom={0}
+        maxZoom={20}
+        dragPan={true}
+        scrollZoom={true}
+        doubleClickZoom={true}
+      >
+        <AttributionControl compact={true} position="bottom-right" customAttribution="" />
 
-      <AnimatePresence>
-      {isVisible && targetLocation && (
-        <motion.div
-          key="local-map"
-          initial={{ opacity: 0, scale: 1.04, filter: 'blur(12px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, scale: 0.97, filter: 'blur(8px)' }}
-          transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 z-30 pointer-events-auto flex flex-col md:block overflow-y-auto"
-        >
-          {/* ─── Back to Global + Search Row ─── */}
-          <div className="fixed top-6 left-6 z-50 flex items-center gap-3 scale-75 md:scale-100 origin-top-left">
-            <motion.button
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-              onClick={() => {
-                setSelectedSpotId(null);
-                returnToGlobal();
-              }}
-              className="flex items-center gap-1.5 md:gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 p-2.5 md:px-5 md:py-2.5 rounded-full hover:bg-cyan-400/20 hover:border-cyan-400/50 hover:text-cyan-400 transition-all font-mono text-[9px] md:text-xs tracking-widest uppercase shadow-2xl group"
-            >
-              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-              <span className="hidden md:inline">Back to Global View</span>
-            </motion.button>
+        {/* Legacy HUD sidebars/controls are intentionally not rendered.
+            The new single-source HUD is LocationHUD_Mobile in app/page.tsx. */}
+        {scenicAuroraData && (
+          <Source id="aurora-source" type="geojson" data={scenicAuroraData}>
+            <Layer {...auroraHeatmapLayer} />
+          </Source>
+        )}
 
-            {/* Search Another Location — desktop only */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-              className="hidden md:flex items-center gap-2"
-            >
-              <AnimatePresence mode="wait">
-                {isSearchOpen ? (
-                  <MapSearchBar key="searchbar" onClose={() => setIsSearchOpen(false)} />
-                ) : (
-                  <motion.button
-                    key="searchbtn"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    onClick={() => setIsSearchOpen(true)}
-                    className="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 px-5 py-2.5 rounded-full hover:bg-cyan-400/20 hover:border-cyan-400/50 hover:text-cyan-400 transition-all font-mono text-xs tracking-widest uppercase shadow-2xl group"
-                  >
-                    <Search size={14} className="group-hover:scale-110 transition-transform" />
-                    Search Location
-                  </motion.button>
-                )}
-              </AnimatePresence>
-            </motion.div>
+        {forecast && forecast.aurora_score >= 40 && primeSpots.map((spot) => {
+          const isSelected = selectedSpotId === spot.id;
+          const isHovered = hoveredSpotId === spot.id;
+          const dynamicName = spot.altitude > 2000 ? `High Ridge @ ${spot.altitude}m` : `Peak @ ${spot.altitude || 0}m`;
 
-            {/* Map Theme Toggle — desktop only */}
-            <motion.button
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
-              onClick={() => setMapTheme(t => t === 'dark' ? 'light' : 'dark')}
-              title={mapTheme === 'dark' ? 'Switch to Satellite Map' : 'Switch to Dark Map'}
-              className={`hidden md:flex items-center gap-2 backdrop-blur-md border px-4 py-2.5 rounded-full transition-all font-mono text-xs tracking-widest uppercase shadow-2xl group ${
-                mapTheme === 'dark'
-                  ? 'bg-white/10 text-white border-white/20 hover:bg-amber-400/20 hover:border-amber-400/50 hover:text-amber-400'
-                  : 'bg-amber-400/20 text-amber-400 border-amber-400/50 hover:bg-white/10 hover:border-white/20 hover:text-white'
-              }`}
-            >
-              <Layers size={14} className="group-hover:scale-110 transition-transform" />
-              {mapTheme === 'dark' ? 'Satellite' : 'Dark Map'}
-            </motion.button>
-          </div>
-
-
-          {/* ─── Map Container (mobile: 45vh top, desktop: full screen) ─── */}
-          <div className="h-[45vh] shrink-0 w-full md:h-full md:absolute md:inset-0 relative overflow-hidden bg-space-black">
-              <Map
-                ref={mapRef}
-                attributionControl={false}
-                initialViewState={{
-                  // Start GLOBALLY zoomed out — this is what makes flyTo cinematic
-                  longitude: 0,
-                  latitude: 20,
-                  zoom: 2,
-                  pitch: 0,
-                  bearing: 0,
-                }}
-                onLoad={(e) => {
-                  setMapReady(true);
-                  setTimeout(() => e.target.resize(), 100);
-                  doFlyTo(e.target);
-                }}
-                onError={(e) => console.error('MapLibre Error:', e.error)}
-                mapStyle={mapStyleUrl}
-                maxPitch={85}
-                minZoom={0}
-                maxZoom={20}
-                dragPan={true}
-                scrollZoom={true}
-                doubleClickZoom={true}
-              >
-                <AttributionControl compact={true} position="bottom-right" customAttribution="" />
-
-                {/* ─── WebGL Aurora Heatmap Layer ─── */}
-                {scenicAuroraData && (
-                  <Source id="aurora-source" type="geojson" data={scenicAuroraData}>
-                    <Layer {...auroraHeatmapLayer} />
-                  </Source>
-                )}
-                {/* ─── Prime Spots Market Overlays ─── */}
-                {forecast && forecast.aurora_score >= 40 && primeSpots.map((spot, i) => {
-                  const isSelected = selectedSpotId === spot.id;
-                  const isHovered = hoveredSpotId === spot.id;
-                  
-                  const clarity = Math.max(0, 100 - (spot.cloudCover || 0)).toFixed(0);
-                  const dynamicName = spot.altitude > 2000 ? `High Ridge @ ${spot.altitude}m` : `Peak @ ${spot.altitude || 0}m`;
-                  
-                  return (
-                    <Marker key={spot.id} longitude={spot.lng} latitude={spot.lat} anchor="bottom">
-                      <div 
-                        className="relative flex flex-col items-center cursor-pointer group"
-                        onMouseEnter={() => setHoveredSpotId(spot.id)}
-                        onMouseLeave={() => setHoveredSpotId(null)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedSpotId(spot.id);
-                          const map = mapRef.current?.getMap();
-                          if (map) doFlyTo(map, { lat: spot.lat, lng: spot.lng, zoom: 14 });
-                        }}
-                      >
-                        {/* Detailed Label (Clicked) */}
-                        <AnimatePresence>
-                          {isSelected && (
-                            <motion.div 
-                              initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.9 }}
-                              className="absolute bottom-6 flex flex-col items-center pointer-events-none z-70 whitespace-nowrap"
-                            >
-                              <div className="bg-[#080B11]/80 backdrop-blur-3xl border border-cyan-400/50 px-3 py-1.5 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.3)] flex flex-col items-center gap-0.5">
-                                <span className="text-slate-100 text-[11px] font-semibold">{dynamicName}</span>
-                              </div>
-                              <div className="w-px h-3 bg-cyan-400/80 mt-0.5" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {/* Minimal Tooltip (Hover) */}
-                        <AnimatePresence>
-                          {!isSelected && isHovered && (
-                            <motion.div 
-                              initial={{ opacity: 0, y: 5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 2 }}
-                              className="absolute bottom-4 flex flex-col items-center pointer-events-none z-60 whitespace-nowrap"
-                            >
-                              <div className="bg-[#080B11]/60 backdrop-blur-xl border border-white/10 px-2 py-1 rounded text-slate-100 text-[9px] font-medium shadow-md">
-                                {dynamicName}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {/* Main Point Marker */}
-                        <motion.div 
-                          animate={{ scale: isSelected ? 1.4 : isHovered ? 1.2 : 1 }}
-                          className="relative flex items-center justify-center"
-                        >
-                          {isSelected && (
-                            <div className="absolute inset-0 rounded-full bg-cyan-400/40 animate-ping" />
-                          )}
-                          <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)] ${isSelected ? 'bg-white' : 'bg-cyan-400'}`} />
-                        </motion.div>
-                      </div>
-                    </Marker>
-                  );
-                })}
-              </Map>
-              {/* ─── Map Style Toggle (inside map, never overlaps timeline) ─── */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8, duration: 0.5 }}
-                className="absolute bottom-4 right-3 z-40 pointer-events-auto md:hidden"
-              >
-                <button
-                  onClick={() => setMapTheme(t => t === 'dark' ? 'light' : 'dark')}
-                  className={`w-9 h-9 rounded-full backdrop-blur-md border border-white/10 transition-all flex items-center justify-center shadow-lg ${
-                    mapTheme === 'dark'
-                      ? 'bg-black/60 text-slate-300 hover:border-amber-400 hover:text-amber-400'
-                      : 'bg-amber-400/20 text-amber-400 hover:bg-black/60 hover:text-white'
-                  }`}
-                  title={mapTheme === 'dark' ? 'Switch to Satellite Map' : 'Switch to Dark Map'}>
-                  <Layers size={16} />
-                </button>
-              </motion.div>
-            </div>
-
-          {/* ─── Mobile Panels: scroll below map ─── */}
-
-          {/* ─── Mobile Panels: scroll below map ─── */}
-          <div className="flex-1 overflow-y-auto bg-[#0a0f16] z-10 md:hidden">
-            <div className="flex flex-col gap-4 p-4 pb-24">
-              <LocalDataSidebar location={targetLocation} forecast={forecast} fetchError={fetchError} scenicMode={scenicMode} />
-              <LocalInsightsSidebar 
-                forecast={forecast} 
-                primeSpots={primeSpots} 
-                locationName={targetLocation?.name}
-                temperature={forecast?.temperature}
-                scenicMode={scenicMode}
-                onSpotClick={(lat, lng, id) => {
-                  setSelectedSpotId(id);
+          return (
+            <Marker key={spot.id} longitude={spot.lng} latitude={spot.lat} anchor="bottom">
+              <div
+                className="relative flex flex-col items-center cursor-pointer group"
+                onMouseEnter={() => setHoveredSpotId(spot.id)}
+                onMouseLeave={() => setHoveredSpotId(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedSpotId(spot.id);
                   const map = mapRef.current?.getMap();
-                  if (map) doFlyTo(map, { lat, lng, zoom: 10 });
+                  if (map) doFlyTo(map, { lat: spot.lat, lng: spot.lng, zoom: 14 });
                 }}
-              />
-            </div>
-          </div>
+              >
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="absolute bottom-6 flex flex-col items-center pointer-events-none z-70 whitespace-nowrap"
+                    >
+                      <div className="bg-[#080B11]/80 backdrop-blur-3xl border border-cyan-400/50 px-3 py-1.5 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.3)] flex flex-col items-center gap-0.5">
+                        <span className="text-slate-100 text-[11px] font-semibold">{dynamicName}</span>
+                      </div>
+                      <div className="w-px h-3 bg-cyan-400/80 mt-0.5" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-          {/* ─── Desktop Panels: overlay on map ─── */}
-          <div className="hidden md:block">
-            <LocalInsightsSidebar 
-              forecast={forecast} 
-              primeSpots={primeSpots} 
-              locationName={targetLocation?.name}
-              temperature={forecast?.temperature}
-              scenicMode={scenicMode}
-              onSpotClick={(lat, lng, id) => {
-                setSelectedSpotId(id);
-                const map = mapRef.current?.getMap();
-                if (map) doFlyTo(map, { lat, lng, zoom: 10 });
-              }}
-            />
-            <LocalDataSidebar location={targetLocation} forecast={forecast} fetchError={fetchError} scenicMode={scenicMode} />
-          </div>
+                <AnimatePresence>
+                  {!isSelected && isHovered && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 2 }}
+                      className="absolute bottom-4 flex flex-col items-center pointer-events-none z-60 whitespace-nowrap"
+                    >
+                      <div className="bg-[#080B11]/60 backdrop-blur-xl border border-white/10 px-2 py-1 rounded text-slate-100 text-[9px] font-medium shadow-md">
+                        {dynamicName}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-          {/* Layers button moved inside map container above */}
-
-          {/* ─── Timeline Scrubber ─── */}
-          <TimelineScrubber />
-        </motion.div>
-      )}
-    </AnimatePresence>
-    </>
+                <motion.div animate={{ scale: isSelected ? 1.4 : isHovered ? 1.2 : 1 }} className="relative flex items-center justify-center">
+                  {isSelected && <div className="absolute inset-0 rounded-full bg-cyan-400/40 animate-ping" />}
+                  <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)] ${isSelected ? 'bg-white' : 'bg-cyan-400'}`} />
+                </motion.div>
+              </div>
+            </Marker>
+          );
+        })}
+      </Map>
+    </div>
   );
 }
