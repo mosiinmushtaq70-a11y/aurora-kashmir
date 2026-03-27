@@ -55,10 +55,10 @@ function TypingIndicator() {
           auto_awesome
         </span>
       </div>
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-t-3xl rounded-br-3xl flex items-center gap-2">
-        <span className="w-1.5 h-1.5 bg-[#44e2cd] rounded-full pulse-dot" style={{ animationDelay: '0ms' }} />
-        <span className="w-1.5 h-1.5 bg-[#44e2cd] rounded-full pulse-dot" style={{ animationDelay: '200ms' }} />
-        <span className="w-1.5 h-1.5 bg-[#44e2cd] rounded-full pulse-dot" style={{ animationDelay: '400ms' }} />
+      <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-t-3xl rounded-br-3xl flex items-center gap-2 shadow-2xl">
+        <span className="w-1.5 h-1.5 bg-[#44e2cd] rounded-full pulse-dot shadow-[0_0_8px_#44e2cd]" style={{ animationDelay: '0ms' }} />
+        <span className="w-1.5 h-1.5 bg-[#44e2cd] rounded-full pulse-dot shadow-[0_0_8px_#44e2cd]" style={{ animationDelay: '200ms' }} />
+        <span className="w-1.5 h-1.5 bg-[#44e2cd] rounded-full pulse-dot shadow-[0_0_8px_#44e2cd]" style={{ animationDelay: '400ms' }} />
       </div>
     </div>
   );
@@ -285,8 +285,8 @@ const AIAssistantOverlay_Clean: React.FC = () => {
               {msg.role === 'user' ? (
                 /* User Message */
                 <div className="flex flex-col items-end max-w-[80%] self-end ml-auto">
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-t-3xl rounded-bl-3xl shadow-xl">
-                    <p className="text-[#e0e2eb] leading-relaxed text-[15px] font-light italic">
+                  <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-t-3xl rounded-bl-3xl shadow-2xl">
+                    <p className="text-white leading-relaxed text-[15px] font-normal italic">
                       {msg.content}
                     </p>
                   </div>

@@ -31,8 +31,8 @@ export async function GET(request: Request) {
     const query = `
       [out:json][timeout:10];
       (
-        node["natural"="peak"](around:50000, ${baseLat}, ${baseLon});
-        node["tourism"="viewpoint"](around:50000, ${baseLat}, ${baseLon});
+        node["natural"="peak"](around:100000, ${baseLat}, ${baseLon});
+        node["tourism"="viewpoint"](around:100000, ${baseLat}, ${baseLon});
       );
       out body 10;
     `;
