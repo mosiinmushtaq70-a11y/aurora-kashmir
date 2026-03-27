@@ -1,211 +1,79 @@
 # GSD State File — AuroraKashmir Project
 
 ## Current Position
-- **Phase**: Phase 11 — Technical FAQ & Interactive Refinements
-- **Task**: COMPLETE — Landing Page Redesign (Section 01–11)
-- **Status**: Active (resumed 2026-03-27T13:21:29+05:30)
+
+- **Phase**: AuroraLens Dossier Rebuild
+- **Task**: Unified 6-layer DOM hierarchy implementation & Legacy Purge
+- **Status**: Paused at 2026-03-27 15:15 IST
 
 ---
 
 ## Last Session Summary
 
-This session executed two major deliverables: **Phase 7** (SearchOverlay rewrite + HUD responsive layout fix) and an **emergency ChunkLoadError hotfix** that was blocking the entire app.
+This session focused on the "Dossier DOM Restructure Purge" objective. We successfully unified the fractured dossier architecture into a single, high-fidelity component and purged all legacy location-specific views.
 
-### Phase 6 Accomplishments (Previously Completed ✅)
-- ViewMode enum collapsed to `'LANDING' | 'MAP_HUD'`
-- SPA routing standardized in `page.tsx` (Layer 0: map always mounted; Layer 1: conditional Landing/HUD overlay)
-- Landing page fully restored to Stitch blueprint (orrery, bento grid, mission animators, AI teaser, CTA)
-- LocationHUD map visibility fixed (removed opaque bg blocking z-0 map canvas)
+### Architectural Deliverables [DONE ✅]
 
-### Phase 7 Accomplishments (COMPLETE ✅)
-- **`useAppStore.ts`**: Added `setTargetLocation(location)` — pure coordinate setter with no viewMode side-effect. Search flow: `setTargetLocation → setViewMode('MAP_HUD') → closeSearch()`.
-- **`SearchOverlay.tsx`** (full rewrite):
-  - `AnimatePresence` backdrop: `fixed inset-0 bg-[#080B11]/80 backdrop-blur-md`
-  - Panel: spring entrance (`stiffness: 300, damping: 25`)
-  - `useDebounce` hook (500ms) — no external dependency
-  - **Nominatim geocoding** (open API, no key required) — replaces all hardcoded locations
-  - Loading skeleton (4-row shimmer), error state, empty-query prompt, no-results state
-  - Staggered result animations (0.04s/item); coordinate badge reveals on hover
-  - **ZERO hardcoded locations. ZERO `openDossier()` calls.**
-- **`LocationHUD_Mobile.tsx`** (responsive fix):
-  - `main`: `md:flex-row md:justify-between md:p-8 md:items-start`
-  - Inner wrapper: `md:contents` (dissolves into flex parent on desktop)
-  - Left/right sections: `md:w-[350px] lg:w-[400px]`
-  - **No `mt-[40vh]` on desktop** — mobile stacking preserved untouched
-  - `bg-gradient-to-t` → `bg-linear-to-t` lint fix
+- **`DestinationDossier.tsx`** [NEW]: Implemented the mandated 6-layer DOM hierarchy (Level 0: Canvas context, Level 1: Hero Imagery, Level 2: Real-time Telemetry, Level 3: Tactical Intelligence, Level 4: Community/Social, Level 5: Interactive CTAs).
+- **Core Orchestration**:
+  - `DossierShell.tsx`: Simplified to mount the unified `DestinationDossier`.
+  - `useAppStore.ts`: Standardized dossier routing logic.
+  - `DossierLogistics.tsx`: Refined for gear grid consistency.
 
-### Emergency Hotfix — ChunkLoadError (RESOLVED ✅)
-- **Root cause**: Turbopack refused to bundle the server chunk due to TypeScript type errors in 3 files still referencing the deprecated `'LOCAL'` ViewMode.
-- **Files fixed** (5 references total):
-  - `LocationMap.tsx:1000` — `isVisible = viewMode === 'LOCAL'` → `'MAP_HUD'`
-  - `LocationSearch.tsx:122,164` — `handleClear` guard + Globe icon conditional
-  - `TacticalOmnibar.tsx:195,232` — `handleClear` guard + Globe icon conditional
-- **Cache**: `.next` directory cleared → `npm run dev` restarted → `✓ Ready in 16.2s` (clean)
-- **Dev server**: Running on `http://localhost:3000` (port 3000 cleared)
+### Legacy Purge [DONE ✅]
 
----
-
-## Phase 8 Accomplishments (COMPLETE ✅)
-
-This phase transitioned the HUD from a static prototype to a reactive, data-driven experience.
-
-- **`LocationHUD_Mobile.tsx`**:
-  - **Dynamic Viewing Spots**: Wired to `/api/sightseeing` with a **100km radius** (increased from 50km).
-  - **Live Telemetry Binding**: All micro-grid and Pro-telemetry fields now reflect real-time store data.
-  - **Sync State UI**: Integrated loading spinners and "Syncing..." status feedback.
-- **`LandingPage_Mobile.tsx`**:
-  - **CTA Fix**: "Initiate Tracking Protocol" button re-mapped to `openSearch()` per user request.
-- **`api/sightseeing/route.ts`**:
-  - Search radius expanded to 100km (around:100000).
-- **Verification**:
-  - Verified search-to-HUD flow for Troms, Norway.
-  - Verified viewing spots update and radial proximity check.
-  - Verified Pro Telemetry active polling.
+- Deleted deprecated views: `DossierView_Kirkjufell.tsx`, `DossierView_Tromso_Polished.tsx`, `DossierView_Fairbanks_Refined.tsx`.
+- Removed all location-specific logic branches from the shell, enabling a data-driven approach.
 
 ---
 
 ## In-Progress Work
 
-### Files Modified (Committed — Phase 7 commit pending final git confirm)
-- `frontend/src/store/useAppStore.ts`
-- `frontend/src/components/ui/SearchOverlay.tsx`
-- `frontend/src/components/ui/LocationHUD_Mobile.tsx`
-- `frontend/src/components/ui/LandingPage_Mobile.tsx` (lint fixes only)
+- **Modified (Uncommitted)**:
+  - `frontend/src/app/page.tsx`
+  - `frontend/src/components/ui/DossierShell.tsx`
+  - `frontend/src/components/ui/tabs/DossierLogistics.tsx`
+  - `frontend/src/store/useAppStore.ts`
+  - `backend/main.py`
 
-### Files Fixed (ChunkLoadError hotfix — uncommitted)
-- `frontend/src/components/LocationMap.tsx`
-- `frontend/src/components/LocationSearch.tsx`
-- `frontend/src/components/ui/TacticalOmnibar.tsx`
+- **Untracked**:
+  - `frontend/src/components/ui/DestinationDossier.tsx`
+  - `frontend/src/components/ui/dossier/` (New structural primitives)
 
-### Tests Status
-- **TypeScript**: Clean — `tsc --noEmit` returns 0 errors after hotfix
-- **Dev server**: `✓ Ready in 16.2s` on `localhost:3001`
-- **Backend**: FastAPI stable at `localhost:8000` (running 1h35m+)
+## Tests Status
+
+- **TypeScript**: Clean.
+- **Visuals**: Primary Kirkjufell view verified; Tromso/Fairbanks pending automated visual sweep.
 
 ---
 
 ## Blockers
-- **None.** Dev server is clean. App is navigable.
+
+- **None.** Architecture is clean and reactive.
 
 ---
 
 ## Context Dump
 
-### Architecture (Current)
-- **State**: `useAppStore.ts` — single source of truth. ViewMode = `'LANDING' | 'MAP_HUD'`.
-- **Routing**: `page.tsx` — 3-layer SPA (z-0 map always mounted; z-10 landing/HUD conditional)
-- **Design System**: "Celestial Lens" — midnight blue `#080B11`, teal `#00E5FF`/`#44E2CD`, glassmorphism. Zero Destruction protocol active.
-- **Search flow**: `openSearch()` → `SearchOverlay` → `setTargetLocation` → `setViewMode('MAP_HUD')` → `closeSearch()`
-- **Backend**: FastAPI `http://localhost:8000` — `GET /api/weather/forecast/global?lat&lon&hour_offset`
-
 ### Decisions Made
-- **Nominatim geocoding**: Used as the open-source geocoder (no API key). Requires `User-Agent` header per ToS.
-- **`setTargetLocation` vs `zoomToLocation`**: The new action is a pure setter (no viewMode/timeout side-effect). `zoomToLocation` remains unchanged for backward-compat with map-pan flows.
-- **`md:contents`** on the inner HUD wrapper: Allows the `<div>` to dissolve into the flex-row parent on desktop without conflicting `display` values.
-- **No JavaScript window-sizing** for mobile/desktop split: Purely CSS-driven breakpoints.
+
+- **Single Source of Truth**: Transitioned from multi-view inheritance to a single unified Dossier component that hydrates based on store state.
+- **6-Layer DOM Strategy**: Adopted the strict structural skeleton requested in the brief for maximum brand consistency.
+- **Zero-External Charting**: All data visualizations (forecast bars, KP meters) are built using pure Tailwind CSS div-scaling to ensure zero performance overhead.
 
 ### Approaches Tried
-- First attempt at HUD `md:flex md:contents` caused a lint conflict warning → fixed to `md:contents` alone.
+
+- Attempted to keep legacy views as fallback → Rejected in favor of "Pure Purge" to ensure no stale logic persists.
 
 ### Files of Interest
-- `frontend/src/components/ui/SearchOverlay.tsx` — Full Phase 7 rewrite. The geocoding hook, debounce, and routing logic live here.
-- `frontend/src/store/useAppStore.ts` — Added `setTargetLocation` at line ~336.
-- `frontend/src/components/LocationMap.tsx` — `isVisible` guard at line 1000 fixed.
-- `frontend/src/components/LocationSearch.tsx` — Legacy component; still used in landing-page old-UI flows.
-- `frontend/src/components/ui/TacticalOmnibar.tsx` — Also still used in old-UI flows.
+
+- `frontend/src/components/ui/DestinationDossier.tsx`: The new architectural heart of the dossier system.
+- `frontend/src/store/useAppStore.ts`: Controls the data hydration for the unified view.
 
 ---
 
 ## Next Steps
-1. **Dossier Tab System**: Implement historical/environmental tabs for the 3 main hotspots.
-2. **Map Filtering**: Add Kp-based heatmap filtering to the vector map.
-3. **Pro Feature Set**: Wire the "Directions" button to a mapping service (placeholder for now).
 
----
-
-## Resume Recovery Note (2026-03-27)
-
-- User-reported symptom: plain white page + perpetual loading after clicking node/globe icon.
-- Root cause #1: stale `node.exe` dev processes held ports and `.next/dev/lock`, causing unstable restarts.
-- Root cause #2 (blocking): syntax regression in `frontend/src/components/ui/LocationHUD_Mobile.tsx` (`className` string was unintentionally split across lines, producing "Unterminated string constant").
-- Recovery actions:
-  - Terminated stale node processes on `3000/3001`.
-  - Restarted dev server in webpack mode for stability (`next dev --webpack`).
-  - Patched broken JSX className strings in `LocationHUD_Mobile.tsx`.
-- Verification:
-  - Frontend `GET /` now returns `200` (no white-screen compile crash).
-  - Backend telemetry endpoint `GET /api/weather/forecast/global?...` returns `200`.
-
----
-
-## UI De-conflict Update (2026-03-27)
-
-- User-reported issue: selecting a location showed two overlapping HUD systems (legacy + new).
-- Root cause: `LocationMap.tsx` still rendered the legacy local HUD panels and controls while `page.tsx` simultaneously rendered `LocationHUD_Mobile`.
-- Action taken:
-  - `LocationMap.tsx` runtime rendering was switched to **map-only** mode.
-  - Legacy sidebars/controls were removed from runtime render path.
-  - New HUD remains the single UI authority via `LocationHUD_Mobile` in `page.tsx`.
-- Preservation:
-  - Legacy HUD code remains in codebase for later extraction.
-  - Feature inventory recorded in `.gsd/LEGACY_HUD_INVENTORY.md`.
-- Verification:
-  - Frontend home route responds `200` after refactor.
-
----
-
-## Final Refinements Summary (2026-03-27)
-
-### Deliverables: Site Intelligence & HUD Fix (COMPLETE ✅)
-- **`SiteIntelligenceCard.tsx`** [NEW]:
-  - Surgically extracted from legacy `LocationMap.tsx`.
-  - Self-contained tactical brief fetching logic (`/api/tactical-brief`).
-  - Animated, aurora-reactive design (glassmorphic border glow).
-- **`LocationHUD_Mobile.tsx`** [REFINED]:
-  - **Header Overlap Fix**: Added `md:pt-24` to the left-side section.
-  - **Component Integration**: Replaced placeholder with the dynamic `SiteIntelligenceCard`.
-  - **Desktop Spacing**: Cards now start safely below the fixed 100px navigation header.
-
-### Files Modified:
-- `frontend/src/components/ui/SiteIntelligenceCard.tsx` (New)
-- `frontend/src/components/ui/LocationHUD_Mobile.tsx` (Modified)
-- `.gsd/SESSION_CONTEXT.md` (New - Source of Truth)
-
-### Next Steps:
-1. **SMOKE TEST**: User to verify the AI tactical brief fetches correctly and the layout is clear of the Back button.
-2. **CLEANUP**: Remove any remaining legacy HUD comments if no longer needed.
-3. **FEATURE**: Discuss Phase 8 (Live Telemetry Polling).
-
----
-
-## Phase 11: Technical FAQ & Interactive Refinements (COMPLETE ✅)
-
-- **`FAQAccordion.tsx`** [NEW]: Modular glassmorphic accordion with 5 technical FAQ items from the brief.
-- **`LandingPage_Mobile.tsx`** [REFINED]:
-  - **KP Tooltips**: Interactive `(?)` icon explaining geomagnetic activity to beginners.
-  - **Engineering Polish**: Animated SVG satellite (24/7 card) and "Decision Tree" SVG background (XGBoost card).
-  - **Footer Polish**: Added social proof ("Joined by 12,000+ aurora observers...") and legal versioning (v4.2).
-  - **Verified**: Full browser verification of animations, responsiveness, and link logic.
-
----
-
-## Dossier Micro-Phased Rebuild (In Progress 🚧)
-
-- **Objective**: Rebuild `DestinationDossier.tsx` (Kirkjufell as template) in 5 isolated phases.
-- **Guardrails**: No external charting/masonry/date libraries; pure Tailwind CSS; zero destruction of brand colors.
-- **Phase 1 (Standing By)**: Scaffolding & Top Fold (Hero + Live Data Bar).
-- **Audit Source**: `redesign/dossier/AuroraLens_Dossier_Page_Audit.md`.
-
----
-
-## In-Progress Work
-- Files modified: `FAQAccordion.tsx`, `LandingPage_Mobile.tsx`.
-- Tests status: All visual verification tests PASSED via browser subagent.
-
-## Blockers
-- **None.** Standing by for user "Execute Phase 1" command.
-
-## Next Steps
-1. **Phase 1 Execute**: Build Hero section and pinned Live Data Bar for Kirkjufell Dossier.
-2. **Phase 2 Execute**: Build Tailwind-only Forecast Panel.
-3. **Phase 3 Execute**: Implement CTAs and Narrative rewrite.
+1. **Dossier Hydration Check**: Verify that switching locations in the Map/HUD correctly hydrates the `DestinationDossier`.
+2. **Visual Sweep**: Ensure the 6-layer hierarchy maintains premium glassmorphic aesthetics across all sections.
+3. **Phase 12 Preview**: Discuss the next epic (Map Heatmap Filtering or Pro Subscription Flow).
