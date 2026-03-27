@@ -1,9 +1,9 @@
 # GSD State File — AuroraKashmir Project
 
 ## Current Position
-- **Phase**: Phase 7 — Immersive Search Overlay + Site Intelligence Integration
-- **Task**: COMPLETE — Site Intelligence extracted and HUD overlap resolved
-- **Status**: Active (resumed 2026-03-27T11:10:00+05:30)
+- **Phase**: Phase 11 — Technical FAQ & Interactive Refinements
+- **Task**: COMPLETE — Landing Page Redesign (Section 01–11)
+- **Status**: Paused at 2026-03-27T13:20:00+05:30
 
 ---
 
@@ -42,6 +42,25 @@ This session executed two major deliverables: **Phase 7** (SearchOverlay rewrite
   - `TacticalOmnibar.tsx:195,232` — `handleClear` guard + Globe icon conditional
 - **Cache**: `.next` directory cleared → `npm run dev` restarted → `✓ Ready in 16.2s` (clean)
 - **Dev server**: Running on `http://localhost:3000` (port 3000 cleared)
+
+---
+
+## Phase 8 Accomplishments (COMPLETE ✅)
+
+This phase transitioned the HUD from a static prototype to a reactive, data-driven experience.
+
+- **`LocationHUD_Mobile.tsx`**:
+  - **Dynamic Viewing Spots**: Wired to `/api/sightseeing` with a **100km radius** (increased from 50km).
+  - **Live Telemetry Binding**: All micro-grid and Pro-telemetry fields now reflect real-time store data.
+  - **Sync State UI**: Integrated loading spinners and "Syncing..." status feedback.
+- **`LandingPage_Mobile.tsx`**:
+  - **CTA Fix**: "Initiate Tracking Protocol" button re-mapped to `openSearch()` per user request.
+- **`api/sightseeing/route.ts`**:
+  - Search radius expanded to 100km (around:100000).
+- **Verification**:
+  - Verified search-to-HUD flow for Troms, Norway.
+  - Verified viewing spots update and radial proximity check.
+  - Verified Pro Telemetry active polling.
 
 ---
 
@@ -98,13 +117,9 @@ This session executed two major deliverables: **Phase 7** (SearchOverlay rewrite
 ---
 
 ## Next Steps
-1. **COMMIT** ChunkLoadError hotfix files: `LocationMap.tsx`, `LocationSearch.tsx`, `TacticalOmnibar.tsx`
-2. **SMOKE TEST** full flow: Landing → click "Forecast Map" → MAP_HUD renders → click Search → type city → select → map navigates to coords
-3. **VERIFY** SearchOverlay on mobile: backdrop blur, spring animation, result list stagger all visible
-4. **PHASE 8 OPTIONS** (to discuss with user):
-   - A) Wire `useLiveTelemetry` live polling into the HUD (telemetry cards show real data)
-   - B) LocationMap.tsx responsive HUD refactor — convert `isVisible` logic to desktop side-panel layout
-   - C) Dossier tab system (Phase 7 roadmap item — historical data in tabs)
+1. **Dossier Tab System**: Implement historical/environmental tabs for the 3 main hotspots.
+2. **Map Filtering**: Add Kp-based heatmap filtering to the vector map.
+3. **Pro Feature Set**: Wire the "Directions" button to a mapping service (placeholder for now).
 
 ---
 
@@ -160,3 +175,37 @@ This session executed two major deliverables: **Phase 7** (SearchOverlay rewrite
 1. **SMOKE TEST**: User to verify the AI tactical brief fetches correctly and the layout is clear of the Back button.
 2. **CLEANUP**: Remove any remaining legacy HUD comments if no longer needed.
 3. **FEATURE**: Discuss Phase 8 (Live Telemetry Polling).
+
+---
+
+## Phase 11: Technical FAQ & Interactive Refinements (COMPLETE ✅)
+
+- **`FAQAccordion.tsx`** [NEW]: Modular glassmorphic accordion with 5 technical FAQ items from the brief.
+- **`LandingPage_Mobile.tsx`** [REFINED]:
+  - **KP Tooltips**: Interactive `(?)` icon explaining geomagnetic activity to beginners.
+  - **Engineering Polish**: Animated SVG satellite (24/7 card) and "Decision Tree" SVG background (XGBoost card).
+  - **Footer Polish**: Added social proof ("Joined by 12,000+ aurora observers...") and legal versioning (v4.2).
+  - **Verified**: Full browser verification of animations, responsiveness, and link logic.
+
+---
+
+## Dossier Micro-Phased Rebuild (In Progress 🚧)
+
+- **Objective**: Rebuild `DestinationDossier.tsx` (Kirkjufell as template) in 5 isolated phases.
+- **Guardrails**: No external charting/masonry/date libraries; pure Tailwind CSS; zero destruction of brand colors.
+- **Phase 1 (Standing By)**: Scaffolding & Top Fold (Hero + Live Data Bar).
+- **Audit Source**: `redesign/dossier/AuroraLens_Dossier_Page_Audit.md`.
+
+---
+
+## In-Progress Work
+- Files modified: `FAQAccordion.tsx`, `LandingPage_Mobile.tsx`.
+- Tests status: All visual verification tests PASSED via browser subagent.
+
+## Blockers
+- **None.** Standing by for user "Execute Phase 1" command.
+
+## Next Steps
+1. **Phase 1 Execute**: Build Hero section and pinned Live Data Bar for Kirkjufell Dossier.
+2. **Phase 2 Execute**: Build Tailwind-only Forecast Panel.
+3. **Phase 3 Execute**: Implement CTAs and Narrative rewrite.
