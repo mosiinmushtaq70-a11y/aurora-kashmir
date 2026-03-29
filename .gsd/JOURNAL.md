@@ -1,5 +1,43 @@
 # AuroraLens Project Journal
 
+## Session: 2026-03-30 01:45 UTC (Production Cloud Deployment)
+
+### Objective
+Transition AuroraLens from a local development environment to a professional, 24/7 cloud architecture on Vercel and Render.
+
+### Accomplished
+- **Frontend Deployment (Vercel) [DONE ✅]**:
+  - Successfully deployed the Next.js 16 app in a monorepo configuration (Root: `frontend`).
+  - Resolved React 19 peer dependency conflicts with `.npmrc` (`legacy-peer-deps=true`).
+  - Automated Prisma client generation using a `postinstall` script.
+- **Backend Deployment (Render) [DONE ✅]**:
+  - Deployed the FastAPI server with a custom `Procfile`.
+  - Resolved missing dependency (`email-validator`) for Pydantic models.
+  - Verified live telemetry ingestion from NOAA/NASA.
+- **Cloud-to-Cloud Integration [DONE ✅]**:
+  - Replaced all `localhost:8000` hardcoded fetch URLs with the `NEXT_PUBLIC_BACKEND_URL` environment variable.
+  - Verified that the live Vercel site is correctly pulling data from the Render backend.
+- **Domain & Security [DONE ✅]**:
+  - Linked custom domain and verified SSL certificate propagation.
+- **Documentation**:
+  - Created `DEPLOYMENT_JOURNAL.md`, `ARCHITECTURE.md`, and `AURORALENS_EXECUTIVE_SUMMARY.md`.
+
+### Verification
+- [x] Vercel build passes with 100% success.
+- [x] Render backend returns `{"status":"Aurora Backend is LIVE"}`.
+- [x] Telemetry data (Solar Wind, Bz, Kp) is flowing correctly on the live website.
+- [x] Database sync (Neon) is active.
+
+### Paused Because
+Deployment objective complete; Phase 13 signed off. Ready for long-term monitoring.
+
+### Handoff Notes
+- The site is 24/7. Future pushes to GitHub `master` will trigger automatic cloud updates.
+- Environment variables are managed in the Vercel and Render dashboards.
+- A future "Phase 10" optimization roadmap has been proposed in `analysis_results.md`.
+
+---
+
 ## Session: 2026-03-27 17:30 UTC (Cinematic Hero & Typography Overhaul)
 
 ### Objective
