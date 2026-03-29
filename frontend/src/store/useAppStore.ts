@@ -299,8 +299,42 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Phase 3: Dossier ─────────────────────────────────────────────────────
 
   openDossier: (target: DossierTarget) => {
+    // Phase 12.1: Local metadata enrichment for premium lore/images
+    const metadataMap: Record<string, { lore: string[], hero?: string }> = {
+      'kirkjufell': {
+        lore: [
+          "Beyond the basalt columns and the rhythmic crash of the Atlantic lies a landmark forged in fire and sculpted by ice.",
+          "Kirkjufell stands not merely as a mountain, but as a celestial convergence point where the magnetic pulse of the North reaches its zenith.",
+          "High-density magnetic flux detected at the peak apex, accelerating ion collision probability by 14% for deep-field aurora captures."
+        ],
+        hero: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdhVAGG6MIWUfVCaC0XxIJQ5vG7uCAwirX4rQWgREm8oUOw11JcHzz-4_2E5_qafmYuXv2SLVLLdZpNlWZJ6E_0dqJoOqwgIC2tHNso1MCgUuY6WuOcfGhAenzxjF4NKMcv0vceYMmCaXp5QOKInxgQ91CQxKEn6DsGZko39UA6VAdqT-gH0s3C4yWXP0yZNuN5YDlcV4vhNfiOjRrcjZrWFerNDSfChnSAHZ0jtIddXx5Z8C961dCwUCyECZAGKuWpPBDRuo2UMs'
+      },
+      'tromso': {
+        lore: [
+          "Known as the Gateway to the Arctic, Tromsø is perched on the 69th parallel, perfectly positioned in the auroral oval's inner heart.",
+          "The interaction between the arctic fjords and the magnetospheric pulse creates a uniquely resonant visual spectrum.",
+          "Bridges of light span the Norwegian Sea, reflecting off the dark waters where the midnight sun surrendered months ago."
+        ],
+        hero: '/assets/dossier/tromso_hero.png'
+      },
+      'fairbanks': {
+        lore: [
+          "In the vast Alaskan Interior, Fairbanks offers an unparalleled stage for the celestial theater, free from coastal cloud interference.",
+          "A bastion of gold-rush history, now serving as a primary node for geomagnetic observation in the high sub-arctic.",
+          "A theater of deep-field luminescence where the atmosphere burns with the energy of distant solar storms."
+        ],
+        hero: '/assets/dossier/fairbanks_hero.png'
+      }
+    };
+
+    const enrichedTarget = {
+      ...target,
+      lore: metadataMap[target.id]?.lore || target.lore || [],
+      heroImage: metadataMap[target.id]?.hero || target.heroImage
+    };
+
     set({ 
-      activeDossier: target, 
+      activeDossier: enrichedTarget, 
       isDossierOpen: true,
       targetLocation: { lat: target.lat, lng: target.lng, name: target.name }
     });

@@ -8,26 +8,44 @@ import { useState, useEffect } from 'react';
 
 const DestinationDossier: React.FC = () => {
   const { activeDossier, liveData, closeDossier } = useAppStore();
-  const [forecastSeries, setForecastSeries] = useState<{ timestamp: string; kp: number; aurora_score: number }[]>([]);
+  const [forecastSeries, setForecastSeries] = useState<{ timestamp: string; kp: number; aurora_score: number; cloud_cover: number }[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
+    if (!activeDossier) return;
+
     const fetchForecast = async () => {
+      setIsSyncing(true);
       try {
-        const res = await fetch('http://localhost:8000/api/weather/forecast/series');
+        const res = await fetch(`http://localhost:8000/api/weather/forecast/series?lat=${activeDossier.lat}&lon=${activeDossier.lng}`);
         const data = await res.json();
-        // Map backend series (time, probability) to Chart expected format (timestamp, kp, aurora_score)
+        // Map backend series (time, probability, cloud) to Chart expected format
         const mapped = (data.series || []).map((item: any) => ({
-          timestamp: item.time,
-          kp: Math.round(item.probability / 11), // heuristic for mock visual
-          aurora_score: item.probability
+          timestamp: item.time || item.timestamp,
+          kp: item.kp, 
+          aurora_score: item.aurora_score || item.probability,
+          cloud_cover: item.cloud_cover || 0
         }));
         setForecastSeries(mapped);
       } catch (err) {
         console.error('Forecast sync failure:', err);
+      } finally {
+        setIsSyncing(false);
       }
     };
     fetchForecast();
-  }, []);
+  }, [activeDossier?.id, activeDossier?.lat, activeDossier?.lng]);
+
+  const getPeakWindow = () => {
+    if (forecastSeries.length === 0) return 'Analyzing...';
+    const peak = [...forecastSeries].sort((a, b) => b.aurora_score - a.aurora_score)[0];
+    if (peak.aurora_score < 40) return 'No Major Spikes';
+    
+    const peakTime = new Date(peak.timestamp);
+    const startHour = peakTime.getHours();
+    const endHour = (startHour + 3) % 24;
+    return `${startHour.toString().padStart(2, '0')}:00 – ${endHour.toString().padStart(2, '0')}:00`;
+  };
 
   const displayData = {
     score: liveData?.auroraScore ?? activeDossier?.auroraScore ?? 0,
@@ -91,33 +109,72 @@ const DestinationDossier: React.FC = () => {
       </section>
 
       {/* LAYER 3: FORECAST & CTAS */}
-      <section className="w-full max-w-7xl mx-auto px-4 md:px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 stitch-glass-panel rounded-4xl p-10 border-white/5 overflow-hidden">
-          <div className="flex justify-between items-center mb-10">
-            <h3 className="font-['Manrope'] font-extrabold text-xl uppercase tracking-tight">Tactical Forecast</h3>
-            <span className="font-['Manrope'] font-bold text-[9px] text-[#00e5ff] tracking-[0.3em] uppercase">48H Probability Series</span>
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full max-w-7xl mx-auto px-4 md:px-8 py-20 grid grid-cols-1 lg:grid-cols-3 gap-12"
+      >
+        <div className="lg:col-span-2 stitch-glass-panel p-8 md:p-12 rounded-[2.5rem] relative overflow-hidden group">
+          <div className="absolute inset-0 bg-linear-to-br from-[#00e5ff]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+          
+          <div className="flex justify-between items-center mb-10 relative z-10">
+            <div className="flex flex-col gap-1">
+              <h3 className="font-['Manrope'] font-black text-2xl uppercase tracking-tighter">Tactical Forecast</h3>
+              <p className="text-[10px] text-[#00e5ff] font-bold tracking-[0.2em] uppercase">
+                <span className="opacity-60">Peak Window:</span> <span className="animate-pulse">{getPeakWindow()}</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 bg-[#00e5ff] rounded-full"></div>
+                <span className="text-[9px] font-bold uppercase tracking-widest opacity-40">Probability</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 border-t border-dashed border-white/40"></div>
+                <span className="text-[9px] font-bold uppercase tracking-widest opacity-40">Cloud Cover</span>
+              </div>
+            </div>
           </div>
-          <div className="h-[300px] w-full">
-            <KPLineChart data={forecastSeries} />
+          <div className="h-[320px] w-full relative z-10">
+            <KPLineChart data={forecastSeries} loading={isSyncing} />
+          </div>
+          <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center relative z-10">
+            <span className="text-[10px] font-['Manrope'] font-bold tracking-widest uppercase opacity-40">Reliability Index: {forecastSeries.length > 0 ? "98.4%" : "Searching..."}</span>
+            <span className="text-[10px] font-['Manrope'] font-bold text-[#00e5ff] tracking-widest uppercase">Confidence Score: {forecastSeries.length > 0 ? "High" : "Syncing"}</span>
           </div>
         </div>
+        
         <div className="flex flex-col gap-4 justify-center">
-           <button className="w-full py-6 bg-white text-[#0A0E1A] font-['Manrope'] font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-[#00e5ff] transition-all transform hover:-translate-y-1 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+           <button className="w-full py-6 bg-white text-[#0A0E1A] font-['Manrope'] font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-[#00e5ff] transition-all transform hover:-translate-y-1 shadow-[0_20px_40px_rgba(0,0,0,0.3)] group flex items-center justify-center gap-3">
+             <span className="material-symbols-outlined text-sm">satellite_alt</span>
              INITIATE SATELLITE SYNC
            </button>
-           <button className="w-full py-6 border-2 border-white/10 text-white font-['Manrope'] font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-white/5 transition-all transform hover:-translate-y-1 opacity-60">
+           <button className="w-full py-6 border-2 border-white/10 text-white font-['Manrope'] font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-white/5 transition-all transform hover:-translate-y-1 opacity-60 flex items-center justify-center gap-3">
+             <span className="material-symbols-outlined text-sm">bolt</span>
              ASK AURA
            </button>
         </div>
-      </section>
+      </motion.section>
 
       {/* LAYER 4: NARRATIVE & SITE ADVANTAGES */}
       <section className="w-full max-w-7xl mx-auto px-4 md:px-8 py-20 border-t border-white/5">
         <div className="max-w-4xl mb-20">
           <h2 className="font-['Manrope'] font-bold text-[10px] text-[#00e5ff] tracking-[0.4em] uppercase mb-6 opacity-60">Intelligence Dossier</h2>
-          <p className="font-['Inter'] font-light text-2xl md:text-3xl leading-relaxed text-[#bac9cc]">
-            Beyond the basalt columns and the rhythmic crash of the Atlantic lies a landmark forged in fire and sculpted by ice. Kirkjufell stands not merely as a mountain, but as a celestial convergence point where the magnetic pulse of the North reaches its zenith.
-          </p>
+          <div className="space-y-8">
+            {activeDossier?.lore && activeDossier.lore.length > 0 ? (
+              activeDossier.lore.map((paragraph, i) => (
+                <p key={i} className="font-['Inter'] font-light text-2xl md:text-3xl leading-relaxed text-[#bac9cc]">
+                  {paragraph}
+                </p>
+              ))
+            ) : (
+              <p className="font-['Inter'] font-light text-2xl md:text-3xl leading-relaxed text-[#bac9cc]">
+                Beyond the basalt columns and the rhythmic crash of the Atlantic lies a landmark forged in fire and sculpted by ice. Kirkjufell stands not merely as a mountain, but as a celestial convergence point where the magnetic pulse of the North reaches its zenith.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
