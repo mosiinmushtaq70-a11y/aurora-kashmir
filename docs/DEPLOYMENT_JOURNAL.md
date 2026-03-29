@@ -35,7 +35,7 @@ This file tracks the live progress of the deployment to Vercel and Render. It se
 
 - **Action:** Ran `npm run build` in `/frontend`.
 - **Status:** **Success.**
-- **Surgical Fix Applied:** 
+- **Surgical Fix Applied:**
   - Added `cloud_cover: number;` to the `ForecastPoint` interface in `AuroraForecastPanel.tsx` to match the `DataPoint` type expected by `KPLineChart`.
 - **Result:** Build completed with Exit Code 0. All 16 routes generated successfully (Static and Dynamic).
 - **Why:** This confirms the frontend is production-ready for Vercel. Errors were caught and fixed locally before they could break the cloud deployment.
