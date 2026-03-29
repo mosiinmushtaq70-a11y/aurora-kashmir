@@ -51,5 +51,49 @@ This file tracks the live progress of the deployment to Vercel and Render. It se
 - **Action:** Verified `requirements.txt`.
   - Confirmed `fastapi`, `uvicorn`, `pandas`, `joblib`, `xgboost`, `requests`, and `sqlalchemy` are included.
 - **Why:** Render uses the `Procfile` to know how to start your web service. It uses `requirements.txt` to install exactly what the app needs.
-- **Status:** **In Progress.** Ready for GitHub push and Render dashboard setup.
-- **Result:** *Awaiting Render service creation...*
+- **Status:** **Success.** Render backend is now live and serving requests.
+- **Surgical Fix Applied:**
+  - Added `email-validator` to `requirements.txt`.
+  - Pushed to GitHub to trigger automatic redeploy.
+- **Result:** URL: `https://aurora-kashmir.onrender.com/` (LIVE)
+- **Health Check:** Verified response: `{"status":"Aurora Backend is LIVE"}`
+
+---
+
+## 🟡 Phase 4: Vercel Project Setup (Current)
+
+**Goal:** Connect the GitHub repository to Vercel with the correct monorepo configuration.
+
+- **Action:** Push all changes to GitHub.
+- **Action:** Link GitHub repo to Vercel dashboard.
+- **Critical Configuration:**
+  - **Root Directory:** `frontend`
+  - **Framework:** `Next.js`
+- **Why:** The frontend is in a sub-directory, so Vercel must know to look there for the Build process.
+- **Status:** **Success.** User has confirmed the monorepo root directory is set to `frontend`.
+
+---
+
+## 🟢 Phase 5: Vercel Environment Variables
+
+**Goal:** Provide the production application with all necessary API keys and database strings.
+
+- **Action:** Added the following 5 keys to the Vercel dashboard:
+  - `NEXT_PUBLIC_MAPTILER_KEY`
+  - `NEXT_PUBLIC_BACKEND_URL` (Pointing to Render)
+  - `DATABASE_URL` (Neon Postgres)
+  - `NVIDIA_API_KEY`
+  - `DEEPSEEK_API_KEY`
+- **Why:** These are required for the frontend to communicate with the Map service, the ML backend, and the Database.
+- **Status:** **Success.** User has confirmed the variables are added.
+
+---
+
+## 🟡 Phase 6: First Deployment & Smoke Test (Current)
+
+**Goal:** Trigger the first Vercel deployment and verify core functionality.
+
+- **Action:** Initiated Vercel deployment.
+- **Why:** This is the ultimate test. It proves the build passes in the cloud and all connections (Render, Neon) are functional.
+- **Status:** **Deploying.**
+- **Result:** *Awaiting Vercel Live URL...*
