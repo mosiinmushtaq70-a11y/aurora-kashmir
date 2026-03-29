@@ -39,3 +39,17 @@ This file tracks the live progress of the deployment to Vercel and Render. It se
   - Added `cloud_cover: number;` to the `ForecastPoint` interface in `AuroraForecastPanel.tsx` to match the `DataPoint` type expected by `KPLineChart`.
 - **Result:** Build completed with Exit Code 0. All 16 routes generated successfully (Static and Dynamic).
 - **Why:** This confirms the frontend is production-ready for Vercel. Errors were caught and fixed locally before they could break the cloud deployment.
+
+---
+
+## 🟡 Phase 3: Backend Deployment on Render (Current)
+
+**Goal:** Deploy the Python FastAPI backend to the cloud for 24/7 availability.
+
+- **Action:** Created `Procfile` at repository root.
+  - Command: `web: uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- **Action:** Verified `requirements.txt`.
+  - Confirmed `fastapi`, `uvicorn`, `pandas`, `joblib`, `xgboost`, `requests`, and `sqlalchemy` are included.
+- **Why:** Render uses the `Procfile` to know how to start your web service. It uses `requirements.txt` to install exactly what the app needs.
+- **Status:** **In Progress.** Ready for GitHub push and Render dashboard setup.
+- **Result:** *Awaiting Render service creation...*
