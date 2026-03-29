@@ -10,6 +10,7 @@ interface ForecastPoint {
   kp: number;
   aurora_score: number;
   level: string;
+  cloud_cover: number;
 }
 
 const AuroraForecastPanel: React.FC = () => {
