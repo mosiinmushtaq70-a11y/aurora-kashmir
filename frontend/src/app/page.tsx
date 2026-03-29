@@ -69,7 +69,7 @@ export default function Home() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
-            className="absolute inset-0 z-10 overflow-y-auto overflow-x-hidden"
+            className="absolute inset-0 z-10 overflow-y-auto overflow-x-hidden hide-scrollbar"
           >
             <LandingPage_Mobile />
           </motion.div>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Orbitron, IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
+import { Orbitron, IBM_Plex_Sans, JetBrains_Mono, Manrope, Inter } from 'next/font/google'
 import './globals.css'
 import ClickSpark from '@/components/ui/ClickSpark'
 
@@ -25,6 +25,20 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
+  display: 'swap',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'AuroraLens | Professional Global Aurora Forecast',
   description: 'AI-powered space weather and aurora borealis forecasting for the globe.',
@@ -36,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`dark ${orbitron.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable}`} style={{ colorScheme: 'dark' }}>
+    <html lang="en" className={`dark ${orbitron.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${manrope.variable} ${inter.variable}`} style={{ colorScheme: 'dark' }}>
       <head>
       </head>
       <body className="bg-bg-void antialiased">
@@ -56,3 +70,4 @@ export default function RootLayout({
     </html>
   )
 }
+

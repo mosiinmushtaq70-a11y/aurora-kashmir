@@ -44,6 +44,10 @@
   --font-display:   var(--font-orbitron), 'Orbitron', sans-serif;
   --font-body:      var(--font-ibm-plex-sans), 'IBM Plex Sans', sans-serif;
   --font-mono:      var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+  /* Heading: Manrope — injected by next/font via --font-manrope CSS var on <html> */
+  --font-heading:   var(--font-manrope), 'Manrope', sans-serif;
+  /* Copy: Inter — injected by next/font via --font-inter CSS var on <html> */
+  --font-copy:      var(--font-inter), 'Inter', sans-serif;
 
   /* --- Animations --- */
   --animate-shimmer:   shimmer 2s infinite;
@@ -383,6 +387,15 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 220, 130, 0.45);
+}
+
+/* ─── Hide Scrollbar Utility (functional scroll, invisible track) ─── */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
