@@ -25,7 +25,8 @@ const ViewingSpotsPanel: React.FC = () => {
     async function fetchSpots() {
       setLoading(true);
       try {
-        const url = `http://localhost:8000/api/sightseeing/spots?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+        const url = `${baseUrl}/api/sightseeing/spots?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();

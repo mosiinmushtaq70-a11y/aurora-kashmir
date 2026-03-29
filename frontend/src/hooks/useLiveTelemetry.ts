@@ -21,7 +21,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import type { LiveTelemetryData } from '@/store/useAppStore';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 const REFRESH_INTERVAL_MS = 12 * 60 * 1000;   // 12 minutes for live data
 const CACHE_EXPIRY_MS     = 12 * 60 * 60 * 1000; // 12 hours for localStorage
 
