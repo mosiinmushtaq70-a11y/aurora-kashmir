@@ -95,10 +95,10 @@ This file tracks the live progress of the deployment to Vercel and Render. It se
 
 - **Action:** Initiated Vercel deployment.
 - **Why:** This is the ultimate test. It proves the build passes in the cloud and all connections (Render, Neon) are functional.
-- **Status:** **Re-deploying.** Initial build failed due to `react-simple-maps` peer dependency conflict with React 19.
-- **Surgical Fix Applied:** 
-  - Created `frontend/.npmrc` with `legacy-peer-deps=true`.
-  - Pushed to GitHub to trigger automatic redeploy.
+- **Status:** **Re-deploying.** Initial build failed due to missing `@prisma/client` generation step on Vercel server.
+- **Surgical Fix Applied:**
+  - Added `"postinstall": "prisma generate"` to `frontend/package.json`.
+  - Pushed to GitHub to trigger automatic re-generation of the database bridge.
 - **Result:** *Awaiting successful Vercel Build...*
 
 ---
