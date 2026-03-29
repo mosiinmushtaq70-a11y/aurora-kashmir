@@ -17,7 +17,8 @@ const DestinationDossier: React.FC = () => {
     const fetchForecast = async () => {
       setIsSyncing(true);
       try {
-        const res = await fetch(`http://localhost:8000/api/weather/forecast/series?lat=${activeDossier.lat}&lon=${activeDossier.lng}`);
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+        const res = await fetch(`${baseUrl}/api/weather/forecast/series?lat=${activeDossier.lat}&lon=${activeDossier.lng}`);
         const data = await res.json();
         // Map backend series (time, probability, cloud) to Chart expected format
         const mapped = (data.series || []).map((item: any) => ({

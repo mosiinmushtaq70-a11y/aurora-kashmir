@@ -26,7 +26,8 @@ const AuroraForecastPanel: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const url = `http://localhost:8000/api/weather/forecast/series?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+        const url = `${baseUrl}/api/weather/forecast/series?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch tactical series');
         const data = await res.json();
