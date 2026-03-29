@@ -1,43 +1,39 @@
 ## Current Position
-- **Phase**: 12 — Dossier Intelligence & Hero Cinematic Polish
-- **Task**: Hero UI Refinement & Typography Overhaul Complete
-- **Status**: Paused at 2026-03-27 18:18 UTC
+- **Phase**: Phase 13 — Production Cloud Deployment (Vercel + Render + Neon)
+- **Task**: Full Deployment & Live Environment Verification
+- **Status**: **Success (Completed)** at 2026-03-30 01:45 UTC
 
-## Last Session Summary
-Focused on modernizing the hero experience and typography hierarchy. Replaced the generic KP indicator with a cinematic, physics-driven `AuroraDial` and executed a surgical typography overhaul across the landing page.
+## Session Summary
+This session successfully transitioned AuroraLens from a local environment to a professional, 24/7 cloud infrastructure. We navigated through dependency conflicts, TypeScript build errors, and monorepo configuration challenges to achieve a "Green-to-Green" status on both Vercel and Render.
 
-## In-Progress Work
-- **Modified (Uncommitted)**:
-  - `frontend/src/app/layout.tsx`: Font pipeline integration.
-  - `frontend/src/app/globals.css`: Theme variable fixes and scrollbar utility.
-  - `frontend/src/app/page.tsx`: Landing page container refinements.
-  - `frontend/src/components/ui/LandingPage_Mobile.tsx`: Comprehensive typography and layout sweep.
-  - `frontend/src/components/ui/AuroraDial.tsx`: Responsive scaling & physics implementation.
-
-## Tests Status
-- **TypeScript**: Fixed pre-existing `node.kp` error in `LandingPage_Mobile.tsx`.
-- **Visuals**: `AuroraDial` verified on desktop; mobile scaling (72%) implemented to prevent overflow.
+## Work Completed
+- **Backend Deployment (Render):** FastAPI server is live and serving real-time telemetry from NOAA/NASA.
+- **Frontend Deployment (Vercel):** Next.js 16 app is live with optimized production builds.
+- **Database (Neon):** Postgres sync established via Prisma with automatic post-install generation.
+- **Critical Fixes:** 
+    - Resolved `ImportError` on Render (added `email-validator`).
+    - Resolved `ERESOLVE` on Vercel (added `.npmrc` for React 19 peer deps).
+    - Replaced all `localhost` hardcoded URLs with `process.env.NEXT_PUBLIC_BACKEND_URL`.
+- **Documentation:** Produced a detailed `DEPLOYMENT_JOURNAL.md` and an `AURORALENS_EXECUTIVE_SUMMARY.md` for stakeholders.
 
 ## Blockers
-- **None.** Font rendering issue resolved by fixing circular CSS variable references.
+- **None.** All technical hurdles (Prisma exports, Peer deps) have been surgically resolved.
 
 ## Context Dump
 
 ### Decisions Made
-- **Cinematic Physics**: Opted for `framer-motion` + `useAnimationFrame` in `AuroraDial` to create non-linear, unpredictable "celestial" motion rather than simple CSS rotations.
-- **Font Naming Strategy**: Used `--font-heading` and `--font-copy` to map `Manrope` and `Inter` respectively, avoiding naming collisions with the `next/font` generated variables.
-- **Responsive Scaling**: Used CSS `transform: scale()` for `AuroraDial` on mobile to preserve the complex SVG/HTML node relationships perfectly while fitting narrow screens.
+- **Legacy Peer Deps**: Opted for `legacy-peer-deps=true` in `.npmrc` to bypass React 19 strictness for the `react-simple-maps` library, which remains functional despite the version delta.
+- **Environment Consistency**: Standardized all API calls to use `NEXT_PUBLIC_BACKEND_URL` to ensure seamless communication between Vercel and Render without local fallbacks.
 
 ### Approaches Tried
-- **Direct pt-16/pt-20 Tailwind classes**: Initially used for top padding, but refined with arbitrary values (`pt-[76px]`) to meet very specific user alignment requirements.
-- **Tailwind 3.x Gradients**: Migrated to Tailwind 4.x `bg-linear-to-*` syntax to resolve lint warnings.
+- **Direct Build on Vercel**: Initially failed due to missing Prisma Client. Switched to `"postinstall": "prisma generate"` approach which is more robust for serverless environments.
 
 ### Files of Interest
-- `frontend/src/components/ui/AuroraDial.tsx`: Core cinematic visualization.
-- `frontend/src/app/globals.css`: Global theme registry for the new typography stack.
-- `frontend/src/components/ui/LandingPage_Mobile.tsx`: Main composition and layout orchestration.
+- `frontend/package.json`: Contains the critical build/post-install logic.
+- `Procfile`: Orchestrates the Render web service.
+- `docs/DEPLOYMENT_JOURNAL.md`: The complete chronological record of the deployment lifecycle.
 
-## Next Steps
-1. **Global Font Sweep**: Audit other components (HUD, Dossier) to ensure they adopt the `font-heading` / `font-copy` variables where appropriate.
-2. **Phase 12 Verification**: Finalize the "Dossier Intelligence" hydration checks for all target locations.
-3. **Performance Check**: Ensure `AuroraDial`'s animation loop remains efficient during long sessions.
+## Next Steps (Phase 10 Roadmap)
+1. **Centralized API Wrapper:** Refactor `useLiveTelemetry` and `fetch` calls into a unified, typed API client to eliminate any remaining `localhost` fallbacks.
+2. **React Query Integration:** Implement `TanStack Query` for global telemetry caching to reduce Render server load.
+3. **Dossier Comparisons:** Build the comparison UI to allow users to evaluate multiple aurora destinations simultaneously.
