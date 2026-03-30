@@ -1,5 +1,40 @@
 # AuroraLens Project Journal
 
+## Session: 2026-03-30 08:45 UTC (AI Photo Assistant Stabilization & UI/UX Polish)
+
+### Objective
+Resolve runtime crashes (`.map` error), fix the "ERTURE" icon overflow glitch, and refine the Photo Assistant's UI/UX to a professional, "Tactical Mode" aesthetic with interactive map navigation.
+
+### Accomplished
+- **State Hardening [DONE ✅]**:
+  - Refactored `useAppStore.ts` to support functional state updates for `aiChatHistory` and `photoChatHistory`.
+  - Added `Array.isArray()` safety guards to both AI overlays to prevent runtime crashes from stale or corrupted `sessionStorage`.
+- **UI/UX Polish (Photo Assistant) [DONE ✅]**:
+  - Replaced the broken `aperture` material icon with `photo_camera`, eliminating the "ERTURE" text overflow bug.
+  - Removed viewfinder corners and technical footer bars for a cleaner, focused interface.
+  - Simplified the header title to **"AI Photographic Assistant"**.
+  - Shrunk the **"Reset"** button to a minimal `8px` font size footprint.
+- **Interactive Fly-To Logic [DONE ✅]**:
+  - Implemented a smart Regex parser that detects `[[Location|Coords]]` tags in standard Markdown text nodes (no backticks needed).
+  - Handles multiline coordinate strings gracefully.
+  - Linked location buttons to the global `zoomToLocation` flow, automatically closing the assistant and flying the map camera upon interaction.
+
+### Verification
+- [x] Verified `photoChatHistory.map` no longer throws errors during streaming.
+- [x] Verified "ERTURE" text bug is resolved by icon swap.
+- [x] Confirmed location buttons correctly trigger map fly-to and overlay closure.
+- [x] "Reset" button correctly wipes the `photoAssistantSetup` and `photoChatHistory`.
+
+### Paused Because
+Session objective complete; UI/UX verified and state hardened.
+
+### Handoff Notes
+- The Photo Assistant's location parser uses a custom paragraph renderer in `ReactMarkdown`.
+- The `zoomToLocation` and `handleClose` props are passed into this renderer via standard React Children mapping.
+- Next step should focus on integrating this "fly-to" logic into the main Landing Co-Pilot for consistency.
+
+---
+
 ## Session: 2026-03-30 01:45 UTC (Production Cloud Deployment)
 
 ### Objective
