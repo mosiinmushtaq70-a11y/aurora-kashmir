@@ -1,5 +1,76 @@
 # AuroraLens Project Journal
 
+## Session: 2026-04-18 18:00 UTC (Mobile UI Polish & Stabilization)
+
+### Objective
+Finalize the AuroraLens mobile experience by reverting to technical UI standards, fixing builder identity assets, and optimizing mobile AI accessibility. Ensure the entire codebase is professionally documented for open-source transformation.
+
+### Accomplished
+- **UI & Branding Reversion [DONE ✅]**:
+    - Restored "Visibility %" metrics and "Global Visibility Pulse" labels to the activity gallery.
+    - Fixed the builder profile with a premium "MM" tactical initials avatar.
+    - Removed non-functional "Join Observer" button from the header.
+- **Mobile UX Innovation [DONE ✅]**:
+    - Implemented a persistent Floating Action Button (FAB) for the AI Assistant on mobile.
+- **Telemetry Stabilization [DONE ✅]**:
+    - Strictly decoupled the landing dial from the search system to prevent cross-contamination.
+    - The HUD now only follows Local (if granted) or Planetary (Global) context.
+- **3D Asset Management [DONE ✅]**:
+    - Engineered and then stripped a 3D WebGL Earth model per user preference for a cleaner 2D look.
+    - Hardened the 3D infrastructure against 404/CORS crashes before removal.
+- **Codebase Documentation [DONE ✅]**:
+    - Added Rule 2/7 headers and JSDoc to all core frontend and backend modules.
+    - Created a professional `README.md` with technical specs and Mermaid diagrams.
+
+### Verification
+- [x] Landing page dial remains stable during location searches.
+- [x] Mobile AI FAB is functional and responsive.
+- [x] Profile "MM" avatar renders correctly in brand teal.
+- [x] `npm run build` passes with zero documentation or syntax errors.
+
+### Paused Because
+Session objective complete. The platform is now technically mature and documented for public release.
+
+### Handoff Notes
+- The `TacticalGlobe.tsx` has been stripped to keep the bundle lean; if 3D is needed later, the R3F dependencies remain in `package.json`.
+- The `README.md` is now the single source of truth for the technical roadmap.
+
+---
+
+
+### Objective
+Pivot the AuroraLens project into a high-fidelity B.Tech engineering portfolio for Mosin Mushtaq, focusing on technical rigor, data-driven narrative, and a professional developer identity.
+
+### Accomplished
+- **Landing Page Overhaul [DONE ✅]**:
+    - Restructured the landing page to follow a technical narrative (Hero → Metrics → Theory → Infrastructure → Live Proof → Persona).
+    - Restored the 3-step "How It Works" visualization.
+    - Simplified the header navigation by replacing "Access Dashboard" with a direct link to the new "Developer" page.
+    - Synchronized all terminology to "Project" instead of "Research" to align with engineering standards.
+- **Dedicated Developer Page [DONE ✅]**:
+    - Created a new route `/developer` with a minimalist, professional design.
+    - Integrated builder identity with SKUAST university info and direct social links (GitHub/LinkedIn).
+    - Provided a concise technical overview of the XGBoost engine.
+- **Engine Refinement [DONE ✅]**:
+    - Enhanced the XGBoost Model Card with "Cloud Cover Density" (89% weight) and "F1-Score" validation metrics.
+    - Documented the Stage 1 to Stage 2 feature feed logic.
+
+### Verification
+- [x] `npm run build` confirmed zero syntax errors and valid new route generation.
+- [x] Verified navigation from home to developer page.
+- [x] Confirmed all marketing placeholders (Satellite Network, Observer Signup) were removed.
+- [x] Verified terminology consistency across all modules.
+
+### Paused Because
+Session objective complete. The portfolio is now technically optimized and professional.
+
+### Handoff Notes
+- The `/developer` page is now the primary profile home.
+- The `AboutBuilder` component is used on the developer page but has been removed from the main landing page scroll.
+- Next steps involve final SEO meta tagging and potential deployment to a production domain.
+
+---
+
 ## Session: 2026-03-30 08:45 UTC (AI Photo Assistant Stabilization & UI/UX Polish)
 
 ### Objective
