@@ -241,6 +241,24 @@ const AuroraDial: React.FC<{ data?: Partial<AuroraDialData> }> = ({ data = {} })
              animate={{ rotate: [0, 360] }}
              transition={{ duration: sys.rotationSpeed / 2, repeat: Infinity, ease: "linear" }}
           />
+
+          {/* Live Kp Index Indicator (Web Only) */}
+          {!isMobile && (
+            <g transform="rotate(10)">
+              <text
+                x="168"
+                y="0"
+                fill={sys.accentColor}
+                fontSize="8"
+                fontWeight="900"
+                transform="rotate(90, 168, 0)"
+                className="tracking-[0.2em] font-['Manrope'] pointer-events-none select-none"
+                style={{ textAnchor: 'middle', opacity: 0.8, filter: 'drop-shadow(0 0 5px ' + sys.themeColor + ')' }}
+              >
+                KP {merged.kp.toFixed(1)}
+              </text>
+            </g>
+          )}
         </motion.g>
 
         {/* Static telemetric markers */}
