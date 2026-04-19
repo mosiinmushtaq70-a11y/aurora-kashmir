@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize the NVIDIA NIM Client
-const openai = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY,
-  baseURL: 'https://integrate.api.nvidia.com/v1',
-});
+// Initialize the NVIDIA NIM Client inside the handler to prevent build-time CI crashes
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { score, location, cloudCover, temperature } = body;
+
+    const openai = new OpenAI({
+      apiKey: process.env.NVIDIA_API_KEY || 'dummy_key_for_build',
+      baseURL: 'https://integrate.api.nvidia.com/v1',
+    });
+
     const systemPrompt = `You are a tactical weather/aurora satellite AI. The user is targeting ${location}. Score is ${score}/100. Clouds: ${cloudCover}%. Temp: ${temperature}°C. Write a strict, 2-sentence tactical briefing. If the score is near a threshold (e.g., 49), note that photographic evidence is likely even if naked-eye visibility is low. No greetings, just raw tactical data.`;
 
     const completion = await openai.chat.completions.create({
