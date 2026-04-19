@@ -15,16 +15,20 @@ const IS_DEV = process.env.NODE_ENV === 'development';
  * 3. Empty string (prevents malformed URLs in production if env is missing)
  */
 export const getBackendBaseUrl = (): string => {
-  if (process.env.NEXT_PUBLIC_BACKEND_URL) {
-    return process.env.NEXT_PUBLIC_BACKEND_URL.replace(/\/$/, ''); // Remove trailing slash
+  const envUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const isLocal = envUrl?.includes('localhost') || envUrl?.includes('127.0.0.1');
+
+  // If we have a real production URL in the environment, use it.
+  // BUT: If the environment says 'localhost' and we are NOT in dev, ignore it.
+  if (envUrl && (!isLocal || IS_DEV)) {
+    return envUrl.replace(/\/$/, '');
   }
 
   if (IS_DEV) {
     return 'http://127.0.0.1:8000';
   }
 
-  // In production, if NEXT_PUBLIC_BACKEND_URL is missing, we use the known Render URL 
-  // as a hard fallback to ensure the site works immediately after deploy.
+  // Hard production fallback for the live portfolio
   return 'https://aurora-kashmir.onrender.com';
 };
 
