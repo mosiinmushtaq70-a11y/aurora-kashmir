@@ -26,6 +26,8 @@ cache/
 *.json
 !package.json
 !package-lock.json
+!tsconfig.json
+!components.json
 
 # ML model binaries (too large for git — hosted as GitHub Release)
 
