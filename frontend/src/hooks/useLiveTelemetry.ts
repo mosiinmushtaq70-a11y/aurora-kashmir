@@ -112,8 +112,10 @@ function mergeLiveData(current: LiveTelemetryData | null, update: Partial<LiveTe
     bt:            update.bt            ?? current?.bt            ?? 0,
     solarSpeed:    update.solarSpeed    ?? current?.solarSpeed    ?? 0,
     density:       update.density       ?? current?.density       ?? 0,
+    lightPollution: update.lightPollution ?? current?.lightPollution ?? 1,
     lastUpdated:   update.lastUpdated   ?? current?.lastUpdated   ?? '',
     globalHotspots:update.globalHotspots?? current?.globalHotspots?? 0,
+    topSpots:      update.topSpots      ?? current?.topSpots      ?? [],
     loading:       update.loading       ?? current?.loading       ?? false,
     error:         update.error         ?? current?.error         ?? false,
   };
