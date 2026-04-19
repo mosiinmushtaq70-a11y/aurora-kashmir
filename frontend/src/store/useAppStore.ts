@@ -89,9 +89,13 @@ export interface LiveTelemetryData {
   bt: number;
   solarSpeed: number;
   density: number;
+  /** Light pollution level (Bortle Scale 1-9) */
+  lightPollution: number;
   lastUpdated: string;
   /** Number of active hotspots (>50 score, 100km apart) */
   globalHotspots: number;
+  /** List of top viewing spots from the pulse engine */
+  topSpots: any[];
   /** Whether data is being fetched */
   loading: boolean;
   /** Whether the last fetch failed */
@@ -326,8 +330,10 @@ export const useAppStore = create<AppState>()(
     bt: 0,
     solarSpeed: 0,
     density: 0,
+    lightPollution: 1,
     lastUpdated: '',
     globalHotspots: 0,
+    topSpots: [],
     loading: true,
     error: false,
   },

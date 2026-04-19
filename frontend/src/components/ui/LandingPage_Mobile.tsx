@@ -494,29 +494,34 @@ const LandingPage_Mobile: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-            {ACTIVITY_NODES.map((node) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {(liveData?.topSpots && liveData.topSpots.length > 0 ? liveData.topSpots : ACTIVITY_NODES).map((node: any) => (
               <button
-                key={node.id}
-                onClick={() => handleNodeClick(node)}
+                key={node.id || node.name}
+                onClick={() => handleNodeClick({
+                  ...node,
+                  lat: node.lat,
+                  lng: node.lon || node.lng,
+                  name: node.name,
+                  id: node.id || node.name
+                } as any)}
                 className="group stitch-glass-card rounded-[2.5rem] overflow-hidden text-left hover:border-[#00e5ff]/30 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] reveal-on-scroll"
               >
                 <div className="relative h-64 overflow-hidden">
-                  <img alt={node.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={node.img} />
+                  <img alt={node.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={node.img || 'https://images.unsplash.com/photo-1531366930499-41f53117ad8a?q=80&w=800&auto=format&fit=crop'} />
                   <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-                    <span className={`w-2 h-2 rounded-full ${node.storm ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.5)]'} animate-pulse`}></span>
+                    <span className={`w-2 h-2 rounded-full ${node.score >= 70 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.5)]'} animate-pulse`}></span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-white flex items-center">
-                      {node.state}
-                      <KPTooltip value={parseFloat(node.state.match(/\d+(\.\d+)?/)?.[0] ?? '0')} />
+                      {node.level || 'STABLE'} KP-{Math.round((node.score || 40) / 100 * 9)}
+                      <KPTooltip value={Math.round((node.score || 40) / 100 * 9)} />
                     </span>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#080B11] via-transparent to-transparent opacity-0 group-hover:opacity-40 transition-opacity"></div>
                 </div>
                 <div className="p-8 md:p-10 bg-gradient-to-b from-transparent to-white/[0.02]">
                   <h3 className="text-xl md:text-2xl font-['Manrope'] font-extrabold text-white mb-1 group-hover:text-[#00e5ff] transition-colors">{node.name}</h3>
-                  <p className="text-[#bac9cc] text-[10px] md:text-xs mb-8 font-medium tracking-wider opacity-60 uppercase">{node.coords}</p>
+                  <p className="text-[#bac9cc] text-[10px] md:text-xs mb-8 font-medium tracking-wider opacity-60 uppercase">{node.coords || `${node.lat.toFixed(2)}° N, ${(node.lon || node.lng).toFixed(2)}° E`}</p>
                   <div className="flex justify-between items-center text-xs font-bold">
-                    <span className="text-[#00e5ff] uppercase tracking-widest">{node.vis} Visibility</span>
+                    <span className="text-[#00e5ff] uppercase tracking-widest">{Math.round(node.score || 40)}% Visibility</span>
                   </div>
                 </div>
               </button>
