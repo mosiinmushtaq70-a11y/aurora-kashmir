@@ -59,9 +59,9 @@ function writeCache(key: string, data: LiveTelemetryData) {
 
 interface ForecastAPIResponse {
   aurora_score: number;
-  cloud_cover: number;
-  temperature: number;
-  precipitation: number;
+  cloud_cover: number | null;
+  temperature: number | null;
+  precipitation: number | null;
   level: string;
   last_updated: string;
   light_pollution?: number;
