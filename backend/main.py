@@ -132,23 +132,7 @@ async def get_forecast(lat: float, lon: float, hour_offset: int = 0):
                 print(f"[Forecast] 7-Day outlook fetch error: {e}")
                 reliability = "SIMULATED"
 
-        # Fetch real-time weather from Open-Meteo
-        temp, cloud = 0, 20
-        try:
-            weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,cloud_cover&timezone=auto"
-            w_res = requests.get(weather_url, timeout=5)
-            if w_res.ok:
-                w_data = w_res.json()
-                temp = w_data.get('current', {}).get('temperature_2m', 0)
-                cloud = w_data.get('current', {}).get('cloud_cover', 20)
-        except:
-            pass
-
-        # AI Prediction
-        res = calculate_aurora_probability(
-            kp=kp, bz=bz, bt=bt, lat=lat, lon=lon, 
-            speed=speed, density=density, cloud_cover=cloud
-        )
+        res = calculate_aurora_probability(kp=kp, bz=bz, bt=bt, lat=lat, lon=lon, speed=speed, density=density)
 
         return {
             "aurora_score": res["score"],
@@ -161,9 +145,9 @@ async def get_forecast(lat: float, lon: float, hour_offset: int = 0):
                 "speed_km_s": round(speed, 0),
                 "density_p_cm3": round(density, 1)
             },
-            "cloud_cover": cloud,
-            "temperature": temp,
-            "light_pollution": 2 if abs(lat) > 60 else (4 if abs(lat) > 45 else 7) # Heuristic: higher lats are usually darker
+            "cloud_cover": None,
+            "temperature": None,
+            "light_pollution": 2 if abs(lat) > 60 else (4 if abs(lat) > 45 else 7)
         }
     except Exception as e:
         print(f"[Forecast Error] {e}")
@@ -276,38 +260,28 @@ GLOBAL_PULSE_CACHE: Dict[str, Any] = {
 @app.get("/api/weather/stats/global_pulse")
 async def get_global_pulse():
     current_time = time.time()
-    # 10-second cache for a "live" feel while saving CPU
-    if GLOBAL_PULSE_CACHE["count"] > 0 and (current_time - GLOBAL_PULSE_CACHE["timestamp"]) < 10:
-        return {"active_hotspots": GLOBAL_PULSE_CACHE["count"]}
-
-    try:
-        from src.predictor import calculate_aurora_probability_batch
-        
-        # Get latest telemetry
-        df_kp = get_kp_index()
-        current_kp = float(df_kp['kp'].iloc[-1]) if df_kp is not None and not df_kp.empty else 3.0
-        
-        df_sw = get_solar_wind()
-        current_bz = float(df_sw['bz_gsm'].iloc[-1]) if df_sw is not None and not df_sw.empty else 0.0
-        current_bt = float(df_sw['bt'].iloc[-1]) if df_sw is not None and not df_sw.empty else 5.0
-
+    # 60-second cache
+    if GLOBAL_PULSE_CACHE["count"] > 0 and (current_time - GLOBAL_PULSE_CACHE["timestamp"]) < 60:
         return {"active_hotspots": GLOBAL_PULSE_CACHE["count"], "top_spots": GLOBAL_PULSE_CACHE.get("top_spots", [])}
 
     try:
-        # Scan known high-probability zones
         HOTSPOT_ZONES = [
             {"name": "Reykjavík, Iceland", "lat": 64.1265, "lon": -21.8277},
             {"name": "Tromsø, Norway", "lat": 69.6492, "lon": 18.9553},
             {"name": "Fairbanks, Alaska", "lat": 64.8378, "lon": -147.7164},
             {"name": "Yellowknife, Canada", "lat": 62.4540, "lon": -114.3718},
-            {"name": "Kiruna, Sweden", "lat": 67.8558, "lon": 20.2253}
+            {"name": "Kiruna, Sweden", "lat": 67.8558, "lon": 20.2253},
+            {"name": "Rovaniemi, Finland", "lat": 66.5039, "lon": 25.7294},
+            {"name": "Abisko, Sweden", "lat": 68.3500, "lon": 18.8300},
         ]
-        
+
         kp = 3.0
         try:
             df_kp = get_kp_index()
-            if df_kp is not None and not df_kp.empty: kp = float(df_kp['kp'].iloc[-1])
-        except: pass
+            if df_kp is not None and not df_kp.empty:
+                kp = float(df_kp['kp'].iloc[-1])
+        except:
+            pass
 
         hotspots = []
         for zone in HOTSPOT_ZONES:
@@ -320,14 +294,11 @@ async def get_global_pulse():
                     "score": res["score"],
                     "level": res["level"]
                 })
-        
+
         hotspots.sort(key=lambda x: x["score"], reverse=True)
-        result = {
-            "active_hotspots": len(hotspots) * 4 + (int(current_time) % 5), # Add jitter for 'live' feel
-            "top_spots": hotspots[:3]
-        }
-        
-        GLOBAL_PULSE_CACHE.update({"count": result["active_hotspots"], "timestamp": current_time, "top_spots": result["top_spots"]})
+        count = len(hotspots)
+        result = {"active_hotspots": count, "top_spots": hotspots[:3]}
+        GLOBAL_PULSE_CACHE.update({"count": count, "timestamp": current_time, "top_spots": hotspots[:3]})
         return result
     except Exception as e:
         print(f"[Pulse Error] {e}")
