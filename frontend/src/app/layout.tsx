@@ -40,11 +40,11 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'AuroraLens | Real-Time AI Aurora Visibility Forecast',
+  title: 'AuroraLens',
   description: 'Precision aurora borealis visibility scores based on live NASA DSCOVR telemetry and XGBoost machine learning. Tracking space weather since 1981.',
   keywords: ['aurora forecast', 'northern lights', 'space weather', 'DSCOVR telemetry', 'aurora score', 'NASA OMNI'],
   openGraph: {
-    title: 'AuroraLens | The Intelligence Behind the Light',
+    title: 'AuroraLens',
     description: 'Precision aurora visibility scoring powered by NASA open data.',
     url: 'https://auroralens.online',
     siteName: 'AuroraLens',
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AuroraLens | Real-Time Aurora Prediction',
+    title: 'AuroraLens',
     description: 'Precision aurora visibility scores powered by AI.',
     images: ['https://auroralens.online/og-image.png'],
   },
