@@ -132,8 +132,23 @@ async def get_forecast(lat: float, lon: float, hour_offset: int = 0):
                 print(f"[Forecast] 7-Day outlook fetch error: {e}")
                 reliability = "SIMULATED"
 
+        # Fetch real-time weather from Open-Meteo
+        temp, cloud = 0, 20
+        try:
+            weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,cloud_cover&timezone=auto"
+            w_res = requests.get(weather_url, timeout=5)
+            if w_res.ok:
+                w_data = w_res.json()
+                temp = w_data.get('current', {}).get('temperature_2m', 0)
+                cloud = w_data.get('current', {}).get('cloud_cover', 20)
+        except:
+            pass
+
         # AI Prediction
-        res = calculate_aurora_probability(kp=kp, bz=bz, bt=bt, lat=lat, lon=lon, speed=speed, density=density)
+        res = calculate_aurora_probability(
+            kp=kp, bz=bz, bt=bt, lat=lat, lon=lon, 
+            speed=speed, density=density, cloud_cover=cloud
+        )
 
         return {
             "aurora_score": res["score"],
@@ -146,8 +161,8 @@ async def get_forecast(lat: float, lon: float, hour_offset: int = 0):
                 "speed_km_s": round(speed, 0),
                 "density_p_cm3": round(density, 1)
             },
-            "cloud_cover": 0,
-            "temperature": 0
+            "cloud_cover": cloud,
+            "temperature": temp
         }
     except Exception as e:
         print(f"[Forecast Error] {e}")
