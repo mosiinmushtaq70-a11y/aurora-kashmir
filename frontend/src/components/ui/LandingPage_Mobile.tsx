@@ -517,11 +517,19 @@ const LandingPage_Mobile: React.FC = () => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                     src={node.img || `https://images.unsplash.com/photo-1531366930499-41f53117ad8a?q=80&w=800&auto=format&fit=crop`} 
                   />
-                  <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
+                  <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10 z-30">
                     <span className={`w-2 h-2 rounded-full ${node.score >= 70 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.5)]'} animate-pulse`}></span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-white flex items-center">
-                      {node.level || 'STABLE'} KP-{Math.round((node.score || 40) / 100 * 9)}
-                      <KPTooltip value={Math.round((node.score || 40) / 100 * 9)} />
+                      {node.level || 'STABLE'} KP-{Math.round((node.score || 0) / 100 * 9)}
+                      <div className="group relative inline-block ml-2 align-middle pointer-events-auto">
+                        <span className="material-symbols-outlined text-[14px] text-[#00e5ff]/60 cursor-help hover:text-[#00e5ff] transition-colors">info</span>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 p-3 bg-[#080B11]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 -translate-y-2 group-hover:translate-y-0 z-50">
+                          <p className="text-[10px] leading-relaxed text-[#bac9cc] font-normal">
+                            <strong className="text-[#00F5C4]">Planetary K-Index:</strong> Measurements of geomagnetic activity at this specific node.
+                          </p>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-bottom-[#080B11]/95"></div>
+                        </div>
+                      </div>
                     </span>
                   </div>
                 </div>
@@ -529,7 +537,7 @@ const LandingPage_Mobile: React.FC = () => {
                   <h3 className="text-xl md:text-2xl font-['Manrope'] font-extrabold text-white mb-1 group-hover:text-[#00e5ff] transition-colors">{node.name}</h3>
                   <p className="text-[#bac9cc] text-[10px] md:text-xs mb-8 font-medium tracking-wider opacity-60 uppercase">{node.coords || `${node.lat.toFixed(2)}° N, ${(node.lon || node.lng).toFixed(2)}° E`}</p>
                   <div className="flex justify-between items-center text-xs font-bold">
-                    <span className="text-[#00e5ff] uppercase tracking-widest">{Math.round(node.score || 40)}% Visibility</span>
+                    <span className="text-[#00e5ff] uppercase tracking-widest">{node.score ? `${Math.round(node.score)}% Visibility` : 'Syncing...'}</span>
                   </div>
                 </div>
               </motion.button>
