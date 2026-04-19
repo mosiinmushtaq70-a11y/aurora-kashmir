@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BACKEND_URL } from '@/lib/api-config';
 import { useAppStore } from '@/store/useAppStore';
 import KPLineChart from './KPLineChart';
 
@@ -26,8 +27,7 @@ const AuroraForecastPanel: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-        const url = `${baseUrl}/api/weather/forecast/series?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
+        const url = `${BACKEND_URL}/api/weather/forecast/series?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch tactical series');
         const data = await res.json();

@@ -18,10 +18,11 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+import { BACKEND_URL } from '@/lib/api-config';
 import { useAppStore } from '@/store/useAppStore';
 import type { LiveTelemetryData } from '@/store/useAppStore';
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const API_BASE = BACKEND_URL || 'http://localhost:8000';
 const REFRESH_INTERVAL_MS = 12 * 60 * 1000;   // 12 minutes for live data
 const CACHE_EXPIRY_MS     = 12 * 60 * 60 * 1000; // 12 hours for localStorage
 
@@ -71,7 +72,7 @@ interface ForecastAPIResponse {
   };
 }
 
-function mapResponse(json: ForecastAPIResponse): LiveTelemetryData {
+function mapResponse(json: ForecastAPIResponse, currentHotspots: number = 0): LiveTelemetryData {
   const score = json.aurora_score ?? 0;
   return {
     auroraScore:   score,
@@ -85,8 +86,32 @@ function mapResponse(json: ForecastAPIResponse): LiveTelemetryData {
     solarSpeed:    json.telemetry?.speed_km_s    ?? 0,
     density:       json.telemetry?.density_p_cm3 ?? 0,
     lastUpdated:   json.last_updated ?? '',
+    globalHotspots: currentHotspots, // Preserve existing pulse data
     loading:       false,
     error:         false,
+  };
+}
+
+/** 
+ * Safely merges partial telemetry updates with existing state or defaults.
+ * Essential for TypeScript compliance when dealing with nullable state.
+ */
+function mergeLiveData(current: LiveTelemetryData | null, update: Partial<LiveTelemetryData>): LiveTelemetryData {
+  return {
+    auroraScore:   update.auroraScore   ?? current?.auroraScore   ?? 0,
+    cloudCover:    update.cloudCover    ?? current?.cloudCover    ?? 0,
+    temperature:   update.temperature   ?? current?.temperature   ?? 0,
+    precipitation: update.precipitation ?? current?.precipitation ?? 0,
+    kp:            update.kp            ?? current?.kp            ?? 0,
+    level:         update.level         ?? current?.level         ?? 'MINIMAL',
+    bz:            update.bz            ?? current?.bz            ?? 0,
+    bt:            update.bt            ?? current?.bt            ?? 0,
+    solarSpeed:    update.solarSpeed    ?? current?.solarSpeed    ?? 0,
+    density:       update.density       ?? current?.density       ?? 0,
+    lastUpdated:   update.lastUpdated   ?? current?.lastUpdated   ?? '',
+    globalHotspots:update.globalHotspots?? current?.globalHotspots?? 0,
+    loading:       update.loading       ?? current?.loading       ?? false,
+    error:         update.error         ?? current?.error         ?? false,
   };
 }
 
@@ -115,25 +140,14 @@ export function useLiveTelemetry() {
     if (!skipCache) {
       const cached = readCache(key);
       if (cached) {
-        setLiveData({ ...cached, loading: true, error: false });
+        setLiveData(mergeLiveData(useAppStore.getState().liveData, { 
+          ...cached, 
+          loading: true, 
+          error: false 
+        }));
       } else {
         // Mark loading so components can show a subtle pulse
-        setLiveData({
-          ...(liveData ?? {} as LiveTelemetryData),
-          loading: true,
-          error: false,
-          auroraScore:   liveData?.auroraScore   ?? 0,
-          cloudCover:    liveData?.cloudCover     ?? 0,
-          temperature:   liveData?.temperature    ?? 0,
-          precipitation: liveData?.precipitation  ?? 0,
-          kp:            liveData?.kp             ?? 0,
-          level:         liveData?.level          ?? '',
-          bz:            liveData?.bz             ?? 0,
-          bt:            liveData?.bt             ?? 0,
-          solarSpeed:    liveData?.solarSpeed      ?? 0,
-          density:       liveData?.density        ?? 0,
-          lastUpdated:   liveData?.lastUpdated    ?? '',
-        });
+        setLiveData(mergeLiveData(liveData, { loading: true, error: false }));
       }
     }
 
@@ -148,45 +162,59 @@ export function useLiveTelemetry() {
       const json: ForecastAPIResponse = await res.json();
 
       if (!isMounted.current) return;
-
-      const data = mapResponse(json);
+      const currentHotspots = useAppStore.getState().liveData?.globalHotspots ?? 0;
+      const data = mapResponse(json, currentHotspots);
       writeCache(key, data);
       setLiveData(data);
     } catch (err: unknown) {
       if ((err as Error).name === 'AbortError') return;
       if (!isMounted.current) return;
 
-      // Serve stale cache on error — never blank out the UI
-      const cached = readCache(key);
-      if (cached) {
-        setLiveData({ ...cached, loading: false, error: true });
-      } else {
-        setLiveData({
-          auroraScore: 0, cloudCover: 0, temperature: 0,
-          precipitation: 0, kp: 0, level: 'UNKNOWN',
-          bz: 0, bt: 0, solarSpeed: 0, density: 0,
-          lastUpdated: '', loading: false, error: true,
-        });
-      }
+      console.error('Telemetry Fetch Error:', err);
+      setLiveData(mergeLiveData(useAppStore.getState().liveData, {
+        bz: 0, bt: 0, solarSpeed: 0, density: 0,
+        lastUpdated: '', loading: false, error: true,
+      }));
     }
   }, [lat, lng, offset, setLiveData, liveData]);
+
+  const fetchGlobalPulse = useCallback(async () => {
+    try {
+      const url = `${API_BASE}/api/weather/stats/global_pulse`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const json = await res.json();
+      if (!isMounted.current) return;
+
+      setLiveData(mergeLiveData(useAppStore.getState().liveData, {
+        globalHotspots: json.active_hotspots ?? 0
+      }));
+    } catch (err) {
+      console.error("[Global Pulse Fetch Error]", err);
+    }
+  }, [setLiveData]);
 
   useEffect(() => {
     isMounted.current = true;
     fetchData();
+    fetchGlobalPulse();
 
     // Auto-refresh only for live view (offset = 0)
     if (offset === 0) {
       timerRef.current = setInterval(() => fetchData(true), REFRESH_INTERVAL_MS);
     }
 
+    // Separate interval for global pulse (2 minutes)
+    const pulseTimer = setInterval(fetchGlobalPulse, 120000);
+
     return () => {
       isMounted.current = false;
       if (timerRef.current) clearInterval(timerRef.current);
+      clearInterval(pulseTimer);
       if (abortRef.current) abortRef.current.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat, lng, offset]);   // Re-run whenever location or time offset changes
+  }, [lat, lng, offset, fetchGlobalPulse]);   // Re-run whenever location or time offset changes
 }
 
 // ─── Mounting component ───────────────────────────────────────────────────────

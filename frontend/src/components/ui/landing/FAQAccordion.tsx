@@ -11,23 +11,23 @@ interface FAQItem {
 const FAQ_DATA: FAQItem[] = [
   {
     question: "Does AuroraLens work at my latitude?",
-    answer: "AuroraLens covers all latitudes with aurora activity, including auroral zones in North America, Scandinavia, Iceland, Russia, and during high KP events, central Europe and the northern US."
+    answer: "The model is trained on a global coordinate system. While accuracy is highest in traditional auroral zones (Scandinavia, Iceland, Alaska), it is capable of predicting geomagnetic storm reach into mid-latitudes during high solar activity."
   },
   {
-    question: "How is this different from SpaceWeather.com or Aurora Forecast apps?",
-    answer: "Generic apps use NOAA's global KP-index. AuroraLens layers in local atmospheric density, cloud cover modeling, and terrain data for your exact GPS coordinates — not just your country."
+    question: "How is this different from standard forecast apps?",
+    answer: "Most apps rely solely on the planetary K-index. This project uses a dual-stage XGBoost engine that layers in live solar wind telemetry (Bz/Density/Speed) with local atmospheric variables to provide a more granular probability score."
   },
   {
     question: "How far in advance can it predict an aurora event?",
-    answer: "Our XGBoost model provides reliable 48-hour forecasts for all plans. Pro and Research plans include 7-day probabilistic forecasts with confidence intervals."
+    answer: "The current pipeline provides reliable 3-hour forecasts based on DSCOVR satellite data at the L1 point, with longer 24-48 hour trends derived from solar wind stability analysis."
   },
   {
-    question: "Does Aura AI require a subscription?",
-    answer: "Aura is available on the Pro plan and above. Free Observer accounts get limited Aura queries (3 per week)."
+    question: "Is the model publicly available?",
+    answer: "Yes, the training scripts, the dual-stage XGBoost architecture, and the preprocessing pipeline are all documented and available in the GitHub repository for peer review."
   },
   {
-    question: "Can I use AuroraLens data for scientific research?",
-    answer: "Yes. The Research plan includes full API access and historical dataset exports going back 60 years (where available). Academic institutions contact us for institutional pricing."
+    question: "Can I use AuroraLens data for research?",
+    answer: "The project is built on the NASA OMNI database (1995-present) and real-time NOAA telemetry. All derived predictive data is open-source and intended for educational and engineering demonstration purposes."
   }
 ];
 
@@ -41,7 +41,6 @@ const FAQAccordion: React.FC = () => {
 
       <div className="max-w-4xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16 md:mb-24">
-          <p className="text-[#00F5C4] font-bold tracking-[0.2em] text-xs uppercase mb-4">Uplink FAQ</p>
           <h2 className="text-4xl md:text-5xl font-['Manrope'] font-bold text-white tracking-tight">Technical Clarification</h2>
         </div>
 
@@ -81,10 +80,6 @@ const FAQAccordion: React.FC = () => {
                   >
                     <div className="p-8 pt-2 text-[#bac9cc] leading-relaxed text-base md:text-lg font-light">
                       {item.answer}
-                      <div className="mt-6 flex items-center gap-2 text-[#00F5C4]/60 text-xs italic">
-                        <span className="material-symbols-outlined text-sm">verified</span>
-                        Verified Telemetry Protocol
-                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -96,7 +91,7 @@ const FAQAccordion: React.FC = () => {
         {/* Support Link */}
         <div className="mt-16 text-center">
           <p className="text-[#9CA3AF] text-sm">
-            Have a specialized research request? <a href="#" className="text-[#00F5C4] hover:underline font-medium">Contact our scientific team</a>
+            Interested in the technical implementation? <a href="https://github.com/mosiinmushtaq70-a11y/aurora-kashmir" className="text-[#00F5C4] hover:underline font-medium">Review the codebase on GitHub</a>
           </p>
         </div>
       </div>

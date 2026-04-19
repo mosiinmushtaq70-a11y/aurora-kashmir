@@ -3,11 +3,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
+import { BACKEND_URL } from '@/lib/api-config';
 import KPLineChart from './dossier/KPLineChart';
 import { useState, useEffect } from 'react';
 
 const DestinationDossier: React.FC = () => {
-  const { activeDossier, liveData, closeDossier } = useAppStore();
+  const { activeDossier, liveData, closeDossier, openAICopilot } = useAppStore();
   const [forecastSeries, setForecastSeries] = useState<{ timestamp: string; kp: number; aurora_score: number; cloud_cover: number }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -17,8 +18,7 @@ const DestinationDossier: React.FC = () => {
     const fetchForecast = async () => {
       setIsSyncing(true);
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-        const res = await fetch(`${baseUrl}/api/weather/forecast/series?lat=${activeDossier.lat}&lon=${activeDossier.lng}`);
+        const res = await fetch(`${BACKEND_URL}/api/weather/forecast/series?lat=${activeDossier.lat}&lon=${activeDossier.lng}`);
         const data = await res.json();
         // Map backend series (time, probability, cloud) to Chart expected format
         const mapped = (data.series || []).map((item: any) => ({
@@ -152,7 +152,7 @@ const DestinationDossier: React.FC = () => {
              <span className="material-symbols-outlined text-sm">satellite_alt</span>
              INITIATE SATELLITE SYNC
            </button>
-           <button className="w-full py-6 border-2 border-white/10 text-white font-['Manrope'] font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-white/5 transition-all transform hover:-translate-y-1 opacity-60 flex items-center justify-center gap-3">
+            <button onClick={() => openAICopilot({ locationName: activeDossier?.name ?? 'Target Sector', auroraScore: liveData?.auroraScore ?? 0, temperature: liveData?.temperature ?? null, mode: 'PHOTO_ASSISTANT' })} className="w-full py-6 border-2 border-white/10 text-white font-['Manrope'] font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-white/5 transition-all transform hover:-translate-y-1 opacity-60 flex items-center justify-center gap-3">
              <span className="material-symbols-outlined text-sm">bolt</span>
              ASK AURA
            </button>

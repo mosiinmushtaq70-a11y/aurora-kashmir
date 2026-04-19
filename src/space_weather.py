@@ -1,3 +1,14 @@
+"""
+ * [space_weather.py]
+ * 
+ * PURPOSE: Data ingestion service for planetary space weather telemetry. Connects to NOAA SWPC and NASA DONKI APIs.
+ * DATA SOURCE: NOAA DSCOVR (L1), NOAA Planetary K-index, NASA DONKI (Solar Events).
+ * DEPENDS ON: requests for HTTP orchestration, pandas for data normalization.
+ * AUTHOR: Mosin Mushtaq — B.Tech AI/ML, SKUAST 2026
+ * NOTE: Sections marked "AI-generated" were produced by agentic AI
+ *       and verified for correctness against source documentation.
+ """
+
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
@@ -9,8 +20,32 @@ load_dotenv()
 # NOAA — Real-Time Telemetry (DSCOVR)
 # ─────────────────────────────────────────
 
+# Internal cache for real-time telemetry (TTL: 5 mins)
+_TELEMETRY_CACHE = {
+    'solar_wind': {'data': None, 'time': None},
+    'plasma': {'data': None, 'time': None},
+    'kp_index': {'data': None, 'time': None}
+}
+_CACHE_TTL_SEC = 300 # 5 minutes
+
+def _is_cache_valid(key):
+    cache = _TELEMETRY_CACHE.get(key)
+    if not cache or cache['data'] is None or cache['time'] is None:
+        return False
+    return (datetime.utcnow() - cache['time']).total_seconds() < _CACHE_TTL_SEC
+
+'''
+Fetches real-time magnetic field data (BT, BZ) from the NOAA DSCOVR satellite.
+DSCOVR sits at the L1 Lagrange point, providing a 15-60 minute lead time on solar wind impacts.
+
+@returns {pd.DataFrame|None} Normalized magnetic field data or None on failure
+
+NOTE: AI-generated section. Core logic verified against NOAA SWPC JSON specification.
+'''
 def get_solar_wind():
-    """Fetch real-time magnetic field data (BT, BZ) from NOAA DSCOVR"""
+    if _is_cache_valid('solar_wind'):
+        return _TELEMETRY_CACHE['solar_wind']['data']
+
     url = "https://services.swpc.noaa.gov/products/solar-wind/mag-5-minute.json"
     try:
         response = requests.get(url, timeout=10)
@@ -21,13 +56,18 @@ def get_solar_wind():
         df['time_tag'] = pd.to_datetime(df['time_tag'])
         for col in ['bx_gsm', 'by_gsm', 'bz_gsm', 'bt']:
             df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        _TELEMETRY_CACHE['solar_wind'] = {'data': df, 'time': datetime.utcnow()}
         return df
     except Exception as e:
         print(f"Error fetching solar wind: {e}")
         return None
 
 def get_plasma_data():
-    """Fetch real-time plasma speed, density, and temperature from NOAA"""
+    """Fetch real-time plasma speed, density, and temperature from NOAA (with 5-min cache)"""
+    if _is_cache_valid('plasma'):
+        return _TELEMETRY_CACHE['plasma']['data']
+
     url = "https://services.swpc.noaa.gov/products/solar-wind/plasma-5-minute.json"
     try:
         response = requests.get(url, timeout=10)
@@ -38,6 +78,8 @@ def get_plasma_data():
         df['time_tag'] = pd.to_datetime(df['time_tag'])
         for col in ['density', 'speed', 'temperature']:
             df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        _TELEMETRY_CACHE['plasma'] = {'data': df, 'time': datetime.utcnow()}
         return df
     except Exception as e:
         print(f"Error fetching plasma data: {e}")
@@ -65,8 +107,16 @@ def get_solar_wind_history():
 # NOAA — planetary K-index
 # ─────────────────────────────────────────
 
+'''
+Fetches the current observed planetary K-index (Kp).
+The Kp-index is the primary metric for global geomagnetic activity (0-9 scale).
+
+@returns {pd.DataFrame|None} Kp-index time-series or None on failure
+'''
 def get_kp_index():
-    """Fetch the current observed planetary K-index (Kp)"""
+    if _is_cache_valid('kp_index'):
+        return _TELEMETRY_CACHE['kp_index']['data']
+
     url = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json"
     try:
         response = requests.get(url, timeout=10)
@@ -76,6 +126,8 @@ def get_kp_index():
         df = pd.DataFrame(rows, columns=headers)
         df['time_tag'] = pd.to_datetime(df['time_tag'])
         df['kp'] = pd.to_numeric(df['Kp'], errors='coerce')
+        
+        _TELEMETRY_CACHE['kp_index'] = {'data': df, 'time': datetime.utcnow()}
         return df
     except Exception as e:
         print(f"Error fetching Kp index: {e}")

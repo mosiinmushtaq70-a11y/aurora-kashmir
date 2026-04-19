@@ -31,9 +31,9 @@ def send_aurora_email(user_email: str, score: float, lat: float, lon: float):
             "subject": f"🚨 High Aurora Probability Spiking at {lat}, {lon}!",
             "html": html_content
         })
-        print(f"✅ Email dispatched successfully to {user_email}: {response}")
+        print(f"Success: Email dispatched successfully to {user_email}: {response}")
     except Exception as e:
-        print(f"❌ Failed to dispatch Resend email: {e}")
+        print(f"Error: Failed to dispatch Resend email: {e}")
 
 def send_forecast_alert_email(user_email: str, score: float, peak_time: str, lat: float, lon: float):
     """
@@ -56,9 +56,9 @@ def send_forecast_alert_email(user_email: str, score: float, peak_time: str, lat
             "subject": "Heads Up: High Aurora Activity predicted in 8 hours!",
             "html": html_content
         })
-        print(f"✅ Fast-track predictive email dispatched successfully to {user_email}: {response}")
+        print(f"Success: Fast-track predictive email dispatched successfully to {user_email}: {response}")
     except Exception as e:
-        print(f"❌ Failed to dispatch predictive email: {e}")
+        print(f"Error: Failed to dispatch predictive email: {e}")
 
 def generate_24h_forecast(lat: float, lon: float):
     """
@@ -147,11 +147,11 @@ async def check_alert_conditions(user_lat: float, user_lon: float, user_email: s
         peak_12h_score, peak_time = generate_24h_forecast(user_lat, user_lon)
         
         if peak_12h_score and peak_12h_score >= min_score:
-            print(f"🚨 PREDICTIVE ALERT: Aurora Spike ({peak_12h_score}/100) inbound at {peak_time} UTC for {user_email}!")
+            print(f"Info: PREDICTIVE ALERT: Aurora Spike ({peak_12h_score}/100) inbound at {peak_time} UTC for {user_email}!")
             send_forecast_alert_email(user_email, peak_12h_score, peak_time, user_lat, user_lon)
         
         elif aurora_score >= min_score:
-            print(f"🚨 LIVE ALERT: High Aurora Probability ({aurora_score}/100) detected safely at {user_lat}, {user_lon} for {user_email}!")
+            print(f"Info: LIVE ALERT: High Aurora Probability ({aurora_score}/100) detected safely at {user_lat}, {user_lon} for {user_email}!")
             send_aurora_email(user_email, aurora_score, user_lat, user_lon)
             
     except Exception as e:
@@ -189,7 +189,7 @@ async def start_alert_scheduler():
             )
 
             alerts = response.data or []
-            print(f"🔍 Scheduler cycle: {len(alerts)} active alert(s) found.")
+            print(f"Info: Scheduler cycle: {len(alerts)} active alert(s) found.")
 
             for alert in alerts:
                 lat = alert.get("latitude")
@@ -198,10 +198,10 @@ async def start_alert_scheduler():
                 location = alert.get("target_location", "Unknown")
 
                 if lat is None or lon is None:
-                    print(f"⚠️  Skipping {email} — missing coordinates for {location}.")
+                    print(f"Info: Skipping {email} — missing coordinates for {location}.")
                     continue
 
-                print(f"🌌 Checking aurora conditions for {email} at {location} ({lat}, {lon})...")
+                print(f"Info: Checking aurora conditions for {email} at {location} ({lat}, {lon})...")
                 await check_alert_conditions(
                     user_lat=float(lat),
                     user_lon=float(lon),
@@ -210,7 +210,7 @@ async def start_alert_scheduler():
                 )
 
         except Exception as e:
-            print(f"❌ Scheduler error: {e}")
+            print(f"Error: Scheduler error: {e}")
 
         # Wait 10 minutes before next cycle
         await asyncio.sleep(600)

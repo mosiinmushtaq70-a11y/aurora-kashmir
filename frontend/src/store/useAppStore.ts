@@ -1,9 +1,21 @@
+/**
+ * [useAppStore.ts]
+ * 
+ * PURPOSE: Central state management for the AuroraLens application. Orchestrates navigation, telemetry caching, and UI state persistence.
+ * DATA SOURCE: Synchronizes with localStorage for persistence and useLiveTelemetry for data hydration.
+ * DEPENDS ON: Zustand for state orchestration.
+ * AUTHOR: Mosin Mushtaq — B.Tech AI/ML, SKUAST 2026
+ * NOTE: Sections marked "AI-generated" were produced by agentic AI
+ *       and verified for correctness against source documentation.
+ */
+
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 // ─── Type Definitions ────────────────────────────────────────────────────────
 
 export type ViewMode = 'LANDING' | 'MAP_HUD';
-export type MapLayer = 'VECTOR' | 'SATELLITE';
+export type DialMode = 'GLOBAL' | 'LOCAL' | 'CUSTOM';
 export type DossierTab = 'environmental' | 'tactical' | 'archives' | 'logistics';
 
 export interface TargetLocation {
@@ -20,6 +32,11 @@ export interface User {
   image?: string | null;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 /**
  * Context payload passed to the AI Copilot when opened from
  * a particular location. Drives the initial greeting message
@@ -29,8 +46,12 @@ export interface AICopilotContext {
   locationName: string;
   auroraScore: number;
   temperature: number | null;
+  /** 'AURORA_GUIDE' (Landing) vs 'PHOTO_ASSISTANT' (Map/Dossier) */
+  mode?: 'AURORA_GUIDE' | 'PHOTO_ASSISTANT';
   /** Optional pre-populated message (e.g. from "View Full Brief" button) */
   initialBrief?: string;
+  /** Optional pre-populated user query to automatically send on open */
+  initialQuery?: string;
 }
 
 /**
@@ -69,6 +90,8 @@ export interface LiveTelemetryData {
   solarSpeed: number;
   density: number;
   lastUpdated: string;
+  /** Number of active hotspots (>50 score, 100km apart) */
+  globalHotspots: number;
   /** Whether data is being fetched */
   loading: boolean;
   /** Whether the last fetch failed */
@@ -88,6 +111,48 @@ export interface ToastPayload {
 // Used by LocationHUD_Mobile forecast cards to jump to specific offsets.
 export const FORECAST_HOUR_PRESETS = [0, 6, 12, 24, 48] as const;
 export type ForecastHourPreset = typeof FORECAST_HOUR_PRESETS[number];
+
+// ── Phase 12.1: Local metadata enrichment for premium lore/images ────────────────
+export const DOSSIER_METADATA_MAP: Record<string, { lore: string[], hero?: string }> = {
+  'kirkjufell': {
+    lore: [
+      "Beyond the basalt columns and the rhythmic crash of the Atlantic lies a landmark forged in fire and sculpted by ice.",
+      "Kirkjufell stands not merely as a mountain, but as a celestial convergence point where the magnetic pulse of the North reaches its zenith.",
+      "High-density magnetic flux detected at the peak apex, accelerating ion collision probability by 14% for deep-field aurora captures."
+    ],
+    hero: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdhVAGG6MIWUfVCaC0XxIJQ5vG7uCAwirX4rQWgREm8oUOw11JcHzz-4_2E5_qafmYuXv2SLVLLdZpNlWZJ6E_0dqJoOqwgIC2tHNso1MCgUuY6WuOcfGhAenzxjF4NKMcv0vceYMmCaXp5QOKInxgQ91CQxKEn6DsGZko39UA6VAdqT-gH0s3C4yWXP0yZNuN5YDlcV4vhNfiOjRrcjZrWFerNDSfChnSAHZ0jtIddXx5Z8C961dCwUCyECZAGKuWpPBDRuo2UMs'
+  },
+  'tromso': {
+    lore: [
+      "Known as the Gateway to the Arctic, Tromsø is perched on the 69th parallel, perfectly positioned in the auroral oval's inner heart.",
+      "The interaction between the arctic fjords and the magnetospheric pulse creates a uniquely resonant visual spectrum.",
+      "Bridges of light span the Norwegian Sea, reflecting off the dark waters where the midnight sun surrendered months ago."
+    ],
+    hero: '/assets/dossier/tromso_hero.png'
+  },
+  'fairbanks': {
+    lore: [
+      "In the vast Alaskan Interior, Fairbanks offers an unparalleled stage for the celestial theater, free from coastal cloud interference.",
+      "A bastion of gold-rush history, now serving as a primary node for geomagnetic observation in the high sub-arctic.",
+      "A theater of deep-field luminescence where the atmosphere burns with the energy of distant solar storms."
+    ],
+    hero: '/assets/dossier/fairbanks_hero.png'
+  }
+};
+
+/** Checks if a location has a rich dossier by name (case-insensitive) or ID */
+export const isDossierAvailable = (nameOrId: string) => {
+  const normalized = nameOrId.toLowerCase();
+  return !!DOSSIER_METADATA_MAP[normalized] || 
+         Object.keys(DOSSIER_METADATA_MAP).some(id => normalized.includes(id));
+};
+
+/** Get the primary ID for a location name */
+export const getDossierId = (name: string): string | null => {
+  const normalized = name.toLowerCase();
+  if (DOSSIER_METADATA_MAP[normalized]) return normalized;
+  return Object.keys(DOSSIER_METADATA_MAP).find(id => normalized.includes(id)) || null;
+};
 
 // ─── Store Interface ──────────────────────────────────────────────────────────
 
@@ -115,8 +180,12 @@ interface AppState {
   // ── Phase 3: Modal Orchestration ─────────────────────────────────────────
   /** Primary AI Co-Pilot Chat (AIAssistantOverlay_Clean.tsx) */
   isAICopilotOpen: boolean;
-  /** Context injected into the copilot on open */
   aiCopilotContext: AICopilotContext | null;
+  /** Photo Assistant Overlay (PhotoAssistantOverlay.tsx) */
+  isPhotoAssistantOpen: boolean;
+  photoAssistantContext: AICopilotContext | null;
+  photoChatHistory: ChatMessage[];
+  photoAssistantSetup: 'general' | 'pro' | null;
 
   /** Target Alert Modal (TargetAlertModal.tsx) */
   isTargetAlertOpen: boolean;
@@ -127,10 +196,6 @@ interface AppState {
   /** Active Dossier — feeds all DossierView_*.tsx components */
   activeDossier: DossierTarget | null;
   isDossierOpen: boolean;
-
-  // ── Phase 3: Map Layer Toggle ─────────────────────────────────────────────
-  /** Toggled from the subtle button injected into LocationHUD_Mobile */
-  mapLayer: MapLayer;
 
   // ── Phase 3: Toast System (Pro-tier unwired UI fallback) ─────────────────
   toasts: ToastPayload[];
@@ -146,6 +211,15 @@ interface AppState {
 
   // ── Phase 9: Dossier Tab Navigation ───────────────────────────────────────
   dossierTab: DossierTab;
+
+  // ── Phase 5.1: Session Persistence (Chat & Location) ─────────────────────
+  aiChatHistory: ChatMessage[];
+  aiChatLastUpdated: number;
+  /** Flag to re-open AI Copilot on top of the Map when returning via 'Back' */
+  returnToCopilot: boolean;
+
+  /** Persistence for the Landing Page Dial Mode */
+  dialMode: DialMode;
 
   // ─── Actions ──────────────────────────────────────────────────────────────
 
@@ -179,9 +253,6 @@ interface AppState {
   openDossier: (target: DossierTarget) => void;
   closeDossier: () => void;
 
-  // Phase 3: Map Layer
-  toggleMapLayer: () => void;
-
   // Phase 3: Toast
   pushToast: (message: string, type?: ToastPayload['type']) => void;
   dismissToast: (id: string) => void;
@@ -198,12 +269,26 @@ interface AppState {
   // Phase 7: Direct target coordinate setter (used by SearchOverlay —
   // sets location without touching viewMode, unlike zoomToLocation which also navigates)
   setTargetLocation: (location: TargetLocation | null) => void;
+
+  // Phase 5.1: Chat Session
+  setAiChatHistory: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
+  clearAiChatHistory: () => void;
+  setReturnToCopilot: (val: boolean) => void;
+
+  // Phase 5.2: Photo Assistant Actions
+  openPhotoAssistant: (context: AICopilotContext) => void;
+  closePhotoAssistant: () => void;
+  setPhotoChatHistory: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
+  clearPhotoChatHistory: () => void;
+  setPhotoAssistantSetup: (setup: 'general' | 'pro' | null) => void;
 }
 
 // ─── Zustand Store ────────────────────────────────────────────────────────────
 
-export const useAppStore = create<AppState>((set, get) => ({
-  // ── Initial State ────────────────────────────────────────────────────────
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      // ── Initial State ────────────────────────────────────────────────────────
   viewMode: 'LANDING',
   targetLocation: null,
   timeScrubber: 0,
@@ -218,19 +303,43 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Phase 3 initial
   isAICopilotOpen: false,
   aiCopilotContext: null,
+  isPhotoAssistantOpen: false,
+  photoAssistantContext: null,
+  photoChatHistory: [],
+  photoAssistantSetup: null,
   isTargetAlertOpen: false,
   isSearchOpen: false,
   activeDossier: null,
   isDossierOpen: false,
-  mapLayer: 'VECTOR',
   toasts: [],
   historicTelemetry: null,
 
   // Phase 5 initial
-  liveData: null,
+  liveData: {
+    auroraScore: 0,
+    cloudCover: 0,
+    temperature: 0,
+    precipitation: 0,
+    kp: 0,
+    level: 'INITIALIZING',
+    bz: 0,
+    bt: 0,
+    solarSpeed: 0,
+    density: 0,
+    lastUpdated: '',
+    globalHotspots: 0,
+    loading: true,
+    error: false,
+  },
 
   // Phase 9 initial
   dossierTab: 'environmental',
+
+  // Phase 5.1 initial
+  aiChatHistory: [],
+  aiChatLastUpdated: 0,
+  dialMode: 'GLOBAL',
+  returnToCopilot: false,
 
   // ── Existing Actions (Preserved exactly) ────────────────────────────────
 
@@ -286,6 +395,30 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ isAICopilotOpen: false, aiCopilotContext: null });
   },
 
+  // ── Phase 5.2: Photo Assistant ──────────────────────────────────────────
+
+  openPhotoAssistant: (context: AICopilotContext) => {
+    set({ isPhotoAssistantOpen: true, photoAssistantContext: context });
+  },
+
+  closePhotoAssistant: () => {
+    set({ isPhotoAssistantOpen: false, photoAssistantContext: null });
+  },
+
+  setPhotoChatHistory: (messagesOrFn) => {
+    set((state) => ({
+      photoChatHistory: typeof messagesOrFn === 'function' ? messagesOrFn(state.photoChatHistory) : messagesOrFn
+    }));
+  },
+
+  clearPhotoChatHistory: () => {
+    set({ photoChatHistory: [], photoAssistantSetup: null });
+  },
+
+  setPhotoAssistantSetup: (setup: 'general' | 'pro' | null) => {
+    set({ photoAssistantSetup: setup });
+  },
+
   // ── Phase 3: Target Alert Modal ──────────────────────────────────────────
 
   openTargetAlert: () => set({ isTargetAlertOpen: true }),
@@ -299,38 +432,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Phase 3: Dossier ─────────────────────────────────────────────────────
 
   openDossier: (target: DossierTarget) => {
-    // Phase 12.1: Local metadata enrichment for premium lore/images
-    const metadataMap: Record<string, { lore: string[], hero?: string }> = {
-      'kirkjufell': {
-        lore: [
-          "Beyond the basalt columns and the rhythmic crash of the Atlantic lies a landmark forged in fire and sculpted by ice.",
-          "Kirkjufell stands not merely as a mountain, but as a celestial convergence point where the magnetic pulse of the North reaches its zenith.",
-          "High-density magnetic flux detected at the peak apex, accelerating ion collision probability by 14% for deep-field aurora captures."
-        ],
-        hero: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdhVAGG6MIWUfVCaC0XxIJQ5vG7uCAwirX4rQWgREm8oUOw11JcHzz-4_2E5_qafmYuXv2SLVLLdZpNlWZJ6E_0dqJoOqwgIC2tHNso1MCgUuY6WuOcfGhAenzxjF4NKMcv0vceYMmCaXp5QOKInxgQ91CQxKEn6DsGZko39UA6VAdqT-gH0s3C4yWXP0yZNuN5YDlcV4vhNfiOjRrcjZrWFerNDSfChnSAHZ0jtIddXx5Z8C961dCwUCyECZAGKuWpPBDRuo2UMs'
-      },
-      'tromso': {
-        lore: [
-          "Known as the Gateway to the Arctic, Tromsø is perched on the 69th parallel, perfectly positioned in the auroral oval's inner heart.",
-          "The interaction between the arctic fjords and the magnetospheric pulse creates a uniquely resonant visual spectrum.",
-          "Bridges of light span the Norwegian Sea, reflecting off the dark waters where the midnight sun surrendered months ago."
-        ],
-        hero: '/assets/dossier/tromso_hero.png'
-      },
-      'fairbanks': {
-        lore: [
-          "In the vast Alaskan Interior, Fairbanks offers an unparalleled stage for the celestial theater, free from coastal cloud interference.",
-          "A bastion of gold-rush history, now serving as a primary node for geomagnetic observation in the high sub-arctic.",
-          "A theater of deep-field luminescence where the atmosphere burns with the energy of distant solar storms."
-        ],
-        hero: '/assets/dossier/fairbanks_hero.png'
-      }
-    };
-
     const enrichedTarget = {
       ...target,
-      lore: metadataMap[target.id]?.lore || target.lore || [],
-      heroImage: metadataMap[target.id]?.hero || target.heroImage
+      lore: DOSSIER_METADATA_MAP[target.id]?.lore || target.lore || [],
+      heroImage: DOSSIER_METADATA_MAP[target.id]?.hero || target.heroImage
     };
 
     set({ 
@@ -342,13 +447,6 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   closeDossier: () => {
     set({ isDossierOpen: false, activeDossier: null });
-  },
-
-  // ── Phase 3: Map Layer Toggle ────────────────────────────────────────────
-
-  toggleMapLayer: () => {
-    const current = get().mapLayer;
-    set({ mapLayer: current === 'VECTOR' ? 'SATELLITE' : 'VECTOR' });
   },
 
   // ── Phase 3: Toast System ────────────────────────────────────────────────
@@ -393,4 +491,33 @@ export const useAppStore = create<AppState>((set, get) => ({
   setTargetLocation: (location: TargetLocation | null) => {
     set({ targetLocation: location });
   },
-}));
+
+  // ── Phase 5.1: Chat Session Actions ─────────────────────────────────────
+  setAiChatHistory: (messagesOrFn) => {
+    set((state) => ({
+      aiChatHistory: typeof messagesOrFn === 'function' ? messagesOrFn(state.aiChatHistory) : messagesOrFn,
+      aiChatLastUpdated: Date.now()
+    }));
+  },
+  clearAiChatHistory: () => {
+    set({ aiChatHistory: [], aiChatLastUpdated: 0 });
+  },
+  setReturnToCopilot: (val: boolean) => {
+    set({ returnToCopilot: val });
+  },
+  setDialMode: (mode: DialMode) => set({ dialMode: mode }),
+    }),
+    {
+      name: 'aurora-session-storage',
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        aiChatHistory: state.aiChatHistory,
+        aiChatLastUpdated: state.aiChatLastUpdated,
+        returnToCopilot: state.returnToCopilot,
+        photoChatHistory: state.photoChatHistory,
+        photoAssistantSetup: state.photoAssistantSetup,
+        dialMode: state.dialMode,
+      }),
+    }
+  )
+);

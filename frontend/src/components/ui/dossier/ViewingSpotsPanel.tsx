@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BACKEND_URL } from '@/lib/api-config';
 import { useAppStore } from '@/store/useAppStore';
 
 interface Spot {
@@ -25,8 +26,7 @@ const ViewingSpotsPanel: React.FC = () => {
     async function fetchSpots() {
       setLoading(true);
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-        const url = `${baseUrl}/api/sightseeing/spots?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
+        const url = `${BACKEND_URL}/api/sightseeing/spots?lat=${activeDossier?.lat}&lon=${activeDossier?.lng}`;
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();

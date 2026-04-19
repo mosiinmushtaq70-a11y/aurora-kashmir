@@ -1,3 +1,14 @@
+/**
+ * [SearchOverlay.tsx]
+ * 
+ * PURPOSE: Immersive geospatial search interface for selecting any coordinate on Earth for aurora tracking.
+ * DATA SOURCE: Nominatim OpenStreetMap API for geocoding and reverse geocoding.
+ * DEPENDS ON: useAppStore for target coordinate management, Framer Motion for entrance physics.
+ * AUTHOR: Mosin Mushtaq — B.Tech AI/ML, SKUAST 2026
+ * NOTE: Sections marked "AI-generated" were produced by agentic AI
+ *       and verified for correctness against source documentation.
+ */
+
 'use client';
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
@@ -13,7 +24,8 @@ import type { TargetLocation } from '@/store/useAppStore';
  *   ─ Panel: spring scale+y entrance (stiffness 300, damping 25)
  *
  * MISSION 2 — API Wiring & Strict Routing:
- *   ─ useDebounce (500ms) → Nominatim geocoding (open, no key)
+ *   ─ useDebounce (300ms) → Nominatim geocoding (open, no key)
+ *   ─ Result Caching: local Map-based cache to prevent redundant fetches
  *   ─ isLoading spinner, error fallback handled in UI
  *   ─ Zero hardcoded locations. Zero openDossier() calls.
  *   ─ Selection: setTargetLocation → setViewMode('MAP_HUD') → closeSearch()
@@ -23,6 +35,15 @@ import type { TargetLocation } from '@/store/useAppStore';
 
 // ─── useDebounce Hook ─────────────────────────────────────────────────────────
 
+/**
+ * Custom hook to debounce rapid input changes (e.g., typing in a search bar).
+ * Prevents overwhelming the Nominatim API with every keystroke.
+ * 
+ * @template T
+ * @param {T} value - The input value to debounce
+ * @param {number} delayMs - Delay in milliseconds before updating
+ * @returns {T} The debounced value
+ */
 function useDebounce<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState<T>(value);
   useEffect(() => {
@@ -64,6 +85,9 @@ function buildRegionLabel(result: NominatimResult): string {
   return (a.state || a.country || result.class || 'Region');
 }
 
+// ─── Local Lookup Cache (Static) ──────────────────────────────────────────────
+const SEARCH_CACHE = new Map<string, NominatimResult[]>();
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const SearchOverlay: React.FC = () => {
@@ -76,7 +100,7 @@ const SearchOverlay: React.FC = () => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const debouncedQuery = useDebounce(query, 500);
+  const debouncedQuery = useDebounce(query, 300);
 
   // Auto-focus input on mount
   useEffect(() => {
@@ -100,6 +124,15 @@ const SearchOverlay: React.FC = () => {
     }
 
     let cancelled = false;
+
+    // Check Cache first
+    if (SEARCH_CACHE.has(q)) {
+      setResults(SEARCH_CACHE.get(q)!);
+      setFetchError(null);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setFetchError(null);
 
@@ -123,6 +156,9 @@ const SearchOverlay: React.FC = () => {
       .then((data) => {
         if (!cancelled) {
           setResults(data);
+          if (data.length > 0) {
+            SEARCH_CACHE.set(q, data);
+          }
           if (data.length === 0) setFetchError(null); // empty is valid — show empty state
         }
       })
@@ -139,13 +175,21 @@ const SearchOverlay: React.FC = () => {
     return () => { cancelled = true; };
   }, [debouncedQuery]);
 
-  // Selection handler — exact sequence from MISSION 2.3
+/**
+ * Finalizes the location selection process.
+ * Updates the global coordinate state and teleports the user to the Map HUD.
+ * 
+ * @param {NominatimResult} result - The geocoding result from OpenStreetMap
+ * @returns {void}
+ * 
+ * NOTE: AI-generated section. Core logic verified against store schema.
+ */
   const handleSelect = useCallback((result: NominatimResult) => {
     const location: TargetLocation = {
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
       name: buildLocationName(result),
-      zoom: 11,
+      zoom: 8.5,
     };
     // Step a: update global coordinates
     setTargetLocation(location);
@@ -231,13 +275,13 @@ const SearchOverlay: React.FC = () => {
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              placeholder="Search any location on Earth…"
+              placeholder="Search any location..."
               className="flex-1 bg-transparent text-[#e0e2eb] placeholder:text-[#bac9cc]/40 outline-none text-base font-light"
             />
 
             {/* Scanning indicator when typing but not yet debounced */}
             {query && !isLoading && query !== debouncedQuery && (
-              <span className="text-[9px] uppercase tracking-widest text-[#00e5ff]/50 animate-pulse flex-shrink-0">
+              <span className="text-[9px] uppercase tracking-widest text-[#00e5ff]/50 animate-[pulse_0.8s_infinite] flex-shrink-0">
                 Scanning…
               </span>
             )}
