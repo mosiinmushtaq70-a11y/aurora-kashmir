@@ -22,7 +22,7 @@ import { BACKEND_URL } from '@/lib/api-config';
 import { useAppStore } from '@/store/useAppStore';
 import type { LiveTelemetryData } from '@/store/useAppStore';
 
-const API_BASE = BACKEND_URL || 'http://localhost:8000';
+const API_BASE = ''; // Use relative paths to trigger Next.js API proxying
 const REFRESH_INTERVAL_MS = 12 * 60 * 1000;   // 12 minutes for live data
 const CACHE_EXPIRY_MS     = 12 * 60 * 60 * 1000; // 12 hours for localStorage
 
