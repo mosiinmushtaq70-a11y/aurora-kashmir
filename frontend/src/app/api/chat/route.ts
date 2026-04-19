@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY,
-  baseURL: 'https://integrate.api.nvidia.com/v1',
-});
+// Client will be instantiated inside the route handler to avoid build-time errors
 
 export async function POST(req: Request) {
   if (!process.env.NVIDIA_API_KEY) {
@@ -13,6 +10,11 @@ export async function POST(req: Request) {
       { status: 503 }
     );
   }
+
+  const openai = new OpenAI({
+    apiKey: process.env.NVIDIA_API_KEY,
+    baseURL: 'https://integrate.api.nvidia.com/v1',
+  });
 
   try {
     const body = await req.json();
