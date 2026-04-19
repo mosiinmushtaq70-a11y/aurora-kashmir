@@ -59,6 +59,10 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'AuroraLens',
