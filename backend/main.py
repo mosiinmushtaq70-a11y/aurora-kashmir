@@ -265,6 +265,8 @@ async def get_global_pulse():
         return {"active_hotspots": GLOBAL_PULSE_CACHE["count"]}
 
     try:
+        from src.predictor import calculate_aurora_probability_batch
+        
         # Get latest telemetry
         df_kp = get_kp_index()
         current_kp = float(df_kp['kp'].iloc[-1]) if df_kp is not None and not df_kp.empty else 3.0
@@ -277,28 +279,27 @@ async def get_global_pulse():
         current_speed = float(df_plasma['speed'].iloc[-1]) if df_plasma is not None and not df_plasma.empty else 400.0
         current_density = float(df_plasma['density'].iloc[-1]) if df_plasma is not None and not df_plasma.empty else 5.0
         
-        count = 0
-        # 100km grid optimization
-        # 1deg lat ~ 111km
-        for lat in range(-90, 91, 1):
-            # Optimization: Skip equatorial belt where aurora is impossible (unless Kp > 9)
-            if -30 < lat < 30 and current_kp < 8:
-                continue
-                
-            cos_lat = math.cos(math.radians(lat))
-            if cos_lat <= 0: continue
+        # 1. Generate grid of points
+        lats = []
+        lons = []
+        for lat in range(-90, 91, 2): # 2-degree step for speed
+            if -30 < lat < 30 and current_kp < 8: continue
             
-            # lon_step to maintain ~100km (111 * cos_lat * step = 100 => step = 100 / (111 * cos_lat))
-            lon_step = max(1, round(0.9 / cos_lat)) 
+            cos_lat = math.cos(math.radians(lat))
+            lon_step = max(2, round(1.8 / cos_lat)) if cos_lat > 0 else 10
             
             for lon in range(-180, 181, lon_step):
-                # We use a fast-path score calculation if possible, or just the predictor
-                res = calculate_aurora_probability(
-                    kp=current_kp, bz=current_bz, bt=current_bt, 
-                    lat=lat, lon=lon, speed=current_speed, density=current_density
-                )
-                if res["score"] > 50:
-                    count += 1
+                lats.append(float(lat))
+                lons.append(float(lon))
+
+        # 2. Vectorized Batch Inference
+        scores = calculate_aurora_probability_batch(
+            kp=current_kp, bz=current_bz, bt=current_bt,
+            lats=np.array(lats), lons=np.array(lons),
+            speed=current_speed, density=current_density
+        )
+        
+        count = sum(1 for s in scores if s > 50)
         
         GLOBAL_PULSE_CACHE["count"] = count
         GLOBAL_PULSE_CACHE["timestamp"] = current_time
