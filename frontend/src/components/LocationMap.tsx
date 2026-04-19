@@ -910,7 +910,7 @@ export default function LocationMap() {
     // On desktop, we have sidebars on left and right (approx 320px each).
     const padding = isMobile 
       ? { top: 60, bottom: window.innerHeight * 0.45, left: 0, right: 0 } 
-      : { top: 100, bottom: 100, left: 340, right: 340 };
+      : { top: 40, bottom: 40, left: 0, right: 0 };
 
     setTimeout(() => {
       map.flyTo({
