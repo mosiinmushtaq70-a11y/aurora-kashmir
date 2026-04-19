@@ -800,7 +800,7 @@ export default function LocationMap() {
   const [mapReady, setMapReady] = useState(false);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
-  const [mapStyleUrl, setMapStyleUrl] = useState<string>(MAP_STYLE);
+  const [mapStyleUrl, setMapStyleUrl] = useState<string | any>(MAP_STYLE);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light'>('dark');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
