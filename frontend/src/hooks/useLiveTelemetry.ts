@@ -64,6 +64,8 @@ interface ForecastAPIResponse {
   precipitation: number;
   level: string;
   last_updated: string;
+  light_pollution?: number;
+  top_spots?: any[];
   telemetry: {
     bz_nt: number;
     bt_nt: number;
