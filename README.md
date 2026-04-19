@@ -45,7 +45,7 @@ The result: a **0–100 visibility score for the exact location where you are st
 | 🤖 **Dual-Stage XGBoost Model** | Stage 1 detects geomagnetic activity, Stage 2 classifies Kp intensity |
 | 🌍 **Dynamic Global Pulse** | 50–350 live activity nodes scaled scientifically by current planetary Kp levels |
 | 📷 **Aura AI Assistant** | Astrophotography companion that suggests ISO, shutter speed, and aperture for tonight |
-| 🔍 **Location Search** | Search any city or coordinates on Earth for a personalised forecast |
+| 🔍 **Location Search** | Search any city or coordinates on Earth for a personalised forecast and if you wanna jump straight in , just click the direction icon and the google map with the selected location will pop up |
 | 📡 **Open Source** | Full codebase, ML training pipeline, and documentation publicly available |
 
 ---
