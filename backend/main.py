@@ -252,17 +252,20 @@ GLOBAL_HEATMAP_CACHE: Dict[str, Any] = {
     "data": None
 }
 
-GLOBAL_PULSE_CACHE: Dict[str, Any] = {
-    "timestamp": 0.0,
-    "count": 0
-}
+# 1-hour server-side cache for global hotspots
+GLOBAL_PULSE_CACHE = {"count": 0, "timestamp": 0, "top_spots": []}
 
 @app.get("/api/weather/stats/global_pulse")
 async def get_global_pulse():
+    global GLOBAL_PULSE_CACHE
     current_time = time.time()
-    # 60-second cache
-    if GLOBAL_PULSE_CACHE["count"] > 0 and (current_time - GLOBAL_PULSE_CACHE["timestamp"]) < 60:
-        return {"active_hotspots": GLOBAL_PULSE_CACHE["count"], "top_spots": GLOBAL_PULSE_CACHE.get("top_spots", [])}
+    
+    # Use cache if it's less than 1 hour old (3600 seconds)
+    if current_time - GLOBAL_PULSE_CACHE["timestamp"] < 3600 and GLOBAL_PULSE_CACHE["top_spots"]:
+        return {
+            "active_hotspots": GLOBAL_PULSE_CACHE["count"],
+            "top_spots": GLOBAL_PULSE_CACHE["top_spots"]
+        }
 
     try:
         HOTSPOT_ZONES = [
