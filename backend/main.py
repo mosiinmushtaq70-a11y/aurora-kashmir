@@ -6,7 +6,7 @@ import sys
 import os
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, EmailStr
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from supabase import create_client, Client
 
 # Add src to python path to import our predictor and API tools
@@ -226,9 +226,23 @@ async def get_spots(lat: float, lon: float):
     )
     return sorted_spots[:3] # Return top 3 nearest spots
 
-@app.get("/")
-def read_root():
-    return {"status": "Aurora Backend is LIVE"}
+@app.get("/", tags=["Health"])
+async def read_root():
+    """
+    Root endpoint for health checks and status verification.
+    Ensures Render's proxy remains active and provides basic service metadata.
+    """
+    return {
+        "status": "Aurora Backend is LIVE",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "engine": "XGBoost Aurora Predictor v1.0",
+        "docs": "/docs"
+    }
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """Standard health check endpoint for monitoring services."""
+    return {"status": "healthy", "uptime": "active"}
 
 # -----------------
 # 7-DAY GLOBAL HEATMAP
