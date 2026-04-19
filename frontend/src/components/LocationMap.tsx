@@ -11,30 +11,8 @@ import TimelineScrubber from './TimelineScrubber';
 import AIAssistantModal from './ui/AIAssistantModal';
 import MapSearchBar from './ui/MapSearchBar';
 
-const CARTO_DARK = {
-  version: 8 as const,
-  sources: {
-    'carto-dark': {
-      type: 'raster' as const,
-      tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-      ],
-      tileSize: 256,
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
-    }
-  },
-  layers: [
-    {
-      id: 'carto-dark-layer',
-      type: 'raster' as const,
-      source: 'carto-dark',
-      minzoom: 0,
-      maxzoom: 19
-    }
-  ]
-};
+const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY || 'zRabvh1uAz153y9zzhhh';
+const MAP_STYLE = `https://api.maptiler.com/maps/darkmatter/style.json?key=${MAPTILER_KEY}`;
 
 function AnimatedNumber({ value, format }: { value: number, format?: (v: number) => string }) {
   const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
@@ -801,7 +779,7 @@ export default function LocationMap() {
   const [mapReady, setMapReady] = useState(false);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
-  const [mapStyleUrl, setMapStyleUrl] = useState<string | any>(CARTO_DARK);
+  const [mapStyleUrl, setMapStyleUrl] = useState<string>(MAP_STYLE);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light'>('dark');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -856,7 +834,7 @@ export default function LocationMap() {
 
   // ─── Sync mapStyleUrl with theme ────────────
   useEffect(() => {
-    setMapStyleUrl(mapTheme === 'dark' ? CARTO_DARK : CARTO_DARK); // Placeholder for light if needed
+    setMapStyleUrl(MAP_STYLE);
   }, [mapTheme]);
 
   // ─── Map Resizing to clear bezels ──────────────────────────────────
