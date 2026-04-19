@@ -7,7 +7,7 @@
 ---
 
 ### 📝 Project Evolution: From Regional Study to Global Intelligence
-*Originally conceived as **Aurora Kashmir**, this project began as a localized exploration of geomagnetic data. As the vision scaled and the telemetry engine matured to process real-time NASA data for any coordinate on Earth, it evolved into **AuroraLens**—a high-fidelity, global platform for aurora intelligence.
+**Originally conceived as **Aurora Kashmir**, this project began as a localized exploration of geomagnetic data. As the vision scaled and the telemetry engine matured to process real-time NASA data for any coordinate on Earth, it evolved into **AuroraLens**—a high-fidelity, global platform for aurora intelligence.**
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
