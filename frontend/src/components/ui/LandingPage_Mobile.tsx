@@ -495,9 +495,13 @@ const LandingPage_Mobile: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {(liveData?.topSpots && liveData.topSpots.length > 0 ? liveData.topSpots : ACTIVITY_NODES).map((node: any) => (
-              <button
+            {(liveData?.topSpots && liveData.topSpots.length > 0 ? liveData.topSpots : ACTIVITY_NODES).map((node: any, idx: number) => (
+              <motion.button
                 key={node.id || node.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: idx * 0.1 }}
                 onClick={() => handleNodeClick({
                   ...node,
                   lat: node.lat,
@@ -505,10 +509,14 @@ const LandingPage_Mobile: React.FC = () => {
                   name: node.name,
                   id: node.id || node.name
                 } as any)}
-                className="group stitch-glass-card rounded-[2.5rem] overflow-hidden text-left hover:border-[#00e5ff]/30 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] reveal-on-scroll"
+                className="group stitch-glass-card rounded-[2.5rem] overflow-hidden text-left hover:border-[#00e5ff]/30 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
               >
                 <div className="relative h-64 overflow-hidden">
-                  <img alt={node.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={node.img || 'https://images.unsplash.com/photo-1531366930499-41f53117ad8a?q=80&w=800&auto=format&fit=crop'} />
+                  <img 
+                    alt={node.name} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                    src={node.img || `https://images.unsplash.com/photo-1531366930499-41f53117ad8a?q=80&w=800&auto=format&fit=crop`} 
+                  />
                   <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
                     <span className={`w-2 h-2 rounded-full ${node.score >= 70 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.5)]'} animate-pulse`}></span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-white flex items-center">
@@ -524,7 +532,7 @@ const LandingPage_Mobile: React.FC = () => {
                     <span className="text-[#00e5ff] uppercase tracking-widest">{Math.round(node.score || 40)}% Visibility</span>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </section>
