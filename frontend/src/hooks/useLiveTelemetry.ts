@@ -24,7 +24,7 @@ import type { LiveTelemetryData } from '@/store/useAppStore';
 
 const API_BASE = ''; // Use relative paths to trigger Next.js API proxying
 const REFRESH_INTERVAL_MS = 12 * 60 * 1000;   // 12 minutes for live data
-const CACHE_EXPIRY_MS     = 12 * 60 * 60 * 1000; // 12 hours for localStorage
+const CACHE_EXPIRY_MS     = 15 * 60 * 1000;  // 15 minutes — prevents stale weather data poisoning
 
 // ─── Cache helpers ────────────────────────────────────────────────────────────
 
@@ -101,23 +101,28 @@ function mapResponse(json: ForecastAPIResponse, currentHotspots: number = 0): Li
  * Essential for TypeScript compliance when dealing with nullable state.
  */
 function mergeLiveData(current: LiveTelemetryData | null, update: Partial<LiveTelemetryData>): LiveTelemetryData {
+  // For weather fields: use explicit undefined check (not ??) so that a live
+  // value of 0°C or 0% cloud doesn't get silently ignored in favour of a cached 0.
+  const def = <T>(a: T | undefined, b: T | undefined, fallback: T): T =>
+    a !== undefined ? a : b !== undefined ? b : fallback;
+
   return {
-    auroraScore:   update.auroraScore   ?? current?.auroraScore   ?? 0,
-    cloudCover:    update.cloudCover    ?? current?.cloudCover    ?? 0,
-    temperature:   update.temperature   ?? current?.temperature   ?? 0,
-    precipitation: update.precipitation ?? current?.precipitation ?? 0,
-    kp:            update.kp            ?? current?.kp            ?? 0,
-    level:         update.level         ?? current?.level         ?? 'MINIMAL',
-    bz:            update.bz            ?? current?.bz            ?? 0,
-    bt:            update.bt            ?? current?.bt            ?? 0,
-    solarSpeed:    update.solarSpeed    ?? current?.solarSpeed    ?? 0,
-    density:       update.density       ?? current?.density       ?? 0,
-    lightPollution: update.lightPollution ?? current?.lightPollution ?? 1,
-    lastUpdated:   update.lastUpdated   ?? current?.lastUpdated   ?? '',
-    globalHotspots:update.globalHotspots?? current?.globalHotspots?? 0,
-    topSpots:      update.topSpots      ?? current?.topSpots      ?? [],
-    loading:       update.loading       ?? current?.loading       ?? false,
-    error:         update.error         ?? current?.error         ?? false,
+    auroraScore:    def(update.auroraScore,    current?.auroraScore,    0),
+    cloudCover:     def(update.cloudCover,     current?.cloudCover,     0),
+    temperature:    def(update.temperature,    current?.temperature,    0),
+    precipitation:  def(update.precipitation,  current?.precipitation,  0),
+    lightPollution: def(update.lightPollution, current?.lightPollution, 1),
+    kp:             def(update.kp,             current?.kp,             0),
+    level:          def(update.level,          current?.level,          'MINIMAL'),
+    bz:             def(update.bz,             current?.bz,             0),
+    bt:             def(update.bt,             current?.bt,             0),
+    solarSpeed:     def(update.solarSpeed,     current?.solarSpeed,     0),
+    density:        def(update.density,        current?.density,        0),
+    lastUpdated:    def(update.lastUpdated,    current?.lastUpdated,    ''),
+    globalHotspots: def(update.globalHotspots, current?.globalHotspots, 0),
+    topSpots:       def(update.topSpots,       current?.topSpots,       []),
+    loading:        update.loading  !== undefined ? update.loading  : (current?.loading  ?? false),
+    error:          update.error    !== undefined ? update.error    : (current?.error    ?? false),
   };
 }
 
