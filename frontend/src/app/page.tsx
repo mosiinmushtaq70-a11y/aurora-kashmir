@@ -22,7 +22,6 @@ import LocationHUD_Mobile        from '@/components/ui/LocationHUD_Mobile';
 
 // ── Phase 4: Global Modal Portal ─────────────────────────────────────────────
 import AIAssistantOverlay_Clean  from '@/components/ui/AIAssistantOverlay_Clean';
-import DestinationDossier from '@/components/ui/DestinationDossier';
 import TargetAlertModal          from '@/components/ui/TargetAlertModal';
 import SearchOverlay             from '@/components/ui/SearchOverlay';
 import PhotoAssistantOverlay   from '@/components/ui/PhotoAssistantOverlay';
@@ -145,22 +144,6 @@ export default function Home() {
             transition={{ duration: 0.25 }}
           >
             <PhotoAssistantOverlay />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── 2. Destination Dossier Router (z-100) ────────────────────────── */}
-      <AnimatePresence>
-        {isDossierOpen && activeDossier && (
-          <motion.div
-            key={`dossier-${activeDossier.id}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0  }}
-            exit={{    opacity: 0, y: 20  }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-100 overflow-y-auto"
-          >
-            <DestinationDossier />
           </motion.div>
         )}
       </AnimatePresence>
