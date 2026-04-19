@@ -4,6 +4,13 @@
 > Real-time aurora visibility scoring for your exact location —  
 > powered by live NASA satellite data and a dual-stage XGBoost ML pipeline.
 
+---
+
+### 📝 Project Evolution: From Regional Study to Global Intelligence
+*Originally conceived as **Aurora Kashmir**, this project began as a localized exploration of geomagnetic data. As the vision scaled and the telemetry engine matured to process real-time NASA L1 data for any coordinate on Earth, it evolved into **AuroraLens**—a high-fidelity, global platform for aurora intelligence. We maintain our roots in open science while looking toward a global horizon.*
+
+---
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](https://fastapi.tiangolo.com/)
@@ -101,6 +108,21 @@ graph TD
     HUD --> AuraAI
     Zustand --> HUD
 ```
+
+---
+
+## 🤖 ML Model Performance Benchmarks
+
+![AuroraLens ML Model Performance](auroralens_benchmark_graph.png)
+
+| Metric | Value |
+|---|---|
+| Stage 1 — Activity Detection Accuracy | 74.6% |
+| Stage 2 — Intensity Classification Precision | 87.3% |
+| Overall Weighted F1-Score | 81.0% |
+| Test Dataset Size | 1.2 million hours of NASA OMNI records |
+
+For a deep dive into feature engineering and training methodology, see **[ML_ENGINE_SPEC.md](ML_ENGINE_SPEC.md)**.
 
 ---
 
