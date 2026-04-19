@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 
 const TrustBar: React.FC = () => {
   const stats = [
-    { value: '12,000+', label: 'Active Observers' },
-    { value: '98.4%', label: 'Forecast Accuracy' },
-    { value: '60 Years', label: 'Telemetry Data' },
-    { value: '24/7', label: 'Satellite Uplink' },
+    { value: '87.3%', label: 'Intensity Precision' },
+    { value: '74.6%', label: 'Activity Detection' },
+    { value: '40 Years', label: 'NASA OMNI Dataset' },
+    { value: 'DSCOVR', label: 'Real-Time Telemetry' },
   ];
 
   return (
@@ -26,7 +26,7 @@ const TrustBar: React.FC = () => {
                 idx !== stats.length - 1 ? 'md:border-r border-white/10' : ''
               }`}
             >
-              <div className="text-3xl md:text-5xl font-['Manrope'] font-extrabold text-[#00F5C4] mb-2 drop-shadow-[0_0_20px_rgba(0,245,196,0.3)]">
+              <div className="text-3xl md:text-5xl font-['Manrope'] font-extrabold text-[#00F5C4] mb-2">
                 {stat.value}
               </div>
               <div className="text-[10px] md:text-xs font-['Manrope'] font-bold text-[#9CA3AF] uppercase tracking-[0.2em]">

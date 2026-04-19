@@ -1,3 +1,27 @@
+"""
+ * [predictor.py]
+ * 
+ * PURPOSE: Dual-stage XGBoost inference engine for predicting aurora probability and planetary intensity.
+ * DATA SOURCE: NASA OMNI2 historical dataset (1981–2023) and live NOAA DSCOVR telemetry.
+ * DEPENDS ON: joblib for model serialization, pandas/numpy for feature engineering.
+ * AUTHOR: Mosin Mushtaq — B.Tech AI/ML, SKUAST 2026
+ * NOTE: Sections marked "AI-generated" were produced by agentic AI
+ *       and verified for correctness against source documentation.
+ """
+
+# =============================================================================
+# STAGE 1: Geomagnetic Activity Classifier (XGBoost)
+# Input: Solar wind features (Bz, Speed, Density)
+# Output: P(active) — binary probability that geomagnetic activity is above baseline
+# Training data: NASA OMNI2 hourly averages, 1981–2023
+# =============================================================================
+
+# =============================================================================
+# STAGE 2: Intensity Level Regressor (XGBoost)
+# Input: Features + Stage 1 output
+# Output: Kp-index prediction (0–9 scale)
+# =============================================================================
+
 import os
 import joblib
 import pandas as pd
@@ -61,10 +85,23 @@ def kp_threshold_for_geomag_lat(geomag_lat):
     if abs_lat >= 25: return 8
     return 9
 
+'''
+Calculates the Aurora Visibility Score for a given coordinate using a dual-stage ML pipeline.
+
+@param {number} kp - Current planetary K-index (0–9 scale)
+@param {number} bz - Interplanetary Bz in GSM coordinates (nT)
+@param {number} bt - Total interplanetary magnetic field (nT)
+@param {number} lat - User's latitude in decimal degrees
+@param {number} lon - User's longitude in decimal degrees
+@param {number} speed - Solar wind speed (km/s)
+@param {number} density - Proton density (p/cm3)
+@param {number} temp - Solar wind temperature (K)
+@param {number} cloud_cover - Local cloud cover percentage (0–100)
+@returns {dict} Prediction results containing score, confidence, and level
+
+NOTE: AI-generated section. Architecture based on XGBoost ensemble training.
+'''
 def calculate_aurora_probability(kp, bz, bt, lat=34.08, lon=74.79, speed=None, density=None, temp=None, cloud_cover=0):
-    """
-    Calculate aurora visibility using trained XGBoost models, incorporating environmental factors.
-    """
     
     geomag_lat = geo_to_geomagnetic_lat(lat, lon)
     threshold = kp_threshold_for_geomag_lat(geomag_lat)
@@ -84,8 +121,11 @@ def calculate_aurora_probability(kp, bz, bt, lat=34.08, lon=74.79, speed=None, d
     if density: input_vals['proton_density'] = density
     if temp: input_vals['sw_temperature'] = temp
     
-    # Calculate derived features
+    # Bz southward (negative) = magnetic field reconnects with Earth's magnetosphere.
+    # This is the PRIMARY aurora driver — more important than solar wind speed alone.
     input_vals['bz_south'] = abs(min(bz, 0))
+    
+    # Ey Merging Electric Field captures the rate at which solar wind energy enters the magnetosphere.
     if speed:
         input_vals['ey_merging'] = speed * input_vals['bz_south'] / 1000.0
     
@@ -208,6 +248,91 @@ def fallback_heuristic(kp, bz, bt, threshold):
         "threshold": threshold,
         "prob_active": 0.0
     }
+
+def calculate_aurora_probability_batch(kp, bz, bt, lats, lons, speed=None, density=None, temp=None):
+    """
+    Vectorized version of calculate_aurora_probability for processing large grids.
+    Processes thousands of points in milliseconds.
+    """
+    if model_s1 is None or feature_cols is None:
+        # Simple fallback for batch
+        scores = []
+        for lat, lon in zip(lats, lons):
+            res = fallback_heuristic(kp, bz, bt, kp_threshold_for_geomag_lat(geo_to_geomagnetic_lat(lat, lon)))
+            scores.append(res["score"])
+        return scores
+
+    # 1. Vectorized Geomagnetic Coordinate Conversion
+    pole_lat = math.radians(80.9)
+    pole_lon = math.radians(289.1)
+    lats_r = np.radians(lats)
+    lons_r = np.radians(lons)
+    
+    geomag_lats_r = np.arcsin(
+        np.sin(lats_r) * math.sin(pole_lat) +
+        np.cos(lats_r) * math.cos(pole_lat) * np.cos(lons_r - pole_lon)
+    )
+    geomag_lats = np.degrees(geomag_lats_r)
+    abs_geomag_lats = np.abs(geomag_lats)
+
+    # 2. Vectorized Threshold Calculation
+    bins = [25, 30, 35, 40, 45, 50, 55, 60, 65]
+    thresholds = 9 - np.digitize(abs_geomag_lats, bins)
+
+    # 3. Prepare Batch DataFrame
+    input_vals = feature_medians.copy()
+    input_vals['bz_gsm'] = bz
+    input_vals['scalar_b'] = bt
+    if speed: input_vals['sw_speed'] = speed
+    if density: input_vals['proton_density'] = density
+    if temp: input_vals['sw_temperature'] = temp
+    input_vals['bz_south'] = abs(min(bz, 0))
+    if speed: input_vals['ey_merging'] = speed * input_vals['bz_south'] / 1000.0
+    
+    now = datetime.utcnow()
+    input_vals['month'] = now.month
+    input_vals['hour_of_day'] = now.hour
+    input_vals['year_raw'] = now.year
+    cycle_days = (now - datetime(2019, 12, 1)).days
+    cycle_phase = (cycle_days % 4017) / 4017.0 * 2 * math.pi
+    input_vals['solar_cycle_sin'] = math.sin(cycle_phase)
+    input_vals['solar_cycle_cos'] = math.cos(cycle_phase)
+
+    # Replicate row for each point
+    batch_df = pd.DataFrame([input_vals] * len(lats))[feature_cols]
+
+    # 4. Batch Inference
+    prob_active = model_s1.predict_proba(batch_df)[:, 1]
+    is_active = prob_active > 0.5
+    
+    # We always run Stage 2 for the whole batch to keep logic simple, 
+    # but only use it where is_active is True.
+    intensity_labels = model_s2.predict(batch_df) + 1
+    
+    kp_midpoints = np.array([1.5, 4.0, 5.7, 7.7, 9.0])
+    predicted_kps = kp_midpoints[intensity_labels]
+
+    # 5. Vectorized Score Calculation
+    scores = np.zeros(len(lats))
+    
+    # Minimal Level Mask
+    # condition: not is_active OR predicted_kp < threshold
+    minimal_mask = (~is_active) | (predicted_kps < thresholds)
+    
+    # Minimal Score Calculation
+    lat_factors = np.maximum(0, (abs_geomag_lats - 45) / 20.0)
+    lat_bonuses = lat_factors * 45
+    minimal_scores = (prob_active * 30 + lat_bonuses).astype(int)
+    
+    # Active Score Calculation
+    score_bases = 40 + (intensity_labels * 10) + (np.maximum(0, predicted_kps - thresholds) / (9 - thresholds + 0.1)) * 30
+    bz_bonus = min(20, max(0, -bz * 1.5)) if bz < 0 else 0
+    active_scores = np.minimum(100, (score_bases + bz_bonus)).astype(int)
+    
+    scores[minimal_mask] = minimal_scores[minimal_mask]
+    scores[~minimal_mask] = active_scores[~minimal_mask]
+    
+    return scores.tolist()
 
 if __name__ == "__main__":
     # Test for Tromso (threshold 0)

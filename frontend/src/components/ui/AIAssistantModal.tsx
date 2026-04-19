@@ -66,7 +66,9 @@ export default function AIAssistantModal({ isOpen, onClose, locationName = 'Unkn
         const data = await res.json();
         setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: '[ SYSTEM ERROR ]: Communications array offline.' }]);
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData.error || 'Communications array offline.';
+        setMessages(prev => [...prev, { role: 'assistant', content: `[ SYSTEM ERROR ]: ${errorMessage}` }]);
       }
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: '[ SYSTEM ERROR ]: Uplink failed. Check connection.' }]);

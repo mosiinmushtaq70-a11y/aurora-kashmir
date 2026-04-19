@@ -12,7 +12,7 @@ export default function TimelineScrubber() {
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value, 10);
-    console.log('Scrubber change:', val);
+
     setTimeScrubber(val);
   };
 

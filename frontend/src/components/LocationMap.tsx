@@ -36,29 +36,6 @@ const CARTO_DARK = {
   ]
 };
 
-const ESRI_SATELLITE_RASTER = {
-  version: 8 as const,
-  sources: {
-    'esri-satellite': {
-      type: 'raster' as const,
-      tiles: [
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-      ],
-      tileSize: 256,
-      attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    }
-  },
-  layers: [
-    {
-      id: 'satellite-tiles',
-      type: 'raster' as const,
-      source: 'esri-satellite',
-      minzoom: 0,
-      maxzoom: 19
-    }
-  ]
-};
-
 function AnimatedNumber({ value, format }: { value: number, format?: (v: number) => string }) {
   const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
   const display = useTransform(spring, (current) => format ? format(current) : current.toFixed(0));
@@ -323,7 +300,7 @@ function LocalInsightsSidebar({ forecast, primeSpots, onSpotClick, locationName,
 
         <div className="flex flex-col gap-2">
           {forecast && forecast.aurora_score >= 40 ? (
-            primeSpots.map((spot, i) => {
+            Array.isArray(primeSpots) && primeSpots.map((spot, i) => {
             let dynamicName = spot.name || `Peak @ ${spot.altitude || 0}m`;
             if (!spot.name) {
               if (spot.altitude > 2000) dynamicName = `High Altitude Peak @ ${spot.altitude}m`;
@@ -811,6 +788,8 @@ function LocalDataSidebar({ location, forecast, fetchError, scenicMode }: { loca
   );
 }
 
+import { BACKEND_URL } from '@/lib/api-config';
+
 // ─── Main LocationMap Component ───────────────────────────────────────────
 
 export default function LocationMap() {
@@ -875,9 +854,9 @@ export default function LocationMap() {
     }
   };
 
-  // ─── Sync mapStyleUrl with mapTheme (no re-keying = no flash) ────────────
+  // ─── Sync mapStyleUrl with theme ────────────
   useEffect(() => {
-    setMapStyleUrl(mapTheme === 'dark' ? CARTO_DARK : ESRI_SATELLITE_RASTER);
+    setMapStyleUrl(mapTheme === 'dark' ? CARTO_DARK : CARTO_DARK); // Placeholder for light if needed
   }, [mapTheme]);
 
   // ─── Map Resizing to clear bezels ──────────────────────────────────
@@ -899,16 +878,14 @@ export default function LocationMap() {
     setForecast(null);
     setFetchError(null);
 
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-    const url = `${baseUrl}/api/weather/forecast/global?lat=${targetLocation.lat}&lon=${targetLocation.lng}&hour_offset=${timeScrubber}`;
-    console.log('[LocationMap] Fetching forecast:', url);
+    const url = `${BACKEND_URL}/api/weather/forecast/global?lat=${targetLocation.lat}&lon=${targetLocation.lng}&hour_offset=${timeScrubber}`;
 
     (async () => {
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         const data: LocalForecastData = await res.json();
-        console.log('[LocationMap] Forecast received:', data);
+
         // Guard: ensure the response looks like a valid forecast object
         if (typeof data?.aurora_score !== 'number') {
           throw new Error('Unexpected response shape from API');
@@ -916,17 +893,24 @@ export default function LocationMap() {
         setForecast(data);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        console.error('[LocationMap] Forecast fetch failed:', msg);
         setFetchError(msg);
         setForecast(null);
       }
     })();
 
     // Fetch prime viewing spots
-    fetch(`/api/sightseeing?lat=${targetLocation.lat}&lon=${targetLocation.lng}`)
+    fetch(`/api/sightseeing/spots?lat=${targetLocation.lat}&lon=${targetLocation.lng}`)
       .then(r => r.json())
-      .then(data => setPrimeSpots(data))
-      .catch(err => console.error("Failed to fetch sightseeing spots", err));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setPrimeSpots(data);
+        } else {
+          setPrimeSpots([]);
+        }
+      })
+      .catch(err => {
+        setPrimeSpots([]);
+      });
 
   }, [targetLocation, timeScrubber]);
 
@@ -939,16 +923,28 @@ export default function LocationMap() {
   const doFlyTo = (map: ReturnType<MapRef['getMap']>, overwriteLoc?: { lat: number, lng: number, zoom?: number }) => {
     const loc = overwriteLoc || targetLocationRef.current;
     if (!loc) return;
+
+    // Google Maps Logic: Optical Centering
+    // We shift the geographic center to the "visual center" by accounting for UI overlays.
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    
+    // On mobile, the HUD is at the bottom (approx 45% of height).
+    // On desktop, we have sidebars on left and right (approx 320px each).
+    const padding = isMobile 
+      ? { top: 60, bottom: window.innerHeight * 0.45, left: 0, right: 0 } 
+      : { top: 100, bottom: 100, left: 340, right: 340 };
+
     setTimeout(() => {
       map.flyTo({
         center: [loc.lng, loc.lat],
-        zoom: loc.zoom || 14,
-        pitch: 65,
+        zoom: loc.zoom || 8.5,
+        pitch: 45,
         bearing: -15,
+        padding: padding,
         duration: 4000,
         easing: (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
       });
-    }, 200); // short delay to allow map to finish rendering
+    }, 200);
   };
 
   // ─── flyTo on targetLocation change (when map is already mounted & ready) ─
@@ -997,6 +993,18 @@ export default function LocationMap() {
     };
   }, [scenicMode, mapReady]);
 
+  // Listen to spot list clicks from HUD
+  useEffect(() => {
+    const handleFlyToSpot = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { lat, lng } = customEvent.detail;
+      const map = mapRef.current?.getMap();
+      if (map) doFlyTo(map, { lat, lng, zoom: map.getZoom() });
+    };
+    window.addEventListener('flyToSpot', handleFlyToSpot);
+    return () => window.removeEventListener('flyToSpot', handleFlyToSpot);
+  }, []);
+
   return (
     <div className="absolute inset-0 z-0">
       <Map
@@ -1006,8 +1014,8 @@ export default function LocationMap() {
           longitude: 0,
           latitude: 20,
           zoom: 2,
-          pitch: 0,
-          bearing: 0,
+          pitch: 45,
+          bearing: -15,
         }}
         onLoad={(e) => {
           setMapReady(true);
@@ -1025,15 +1033,23 @@ export default function LocationMap() {
       >
         <AttributionControl compact={true} position="bottom-right" customAttribution="" />
 
-        {/* Legacy HUD sidebars/controls are intentionally not rendered.
-            The new single-source HUD is LocationHUD_Mobile in app/page.tsx. */}
-        {scenicAuroraData && (
-          <Source id="aurora-source" type="geojson" data={scenicAuroraData}>
-            <Layer {...auroraHeatmapLayer} />
-          </Source>
+        {/* Aurora heatmap effectively removed per user directive */}
+
+        {/* ─── Target Location Marker (Searched / Current Location) ─── */}
+        {targetLocation && (
+          <Marker longitude={targetLocation.lng} latitude={targetLocation.lat} anchor="center">
+            <div className="relative flex items-center justify-center pointer-events-none">
+              {/* Outer ping animation */}
+              <div className="absolute w-8 h-8 bg-white/30 rounded-full animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]" />
+              {/* Inner pulse */}
+              <div className="absolute w-4 h-4 bg-white/50 rounded-full animate-pulse" />
+              {/* Core white dot */}
+              <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)] relative z-10" />
+            </div>
+          </Marker>
         )}
 
-        {forecast && forecast.aurora_score >= 40 && primeSpots.map((spot) => {
+        {Array.isArray(primeSpots) && primeSpots.map((spot) => {
           const isSelected = selectedSpotId === spot.id;
           const isHovered = hoveredSpotId === spot.id;
           const dynamicName = spot.altitude > 2000 ? `High Ridge @ ${spot.altitude}m` : `Peak @ ${spot.altitude || 0}m`;
@@ -1048,7 +1064,7 @@ export default function LocationMap() {
                   e.stopPropagation();
                   setSelectedSpotId(spot.id);
                   const map = mapRef.current?.getMap();
-                  if (map) doFlyTo(map, { lat: spot.lat, lng: spot.lng, zoom: 14 });
+                  if (map) doFlyTo(map, { lat: spot.lat, lng: spot.lng, zoom: map.getZoom() });
                 }}
               >
                 <AnimatePresence>
@@ -1060,7 +1076,7 @@ export default function LocationMap() {
                       className="absolute bottom-6 flex flex-col items-center pointer-events-none z-70 whitespace-nowrap"
                     >
                       <div className="bg-[#080B11]/80 backdrop-blur-3xl border border-cyan-400/50 px-3 py-1.5 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.3)] flex flex-col items-center gap-0.5">
-                        <span className="text-slate-100 text-[11px] font-semibold">{dynamicName}</span>
+                        <span className="text-white text-[11px] font-semibold">{dynamicName}</span>
                       </div>
                       <div className="w-px h-3 bg-cyan-400/80 mt-0.5" />
                     </motion.div>
@@ -1075,7 +1091,7 @@ export default function LocationMap() {
                       exit={{ opacity: 0, y: 2 }}
                       className="absolute bottom-4 flex flex-col items-center pointer-events-none z-60 whitespace-nowrap"
                     >
-                      <div className="bg-[#080B11]/60 backdrop-blur-xl border border-white/10 px-2 py-1 rounded text-slate-100 text-[9px] font-medium shadow-md">
+                      <div className="bg-[#080B11]/60 backdrop-blur-xl border border-white/10 px-2 py-1 rounded text-white text-[9px] font-medium shadow-md">
                         {dynamicName}
                       </div>
                     </motion.div>

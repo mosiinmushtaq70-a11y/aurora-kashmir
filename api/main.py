@@ -14,9 +14,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routers import weather
 from api.services import alerts
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from datetime import datetime
+from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv() # Load from root .env 
 
 app = FastAPI(
     title="AuroraLens Prediction API",
@@ -39,6 +43,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def log_requests(request, call_next):
+    import time
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    print(f"DEBUG: {request.method} {request.url.path} - {response.status_code} ({duration:.2f}s)")
+    return response
+
 app.include_router(weather.router, prefix="/api/weather", tags=["Weather"])
 
 @app.get("/api/health")
@@ -48,7 +61,11 @@ def read_health():
 # -----------------
 # DATABASE SETUP
 # -----------------
-engine = create_engine("sqlite:///./telemetry_alerts.db", connect_args={"check_same_thread": False})
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./telemetry_alerts.db")
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -60,6 +77,10 @@ class TelemetryAlert(Base):
     target_location = Column(String)
     start_date = Column(String)
     end_date = Column(String)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    min_kp = Column(Float, default=3.0)
+    forecast_horizon = Column(Integer, default=72)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)
@@ -76,6 +97,10 @@ class AlertSubscription(BaseModel):
     target_location: str
     start_date: str
     end_date: str
+    lat: float
+    lon: float
+    min_kp: Optional[float] = 3.5
+    forecast_horizon: Optional[int] = 72
 
 @app.post("/api/alerts/subscribe")
 async def subscribe_to_alert(subscription: AlertSubscription, db: Session = Depends(get_db)):
@@ -83,12 +108,16 @@ async def subscribe_to_alert(subscription: AlertSubscription, db: Session = Depe
         email=subscription.email,
         target_location=subscription.target_location,
         start_date=subscription.start_date,
-        end_date=subscription.end_date
+        end_date=subscription.end_date,
+        latitude=subscription.lat,
+        longitude=subscription.lon,
+        min_kp=subscription.min_kp,
+        forecast_horizon=subscription.forecast_horizon
     )
     db.add(db_alert)
     db.commit()
     db.refresh(db_alert)
-    return {"status": "success", "message": "Watch alert registered in database."}
+    return {"status": "success", "message": "Watch alert registered in cloud database."}
 
 
 @app.on_event("startup")

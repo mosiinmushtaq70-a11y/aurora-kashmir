@@ -67,6 +67,7 @@ const DossierTactical: React.FC<DossierTacticalProps> = ({
       auroraScore:  activeDossier?.auroraScore ?? 50,
       temperature:  activeDossier?.temperature ?? 0,
       initialBrief: getTacticalBrief(),
+      mode: 'PHOTO_ASSISTANT',
     });
   }, [openAICopilot, activeDossier, getTacticalBrief]);
 

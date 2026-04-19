@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import { BACKEND_URL } from '@/lib/api-config';
 
 /**
  * --- TargetAlertModal ---
@@ -27,9 +28,12 @@ const TargetAlertModal: React.FC = () => {
 
   // Form state (local UI only — not persisted to store)
   const [email,     setEmail]     = useState('');
+  const [trackMode, setTrackMode] = useState<'TODAY' | 'CUSTOM'>('TODAY');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate,   setEndDate]   = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const today = new Date().toISOString().split('T')[0];
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +42,34 @@ const TargetAlertModal: React.FC = () => {
       return;
     }
     setSubmitting(true);
+    
+    // Logic: Calculate forecast horizon in hours based on start/end dates
+    let horizon = 72; // default
+    const effectiveStart = trackMode === 'TODAY' ? today : startDate;
+    
+    if (effectiveStart && endDate) {
+      const start = new Date(effectiveStart);
+      const end = new Date(endDate);
+      const diffMs = end.getTime() - start.getTime();
+      if (diffMs > 0) {
+        horizon = Math.round(diffMs / (1000 * 60 * 60));
+      }
+    }
+
     try {
-      const res = await fetch('/api/alerts/subscribe', {
+      const res = await fetch(`${BACKEND_URL}/api/alerts/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, locationName, lat, lng, startDate, endDate }),
+        body: JSON.stringify({ 
+          email, 
+          target_location: locationName, 
+          lat, 
+          lon: lng, 
+          start_date: effectiveStart, 
+          end_date: endDate,
+          min_kp: 3.5, // High-fidelity baseline
+          forecast_horizon: horizon 
+        }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       pushToast(`Alert registered for ${locationName}. We'll notify you at ${email}.`, 'success');
@@ -54,17 +81,13 @@ const TargetAlertModal: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [email, locationName, lat, lng, startDate, endDate, pushToast, closeTargetAlert]);
+  }, [email, locationName, lat, lng, startDate, endDate, trackMode, today, pushToast, closeTargetAlert]);
 
   return (
     <div
       className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-[#080B11]/60 backdrop-blur-md font-['Inter',_sans-serif]"
       onClick={closeTargetAlert}   // backdrop click to close
     >
-      {/* 
-        NOTE: Styles ported directly from Stitch source.
-        Material Symbols and custom scrollbar/input styles are included.
-      */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..700&family=Manrope:wght@200..800&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
@@ -86,7 +109,6 @@ const TargetAlertModal: React.FC = () => {
       >
         {/* Modal Header */}
         <header className="p-8 border-b border-white/5 relative">
-          {/* Close → closeTargetAlert */}
           <button
             onClick={closeTargetAlert}
             className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-[#bac9cc] hover:text-white transition-colors active:scale-90"
@@ -109,17 +131,41 @@ const TargetAlertModal: React.FC = () => {
         {/* Configuration Form */}
         <div className="p-8 flex flex-col gap-8">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            {/* Mode Selection */}
+            <div className="flex flex-col">
+              <label className="text-[10px] tracking-widest text-[#bac9cc] uppercase font-bold mb-3 ml-1">
+                TRACKING MODE
+              </label>
+              <div className="flex gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setTrackMode('TODAY')}
+                  className={`flex-1 py-3 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all ${trackMode === 'TODAY' ? 'bg-[#00e5ff] text-[#0b0e14] shadow-lg' : 'text-[#bac9cc] hover:bg-white/5'}`}
+                >
+                  Track from Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTrackMode('CUSTOM')}
+                  className={`flex-1 py-3 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all ${trackMode === 'CUSTOM' ? 'bg-[#00e5ff] text-[#0b0e14] shadow-lg' : 'text-[#bac9cc] hover:bg-white/5'}`}
+                >
+                  Custom Range
+                </button>
+              </div>
+            </div>
+
             {/* Date Group */}
             <div className="grid grid-cols-2 gap-4 text-[10px]">
               <div className="flex flex-col text-[10px]">
                 <label className="text-[10px] tracking-widest text-[#bac9cc] uppercase font-bold mb-2 ml-1">
-                  CURRENT DATE
+                  START DATE
                 </label>
                 <div className="relative group">
                   <input
-                    className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-5 text-[#e0e2eb] font-light focus:ring-0 focus:border-[#c3f5ff]/30 focus:bg-white/[0.08] transition-all outline-none"
+                    disabled={trackMode === 'TODAY'}
+                    className={`w-full h-14 bg-white/5 border border-white/10 rounded-xl px-5 text-[#e0e2eb] font-light focus:ring-0 focus:border-[#c3f5ff]/30 focus:bg-white/[0.08] transition-all outline-none ${trackMode === 'TODAY' ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
                     type="date"
-                    value={startDate}
+                    value={trackMode === 'TODAY' ? today : startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                 </div>

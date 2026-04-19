@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
   console.error("🚨 ALERT: Next.js cannot see the .env file!");
   throw new Error("CRITICAL: DATABASE_URL is missing. Stopping server to prevent localhost default.");
 }
-console.log("✅ Prisma is booting with URL:", process.env.DATABASE_URL.substring(0, 30) + "...");
+
 
 // Set up WebSocket for Neon to bypass mobile hotspot firewalls
 neonConfig.webSocketConstructor = ws;

@@ -1,3 +1,14 @@
+/**
+ * [page.tsx]
+ * 
+ * PURPOSE: Root application component that orchestrates the primary view switching (Landing vs Map) and manages modal portals.
+ * DATA SOURCE: Reacts to useAppStore viewMode and modal states.
+ * DEPENDS ON: useAppStore, LandingPage_Mobile, LocationMap, SearchOverlay.
+ * AUTHOR: Mosin Mushtaq — B.Tech AI/ML, SKUAST 2026
+ * NOTE: Sections marked "AI-generated" were produced by agentic AI
+ *       and verified for correctness against source documentation.
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,6 +25,7 @@ import AIAssistantOverlay_Clean  from '@/components/ui/AIAssistantOverlay_Clean'
 import DestinationDossier from '@/components/ui/DestinationDossier';
 import TargetAlertModal          from '@/components/ui/TargetAlertModal';
 import SearchOverlay             from '@/components/ui/SearchOverlay';
+import PhotoAssistantOverlay   from '@/components/ui/PhotoAssistantOverlay';
 import ToastNotifier             from '@/components/ui/ToastNotifier';
 
 // ── Phase 5: Live Telemetry Bridge ───────────────────────────────────────────
@@ -25,11 +37,11 @@ export default function Home() {
   const {
     viewMode,
     isAICopilotOpen,
+    isPhotoAssistantOpen,
     isDossierOpen,
     activeDossier,
     isTargetAlertOpen,
     isSearchOpen,
-    mapLayer,
   } = useAppStore();
 
   // ── Map is always mounted (behind everything) so it loads instantly ────────
@@ -118,6 +130,21 @@ export default function Home() {
             transition={{ duration: 0.25 }}
           >
             <AIAssistantOverlay_Clean />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── 1.1 Photo Assistant Overlay (z-100) ─────────────────────────── */}
+      <AnimatePresence>
+        {isPhotoAssistantOpen && (
+          <motion.div
+            key="photo-assistant"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <PhotoAssistantOverlay />
           </motion.div>
         )}
       </AnimatePresence>

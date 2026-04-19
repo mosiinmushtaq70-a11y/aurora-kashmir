@@ -4,6 +4,7 @@ import os
 from pydantic import BaseModel
 from datetime import datetime
 import pandas as pd
+import math
 
 # Ensure src module is properly resolvable
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -18,7 +19,15 @@ import asyncio
 import requests
 from src import space_weather
 
+import time
+from typing import Dict, Any
+
 router = APIRouter()
+
+GLOBAL_PULSE_CACHE: Dict[str, Any] = {
+    "timestamp": 0.0,
+    "count": 0
+}
 
 class ForecastResponse(BaseModel):
     aurora_score: float
@@ -134,7 +143,6 @@ async def get_global_forecast(lat: float = 64.84, lon: float = -147.72, hour_off
         )
         
         # Return structured and decoupled data
-        import math
         def safe_float(v, default=0.0):
             try:
                 f = float(v)
@@ -182,3 +190,81 @@ def get_historical_telemetry():
         return {"data": df_clean.to_dict(orient="records")}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+@router.get("/stats/global_pulse")
+async def get_global_pulse():
+    """
+    Calculates the number of active hotspots globally (>50 aurora score) 
+    using a latitude-aware 100km grid. Includes 2-minute server-side caching.
+    """
+    current_time = time.time()
+    # 1-hour cache as requested to reduce load
+    if GLOBAL_PULSE_CACHE["count"] > 0 and (current_time - GLOBAL_PULSE_CACHE["timestamp"]) < 3600:
+        return {"active_hotspots": GLOBAL_PULSE_CACHE["count"]}
+
+    try:
+        # Get latest telemetry
+        mag_task = asyncio.to_thread(space_weather.get_solar_wind)
+        kp_task = asyncio.to_thread(space_weather.get_kp_index)
+        plasma_task = asyncio.to_thread(space_weather.get_plasma_data)
+        
+        sw_df, kp_df, plasma_df = await asyncio.gather(mag_task, kp_task, plasma_task)
+        
+        # Safe extraction with fallbacks
+        current_kp = 3.0
+        current_bz = 0.0
+        current_bt = 5.0
+        current_speed = 400.0
+        current_density = 5.0
+        current_temp = 100000.0
+
+        if kp_df is not None and not kp_df.empty:
+            current_kp = float(kp_df.iloc[-1]['kp'])
+        
+        if sw_df is not None and not sw_df.empty:
+            current_bz = float(sw_df.iloc[-1].get('bz_gsm', 0.0))
+            current_bt = float(sw_df.iloc[-1].get('bt', 5.0))
+
+        if plasma_df is not None and not plasma_df.empty:
+            current_speed = float(plasma_df.iloc[-1].get('speed', 400.0))
+            current_density = float(plasma_df.iloc[-1].get('density', 5.0))
+            current_temp = float(plasma_df.iloc[-1].get('temperature', 100000.0))
+
+        import numpy as np
+        lats_list = []
+        lons_list = []
+        
+        # Grid optimization: 2-degree lat steps for speed
+        for lat in range(-90, 91, 2):
+            if -30 < lat < 30 and current_kp < 8:
+                continue
+            
+            cos_lat = math.cos(math.radians(lat))
+            if cos_lat <= 0: continue
+            
+            # lon_step to maintain roughly equal area distribution
+            lon_step = max(2, round(1.8 / cos_lat)) 
+            for lon in range(-180, 181, lon_step):
+                lats_list.append(lat)
+                lons_list.append(lon)
+
+        if not lats_list:
+            return {"active_hotspots": 0}
+
+        # Vectorized Batch Prediction (Thousands of points in one call)
+        scores = predictor.calculate_aurora_probability_batch(
+            kp=current_kp, bz=current_bz, bt=current_bt, 
+            lats=np.array(lats_list), lons=np.array(lons_list), 
+            speed=current_speed, density=current_density, temp=current_temp
+        )
+        
+        count = sum(1 for s in scores if s > 45)
+        print(f"[Global Pulse] Scan complete. Points: {len(scores)}, Found: {count}, Sample Scores: {scores[:5]}")
+        
+        GLOBAL_PULSE_CACHE["count"] = count
+        GLOBAL_PULSE_CACHE["timestamp"] = current_time
+        return {"active_hotspots": count}
+        
+    except Exception as e:
+        print(f"[Global Pulse Error] {e}")
+        # Return last known count or 0 if nothing in cache
+        return {"active_hotspots": GLOBAL_PULSE_CACHE["count"]}

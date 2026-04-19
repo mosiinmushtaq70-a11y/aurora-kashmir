@@ -1,11 +1,69 @@
-.env
-cache/
-data/
-*.exe
+# Environment variables
+*.env
+.env*
+!.env.example
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+venv/
+env/
+.venv/
 __pycache__/
-.ipynb_checkpoints/
-.vscode/
-.idea/
+*.py[cod]
+*$py.class
+
+# Databases & Cache
+*.db
+*.sqlite3
+cache/
+*.json
+!package.json
+!package-lock.json
+
+# ML model binaries (too large for git — hosted as GitHub Release)
+models/
+*.pkl
+*.joblib
+*.h5
+*.model
+*.ckpt
+
+# Raw training data
+data/
+*.txt
+!.gitignore
+!omni_head.txt
+!requirements.txt
+!overview.txt
+
+# Logs and debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+backend/output.json
+backend/test_supabase_connect.py
+backend/test_supabase_ipv4.py
+src/debug_paths.py
+
+# AI Agent private configs (local only)
+.agent-private/
+.cursor/
+.windsurf/
+.aider*
+.continue/
+*.agent-config
+.gsd/
+skills-lock.json
+model_capabilities.json
+model_capabilities.yaml
 .gemini/
 .agents/
 .agent/
@@ -14,7 +72,38 @@ _agent/
 appData/
 tmp/
 brain/
-*.log
 
-# Windsurf configuration
-.windsurf/.env
+# Private development files
+archive/
+scratch/
+redesign/
+stitch_quarantine/
+testsprite_tests/
+AURORALENS_DEVLOG.md
+MASTER_PLAN.md
+PROJECT_CONTEXT.md
+PROJECT_RULES.md
+AURORALENS_PRD.md
+AuroraLens_Growth_Roadmap.md
+WEBSITE_AUDIT.md
+overhaul.md
+BACKEND_TEST_PLAN.json
+model_inspection.txt
+validation_check.py
+
+# Private docs
+docs/reddit_stealth_marketing_copy.md
+docs/GSD-STYLE.md
+docs/token-optimization-guide.md
+docs/model-selection-playbook.md
+
+# Large installers
+*.exe
+*.dmg
+*.msi
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

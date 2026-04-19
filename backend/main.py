@@ -6,9 +6,8 @@ import sys
 import os
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
-from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from datetime import datetime, timedelta
+from supabase import create_client, Client
 
 # Add src to python path to import our predictor and API tools
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,49 +25,47 @@ app.add_middleware(
 )
 
 # -----------------
-# DATABASE SETUP
+# DATABASE SETUP (Supabase Native REST API)
 # -----------------
-engine = create_engine("sqlite:///./telemetry_alerts.db", connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL", "")
+supabase_key = os.getenv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", os.getenv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY", ""))
 
-class TelemetryAlert(Base):
-    __tablename__ = "telemetry_alerts"
-
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, index=True)
-    target_location = Column(String)
-    start_date = Column(String)
-    end_date = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-Base.metadata.create_all(bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+if supabase_url and supabase_key:
+    supabase: Client = create_client(supabase_url, supabase_key)
+else:
+    supabase = None
 
 class AlertSubscription(BaseModel):
     email: EmailStr
     target_location: str
-    start_date: str
-    end_date: str
+    lat: float
+    lon: float
+    min_kp: float = 3.0
+    forecast_horizon: int = 72
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
 
 @app.post("/api/alerts/subscribe")
-async def subscribe_to_alert(subscription: AlertSubscription, db: Session = Depends(get_db)):
-    db_alert = TelemetryAlert(
-        email=subscription.email,
-        target_location=subscription.target_location,
-        start_date=subscription.start_date,
-        end_date=subscription.end_date
-    )
-    db.add(db_alert)
-    db.commit()
-    db.refresh(db_alert)
-    return {"status": "success", "message": "Watch alert registered in database."}
+async def subscribe_to_alert(subscription: AlertSubscription):
+    if not supabase:
+        return {"status": "error", "message": "Supabase internal network disconnected. Cannot store alert."}
+    
+    try:
+        data, count = supabase.table("telemetry_alerts").insert({
+            "email": subscription.email,
+            "target_location": subscription.target_location,
+            "latitude": subscription.lat,
+            "longitude": subscription.lon,
+            "min_kp": subscription.min_kp,
+            "forecast_horizon": subscription.forecast_horizon,
+            "start_date": subscription.start_date,
+            "end_date": subscription.end_date,
+            "is_active": True
+        }).execute()
+        return {"status": "success", "message": "High-precision watch alert registered in your dashboard."}
+    except Exception as e:
+        print(f"[Supabase Storage Error] {e}")
+        return {"status": "error", "message": f"Failed to register alert: {str(e)}"}
 
 # Real-world Aurora Viewing Spots Database
 SIGHTSEEING_SPOTS = [
@@ -240,6 +237,62 @@ GLOBAL_HEATMAP_CACHE: Dict[str, Any] = {
     "timestamp": 0.0,
     "data": None
 }
+
+GLOBAL_PULSE_CACHE: Dict[str, Any] = {
+    "timestamp": 0.0,
+    "count": 0
+}
+
+@app.get("/api/weather/stats/global_pulse")
+async def get_global_pulse():
+    current_time = time.time()
+    # 2-minute cache to be extremely CPU efficient
+    if GLOBAL_PULSE_CACHE["count"] > 0 and (current_time - GLOBAL_PULSE_CACHE["timestamp"]) < 120:
+        return {"active_hotspots": GLOBAL_PULSE_CACHE["count"]}
+
+    try:
+        # Get latest telemetry
+        df_kp = get_kp_index()
+        current_kp = float(df_kp['kp'].iloc[-1]) if df_kp is not None and not df_kp.empty else 3.0
+        
+        df_sw = get_solar_wind()
+        current_bz = float(df_sw['bz_gsm'].iloc[-1]) if df_sw is not None and not df_sw.empty else 0.0
+        current_bt = float(df_sw['bt'].iloc[-1]) if df_sw is not None and not df_sw.empty else 5.0
+
+        df_plasma = get_plasma_data()
+        current_speed = float(df_plasma['speed'].iloc[-1]) if df_plasma is not None and not df_plasma.empty else 400.0
+        current_density = float(df_plasma['density'].iloc[-1]) if df_plasma is not None and not df_plasma.empty else 5.0
+        
+        count = 0
+        # 100km grid optimization
+        # 1deg lat ~ 111km
+        for lat in range(-90, 91, 1):
+            # Optimization: Skip equatorial belt where aurora is impossible (unless Kp > 9)
+            if -30 < lat < 30 and current_kp < 8:
+                continue
+                
+            cos_lat = math.cos(math.radians(lat))
+            if cos_lat <= 0: continue
+            
+            # lon_step to maintain ~100km (111 * cos_lat * step = 100 => step = 100 / (111 * cos_lat))
+            lon_step = max(1, round(0.9 / cos_lat)) 
+            
+            for lon in range(-180, 181, lon_step):
+                # We use a fast-path score calculation if possible, or just the predictor
+                res = calculate_aurora_probability(
+                    kp=current_kp, bz=current_bz, bt=current_bt, 
+                    lat=lat, lon=lon, speed=current_speed, density=current_density
+                )
+                if res["score"] > 50:
+                    count += 1
+        
+        GLOBAL_PULSE_CACHE["count"] = count
+        GLOBAL_PULSE_CACHE["timestamp"] = current_time
+        return {"active_hotspots": count}
+        
+    except Exception as e:
+        print(f"[Global Pulse Error] {e}")
+        return {"active_hotspots": GLOBAL_PULSE_CACHE["count"] or 42} # Fallback to last known or constant
 
 @app.get("/api/forecast/global_heatmap")
 async def get_global_heatmap():

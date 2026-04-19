@@ -40,8 +40,31 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'AuroraLens | Professional Global Aurora Forecast',
-  description: 'AI-powered space weather and aurora borealis forecasting for the globe.',
+  title: 'AuroraLens | Real-Time AI Aurora Visibility Forecast',
+  description: 'Precision aurora borealis visibility scores based on live NASA DSCOVR telemetry and XGBoost machine learning. Tracking space weather since 1981.',
+  keywords: ['aurora forecast', 'northern lights', 'space weather', 'DSCOVR telemetry', 'aurora score', 'NASA OMNI'],
+  openGraph: {
+    title: 'AuroraLens | The Intelligence Behind the Light',
+    description: 'Precision aurora visibility scoring powered by NASA open data.',
+    url: 'https://auroralens.online',
+    siteName: 'AuroraLens',
+    images: [
+      {
+        url: 'https://auroralens.online/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'AuroraLens Dashboard Preview',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AuroraLens | Real-Time Aurora Prediction',
+    description: 'Precision aurora visibility scores powered by AI.',
+    images: ['https://auroralens.online/og-image.png'],
+  },
 }
 
 export default function RootLayout({
@@ -61,7 +84,6 @@ export default function RootLayout({
             sparkCount={7}
             duration={400}
           >
-
             <main className="min-h-screen w-screen relative overflow-x-hidden p-0 m-0">
               {children}
             </main>
