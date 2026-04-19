@@ -60,8 +60,13 @@ export const metadata: Metadata = {
     type: 'website',
   },
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
+    icon: [
+      { url: '/favicon.ico?v=2' },
+      { url: '/icon.png?v=2', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png?v=2' },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
