@@ -420,7 +420,7 @@ const LandingPage_Mobile: React.FC = () => {
                     initialQuery: "What are the top 10 locations where aurora visibility is highest right now?\nInclude visibility score, KP index, and cloud cover for each."
                   } as any);
                 }}
-                className="mt-3 bg-transparent border-[1.5px] border-[#00F5C4] text-[#00F5C4] text-[11px] font-copy font-semibold uppercase tracking-[0.08em] px-[18px] py-[6px] rounded-full w-max hover:bg-[#00F5C4]/10 hover:shadow-[0_0_15px_rgba(0,245,196,0.2)] transition-all cursor-pointer z-10"
+                className="mt-3 md:mt-12 bg-transparent border-[1.5px] border-[#00F5C4] text-[#00F5C4] text-[11px] font-copy font-semibold uppercase tracking-[0.08em] px-[18px] py-[6px] rounded-full w-max hover:bg-[#00F5C4]/10 hover:shadow-[0_0_15px_rgba(0,245,196,0.2)] transition-all cursor-pointer z-10"
               >
                 FIND AURORA HOTSPOTS
               </button>
