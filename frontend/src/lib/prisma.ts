@@ -4,8 +4,7 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import ws from "ws";
 
 if (!process.env.DATABASE_URL) {
-  console.error("🚨 ALERT: Next.js cannot see the .env file!");
-  throw new Error("CRITICAL: DATABASE_URL is missing. Stopping server to prevent localhost default.");
+  console.warn("⚠️ WARNING: DATABASE_URL is missing. Prisma will be unavailable.");
 }
 
 
@@ -13,7 +12,7 @@ if (!process.env.DATABASE_URL) {
 neonConfig.webSocketConstructor = ws;
 
 // Grab your Neon connection string from .env
-const connectionString = `${process.env.DATABASE_URL}`;
+const connectionString = process.env.DATABASE_URL || "";
 
 // Initialize the Neon pool and Prisma adapter
 const pool = new Pool({ connectionString });
