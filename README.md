@@ -171,6 +171,17 @@ python main.py
 
 The backend API will be running at `http://localhost:8000` (FastAPI Default).
 
+### ⚡ Quick Launch (Windows)
+
+For local development on Windows, you can start both the frontend and backend servers simultaneously using the provided batch script from the root directory:
+
+```bash
+./start_all.bat
+```
+
+> [!NOTE]
+> This script is for **local development only**. It automates the process of opening two terminal windows and starting the FastAPI backend (`uvicorn`) and Next.js frontend (`npm run dev`) with live reload enabled.
+
 ---
 
 ## ⚠️ Project Status
