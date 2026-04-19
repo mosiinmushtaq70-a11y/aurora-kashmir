@@ -63,9 +63,7 @@ export default function Home() {
           map type driven by store.mapLayer ('VECTOR' | 'SATELLITE').
       ═══════════════════════════════════════════════════════════════════════ */}
       <div className="absolute inset-0 z-0">
-        {/* Optimized: Only mount the heavy 3D map engine when the user moves towards the HUD 
-            to prevent GPU lag during the initial landing page entrance. */}
-        {viewMode !== 'LANDING' && <LocationMap />}
+        <LocationMap />
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════

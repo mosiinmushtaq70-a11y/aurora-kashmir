@@ -11,8 +11,29 @@ import TimelineScrubber from './TimelineScrubber';
 import AIAssistantModal from './ui/AIAssistantModal';
 import MapSearchBar from './ui/MapSearchBar';
 
-const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY || 'zRabvh1uAz153y9zzhhh';
-const MAP_STYLE = `https://api.maptiler.com/maps/darkmatter/style.json?key=${MAPTILER_KEY}`;
+const CARTO_DARK = {
+  version: 8 as const,
+  sources: {
+    'carto-dark': {
+      type: 'raster' as const,
+      tiles: [
+        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }
+  },
+  layers: [
+    {
+      id: 'carto-dark-layer',
+      type: 'raster' as const,
+      source: 'carto-dark',
+      minzoom: 0,
+      maxzoom: 19
+    }
+  ]
+};
+const MAP_STYLE = CARTO_DARK;
 
 function AnimatedNumber({ value, format }: { value: number, format?: (v: number) => string }) {
   const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
