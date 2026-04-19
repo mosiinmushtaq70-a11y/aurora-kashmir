@@ -23,9 +23,9 @@ export const getBackendBaseUrl = (): string => {
     return 'http://127.0.0.1:8000';
   }
 
-  // In production, if NEXT_PUBLIC_BACKEND_URL is missing, we return empty string
-  // to avoid accidental 'localhost' calls from client browsers.
-  return '';
+  // In production, if NEXT_PUBLIC_BACKEND_URL is missing, we use the known Render URL 
+  // as a hard fallback to ensure the site works immediately after deploy.
+  return 'https://aurora-kashmir.onrender.com';
 };
 
 export const BACKEND_URL = getBackendBaseUrl();
