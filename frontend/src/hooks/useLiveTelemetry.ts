@@ -79,6 +79,7 @@ function mapResponse(json: ForecastAPIResponse, currentHotspots: number = 0): Li
     cloudCover:    json.cloud_cover   ?? 0,
     temperature:   json.temperature   ?? 0,
     precipitation: json.precipitation ?? 0,
+    lightPollution: json.light_pollution ?? 2,
     kp:            parseFloat(((score / 100) * 9).toFixed(2)),
     level:         json.level         ?? 'MINIMAL',
     bz:            json.telemetry?.bz_nt         ?? 0,
@@ -187,7 +188,8 @@ export function useLiveTelemetry() {
       if (!isMounted.current) return;
 
       setLiveData(mergeLiveData(useAppStore.getState().liveData, {
-        globalHotspots: json.active_hotspots ?? 0
+        globalHotspots: json.active_hotspots ?? 0,
+        topSpots: json.top_spots ?? []
       }));
     } catch (err) {
       console.error("[Global Pulse Fetch Error]", err);

@@ -207,7 +207,7 @@ const LocationHUD_Mobile: React.FC = () => {
                 {[
                   { label: 'Temp', val: liveData ? `${liveData.temperature.toFixed(1)}°C` : '-2.0°C' },
                   { label: 'Precip', val: liveData ? `${liveData.precipitation.toFixed(1)}mm` : '0.0mm' },
-                  { label: 'Light Pol', val: liveData ? (liveData.cloudCover < 20 ? 'Min.' : liveData.cloudCover < 60 ? 'Mid.' : 'High') : 'Min.' },
+                  { label: 'Light Pol', val: liveData ? `Bortle ${Math.round(liveData.lightPollution)}` : 'Bortle 2' },
                 ].map((item, idx) => (
                   <div key={idx} className="bg-[#0b0e14] p-3 rounded-xl border border-white/5 text-center">
                     <p className="text-[8px] uppercase tracking-widest text-[#bac9cc] mb-1">{item.label}</p>
