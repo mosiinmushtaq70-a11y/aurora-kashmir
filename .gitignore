@@ -28,12 +28,6 @@ cache/
 !package-lock.json
 
 # ML model binaries (too large for git — hosted as GitHub Release)
-models/
-*.pkl
-*.joblib
-*.h5
-*.model
-*.ckpt
 
 # Raw training data
 data/
