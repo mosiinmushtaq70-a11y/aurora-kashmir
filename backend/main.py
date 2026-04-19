@@ -331,7 +331,7 @@ async def get_global_pulse():
         return result
     except Exception as e:
         print(f"[Pulse Error] {e}")
-        return {"active_hotspots": GLOBAL_PULSE_CACHE["count"] or 42, "top_spots": GLOBAL_PULSE_CACHE.get("top_spots", [])}
+        return {"active_hotspots": 0, "top_spots": []}
 
 @app.get("/api/forecast/global_heatmap")
 async def get_global_heatmap():
