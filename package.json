@@ -1,0 +1,24 @@
+{
+  "name": "aurora-kashmir",
+  "version": "1.0.0",
+  "description": "> **Will you see the aurora tonight?**  \r > Real-time aurora visibility scoring for your exact location —  \r > powered by live NASA satellite data and a dual-stage XGBoost ML pipeline.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mosinmushtaq/aurora-kashmir.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/mosinmushtaq/aurora-kashmir/issues"
+  },
+  "homepage": "https://github.com/mosinmushtaq/aurora-kashmir#readme"
+}
