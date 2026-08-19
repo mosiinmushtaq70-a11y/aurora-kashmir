@@ -14,3 +14,4 @@
 2026-08-18T10:26:36.9778663+05:30 - test: mock external services in test suite
 2026-08-18T20:52:42.1948663+05:30 - feat: implement fallback mechanism for primary services
 2026-08-19T07:18:47.4128663+05:30 - fix: patch security vulnerability in dependency
+2026-08-19T17:44:52.6298663+05:30 - docs: update changelog with recent fixes
