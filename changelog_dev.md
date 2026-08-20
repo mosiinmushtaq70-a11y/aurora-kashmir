@@ -17,3 +17,4 @@
 2026-08-19T17:44:52.6298663+05:30 - docs: update changelog with recent fixes
 2026-08-20T04:10:57.8478663+05:30 - refactor: decouple frontend components from state management
 2026-08-20T14:37:03.0648663+05:30 - feat: add support for localization and internationalization
+2026-08-21T01:03:08.2818663+05:30 - chore: clean up unused variables and dead code
