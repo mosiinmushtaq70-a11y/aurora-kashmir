@@ -17,7 +17,7 @@
 [![Data: NASA OMNI](https://img.shields.io/badge/Data-NASA%20OMNI-red)](https://omniweb.gsfc.nasa.gov/)
 [![Status: Production](https://img.shields.io/badge/Status-Production-brightgreen)](https://auroralens.online)
 
-**[🌐 Live Demo](https://auroralens.online)** · **[📖 Developer Docs](https://auroralens.online/developer)** · **[🔬 ML Specification](ML_ENGINE_SPEC.md)** · **[🐛 Report a Bug](https://github.com/mosiinmushtaq70-a11y/aurora-kashmir/issues)** · **[💡 Request a Feature](https://github.com/mosiinmushtaq70-a11y/aurora-kashmir/issues)**
+**[🌐 Live Demo](https://auroralens.online)** · **[📖 Developer Docs](https://auroralens.online/developer)** · **[🔬 ML Specification](ML_ENGINE_SPEC.md)** · **[🐛 Report a Bug](https://github.com/mosinmushtaq/aurora-kashmir/issues)** · **[💡 Request a Feature](https://github.com/mosinmushtaq/aurora-kashmir/issues)**
 
 ---
 
@@ -147,7 +147,7 @@ For a deep dive into feature engineering and training methodology, see **[ML_ENG
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/mosiinmushtaq70-a11y/aurora-kashmir
+git clone https://github.com/mosinmushtaq/aurora-kashmir
 cd aurora-kashmir
 ```
 
@@ -202,7 +202,7 @@ Kashmir, India
 I built AuroraLens to turn open NASA datasets into a personal, high-fidelity experience. As an AI student with a passion for space weather, I wanted to bridge the gap between raw telemetry and real-world visibility.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Mosin%20Mushtaq-blue)](https://www.linkedin.com/in/mosiin-mushtaq)
-[![GitHub](https://img.shields.io/badge/GitHub-mosiinmushtaq70-black)](https://github.com/mosiinmushtaq70-a11y)
+[![GitHub](https://img.shields.io/badge/GitHub-mosiinmushtaq70-black)](https://github.com/mosinmushtaq)
 
 ---
 
