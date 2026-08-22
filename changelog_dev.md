@@ -20,3 +20,4 @@
 2026-08-21T01:03:08.2818663+05:30 - chore: clean up unused variables and dead code
 2026-08-21T11:29:13.4998663+05:30 - style: improve accessibility tags in HTML templates
 2026-08-21T21:55:18.7168663+05:30 - test: setup end-to-end testing framework
+2026-08-22T08:21:23.9348663+05:30 - feat: enhance error handling with custom error classes
