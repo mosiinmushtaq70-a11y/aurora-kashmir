@@ -5,8 +5,12 @@
 > powered by live NASA satellite data and a dual-stage XGBoost ML pipeline.
 
 ---
+<div align="center">
+  <img src="Aurora_Demo.mp4" alt="AuroraLens Live Demo" width="800" style="border-radius: 8px;">
+</div>
 
 ### 📝 Project Evolution: From Regional Study to Global Intelligence
+
 **Originally conceived as **Aurora Kashmir**, this project began as a localized exploration of geomagnetic data. As the vision scaled and the telemetry engine matured to process real-time NASA data for any coordinate on Earth, it evolved into **AuroraLens**—a high-fidelity, global platform for aurora intelligence.**
 ---
 
@@ -38,7 +42,7 @@ The result: a **0–100 visibility score for the exact location where you are st
 ## ✨ Features
 
 | Feature | Description |
-|---|---|
+| --- | --- |
 | 🎯 **Personal Aurora Score** | 0–100 score calculated for your GPS coordinates, not just a global average |
 | 🛰️ **Live DSCOVR Telemetry** | Bz(GSM), solar wind speed, and planetary Kp index refreshed every 60 seconds from NASA |
 | 🤖 **Dual-Stage XGBoost Model** | Stage 1 detects geomagnetic activity, Stage 2 classifies Kp intensity |
@@ -56,7 +60,7 @@ The result: a **0–100 visibility score for the exact location where you are st
 The core of AuroraLens is a machine learning model that processes real-time solar wind data into a human-readable score. Here is how each variable contributes:
 
 | Variable | Weight | Why It Matters |
-|---|---|---|
+| --- | --- | --- |
 | **Kp Index** | 40% | The planetary K-index is the standard measure of global geomagnetic activity. Anything above KP-5 typically produces visible aurora at high latitudes. |
 | **IMF Bz (GSM)** | 30% | The southward component of the interplanetary magnetic field. When Bz is negative (pointing south), solar wind connects with Earth's field and drives aurora. |
 | **Solar Wind Speed** | 20% | Faster solar wind (above 500 km/s) carries more energetic particles into the magnetosphere. |
@@ -115,7 +119,7 @@ graph TD
 ![AuroraLens ML Model Performance](auroralens_benchmark_graph.png)
 
 | Metric | Value |
-|---|---|
+| --- | --- |
 | Stage 1 — Activity Detection Accuracy | 74.6% |
 | Stage 2 — Intensity Classification Precision | 87.3% |
 | Overall Weighted F1-Score | 81.0% |
@@ -128,7 +132,7 @@ For a deep dive into feature engineering and training methodology, see **[ML_ENG
 ## 🛠️ Tech Stack
 
 | Layer | Technology | Why |
-|---|---|---|
+| --- | --- | --- |
 | **Frontend** | Next.js 15, React 19, Tailwind CSS 4 | Server-side rendering and performance |
 | **Animations** | Framer Motion | `whileInView` rendering saves GPU cycles |
 | **Backend** | Python / FastAPI | High-performance async handling of telemetry data |
@@ -187,6 +191,7 @@ For local development on Windows, you can start both the frontend and backend se
 ## ⚠️ Project Status
 
 Current known limitations:
+
 - Aurora score accuracy below latitude 45°N is undergoing calibration
 - Forecast horizon beyond 3 hours is experimental
 - **All Global Hotspots are 100% Live & Data-Driven**
