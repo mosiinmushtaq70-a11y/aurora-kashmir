@@ -257,7 +257,6 @@ GLOBAL_PULSE_CACHE = {"count": 0, "timestamp": 0, "top_spots": []}
 
 @app.get("/api/weather/stats/global_pulse")
 async def get_global_pulse():
-    global GLOBAL_PULSE_CACHE
     current_time = time.time()
     
     # Use cache if it's less than 1 hour old (3600 seconds)
