@@ -6,7 +6,7 @@
 
 ---
 <div align="center">
-  <img src="Aurora_Demo.mp4" alt="AuroraLens Live Demo" width="800" style="border-radius: 8px;">
+  <img src="auroralens_preview.gif" alt="AuroraLens Live Demo" width="800" style="border-radius: 8px;">
 </div>
 
 ### 📝 Project Evolution: From Regional Study to Global Intelligence
