@@ -30,6 +30,9 @@ export async function POST(req: Request) {
     baseURL,
   });
 
+  // 🔍 Diagnostic log — visible in Vercel Function Logs
+  console.log('[AuraAI] key_prefix=', apiKey.slice(0, 8) + '...', '| baseURL=', baseURL, '| model=', modelName);
+
   try {
     const body = await req.json();
     const { messages, context } = body;
