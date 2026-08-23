@@ -4,16 +4,21 @@ import OpenAI from 'openai';
 // Client will be instantiated inside the route handler to avoid build-time errors
 
 export async function POST(req: Request) {
-  if (!process.env.NVIDIA_API_KEY) {
+  const apiKey = process.env.GROQ_API_KEY || process.env.NVIDIA_API_KEY || process.env.OPENAI_API_KEY;
+  if (!apiKey) {
     return NextResponse.json(
-      { error: 'AI uplink offline. NVIDIA_API_KEY not configured.' },
+      { error: 'AI uplink offline. No API key configured (GROQ_API_KEY or NVIDIA_API_KEY).' },
       { status: 503 }
     );
   }
 
+  const isGroq = !!process.env.GROQ_API_KEY || apiKey.startsWith('gsk_');
+  const baseURL = isGroq ? 'https://api.groq.com/openai/v1' : 'https://integrate.api.nvidia.com/v1';
+  const modelName = isGroq ? 'llama-3.3-70b-versatile' : 'meta/llama-3.3-70b-instruct';
+
   const openai = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY,
-    baseURL: 'https://integrate.api.nvidia.com/v1',
+    apiKey,
+    baseURL,
   });
 
   try {
@@ -104,7 +109,7 @@ TONE: Monospaced-style brevity, technical, authority-driven. Use [[Name|lat,lng]
     ];
 
     const completion = await openai.chat.completions.create({
-      model: 'meta/llama-3.3-70b-instruct',
+      model: modelName,
       messages: apiMessages,
       temperature: 0.2,
       top_p: 0.7,

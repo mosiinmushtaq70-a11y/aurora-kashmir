@@ -8,15 +8,20 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { score, location, cloudCover, temperature } = body;
 
+    const apiKey = process.env.GROQ_API_KEY || process.env.NVIDIA_API_KEY || process.env.OPENAI_API_KEY || 'dummy_key_for_build';
+    const isGroq = !!process.env.GROQ_API_KEY || apiKey.startsWith('gsk_');
+    const baseURL = isGroq ? 'https://api.groq.com/openai/v1' : 'https://integrate.api.nvidia.com/v1';
+    const modelName = isGroq ? 'llama-3.3-70b-versatile' : 'meta/llama-3.3-70b-instruct';
+
     const openai = new OpenAI({
-      apiKey: process.env.NVIDIA_API_KEY || 'dummy_key_for_build',
-      baseURL: 'https://integrate.api.nvidia.com/v1',
+      apiKey,
+      baseURL,
     });
 
     const systemPrompt = `You are a tactical weather/aurora satellite AI. The user is targeting ${location}. Score is ${score}/100. Clouds: ${cloudCover}%. Temp: ${temperature}°C. Write a strict, 2-sentence tactical briefing. If the score is near a threshold (e.g., 49), note that photographic evidence is likely even if naked-eye visibility is low. No greetings, just raw tactical data.`;
 
     const completion = await openai.chat.completions.create({
-      model: "meta/llama-3.3-70b-instruct",
+      model: modelName,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: "Generate tactical brief." }
