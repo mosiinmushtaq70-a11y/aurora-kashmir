@@ -8,10 +8,19 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { score, location, cloudCover, temperature } = body;
 
-    const apiKey = process.env.GROQ_API_KEY || process.env.NVIDIA_API_KEY || process.env.OPENAI_API_KEY || 'dummy_key_for_build';
-    const isGroq = !!process.env.GROQ_API_KEY || apiKey.startsWith('gsk_');
-    const baseURL = isGroq ? 'https://api.groq.com/openai/v1' : 'https://integrate.api.nvidia.com/v1';
-    const modelName = isGroq ? 'llama-3.3-70b-versatile' : 'meta/llama-3.3-70b-instruct';
+    const rawKey = process.env.GROQ_API_KEY || process.env.NVIDIA_API_KEY || process.env.OPENAI_API_KEY || 'dummy_key_for_build';
+    const apiKey = rawKey.trim().replace(/^["']|["']$/g, '');
+
+    let baseURL = 'https://api.groq.com/openai/v1';
+    let modelName = 'llama-3.3-70b-versatile';
+
+    if (apiKey.startsWith('nvapi-')) {
+      baseURL = 'https://integrate.api.nvidia.com/v1';
+      modelName = 'meta/llama-3.3-70b-instruct';
+    } else if (apiKey.startsWith('sk-') && !apiKey.startsWith('gsk_')) {
+      baseURL = 'https://api.openai.com/v1';
+      modelName = 'gpt-4o-mini';
+    }
 
     const openai = new OpenAI({
       apiKey,
