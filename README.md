@@ -202,7 +202,7 @@ Kashmir, India
 I built AuroraLens to turn open NASA datasets into a personal, high-fidelity experience. As an AI student with a passion for space weather, I wanted to bridge the gap between raw telemetry and real-world visibility.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Mosin%20Mushtaq-blue)](https://www.linkedin.com/in/mosiin-mushtaq)
-[![GitHub](https://img.shields.io/badge/GitHub-mosiinmushtaq70-black)](https://github.com/mosinmushtaq)
+[![GitHub](https://img.shields.io/badge/GitHub-mosinmushtaq-black)](https://github.com/mosinmushtaq)
 
 ---
 
