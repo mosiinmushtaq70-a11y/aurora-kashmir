@@ -144,7 +144,10 @@ TONE: Monospaced-style brevity, technical, authority-driven. Use [[Name|lat,lng]
 
   } catch (error: any) {
     console.error('Chat API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || 'AI service error' },
+      { status: error.status || 500 }
+    );
   }
 }
 
